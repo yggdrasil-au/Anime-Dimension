@@ -1,0 +1,125 @@
+/*
+|--------------------------------------------------------------------------
+| USER PROFILE PAGE STYLES
+|--------------------------------------------------------------------------
+*/
+
+.user-banner {
+    position: relative;
+    height: clamp(160px, 28vw, 260px);
+    overflow: hidden;
+    border-bottom: 1px solid var(--bs-border-color-translucent);
+}
+
+.user-banner__image {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(100, 100, 100, 0.25), rgba(0, 0, 0, 0.25));
+    background-position: center;
+    background-size: cover;
+    filter: saturate(0.9) contrast(0.98);
+}
+
+.user-banner__overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.25) 20%, rgba(0, 0, 0, 0) 65%);
+    pointer-events: none;
+}
+
+.user-banner__actions {
+    position: relative;
+    height: 100%;
+    display: flex;
+    align-items: end;
+    justify-content: end;
+    padding-bottom: 0.75rem;
+}
+
+
+.profile-avatar {
+    width: 92px;
+    height: 92px;
+    border-radius: 50%;
+    background: var(--bs-secondary-bg);
+    border: 3px solid var(--bs-body-bg);
+    box-shadow: 0 0 0 1px var(--bs-border-color-translucent);
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+}
+
+.profile-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.avatar-initials {
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: var(--bs-body-color);
+    opacity: 0.85;
+}
+
+.profile-avatar .avatar-actions {
+    position: absolute;
+    inset: auto auto -10px 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 0.5rem;
+}
+
+.profile-stats {
+    color: var(--bs-body-color);
+    opacity: 0.9;
+}
+
+.profile-stats .list-inline-item + .list-inline-item {
+    margin-left: 1rem;
+}
+
+.profile-stats .stat-num {
+    font-weight: 600;
+}
+
+/* Ratings bar graph */
+.statGraph {
+    display: flex;
+    align-items: end;
+    gap: 6px;
+    height: 140px;
+    padding: 0;
+    margin: 0.5rem 0 0;
+    list-style: none;
+}
+
+.statGraph > li {
+    position: relative;
+    width: min(42px, 9%);
+    flex: 1 1 0;
+    background: var(--bs-secondary-bg);
+    border: 1px solid var(--bs-border-color-translucent);
+    border-radius: 4px 4px 0 0;
+}
+
+.statGraph > li.most {
+    background: color-mix(in srgb, var(--bs-primary) 45%, var(--bs-secondary-bg));
+}
+
+.statGraph > li.mid {
+    background: color-mix(in srgb, var(--bs-primary) 25%, var(--bs-secondary-bg));
+}
+
+.statGraph > li.least {
+    background: color-mix(in srgb, var(--bs-primary) 10%, var(--bs-secondary-bg));
+}
+
+.statGraph > li span {
+    position: absolute;
+    inset: auto 0 -1.25rem 0;
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--bs-secondary-color);
+}

@@ -1,0 +1,61 @@
+---
+/* url usage: https://anime-dimension.com/anime-csr?name=Naruto */
+
+
+import Head from "@components/_Head.astro";
+import Nav from "@components/_Nav.astro";
+import Footer from "@components/_Footer.astro";
+
+const MainJS = "../../js/main.min.js";
+const ThisJS = "../../js/anime-csr.min.js";
+const description = "Client-rendered anime detail page for dev testing.";
+---
+
+<!doctype html>
+<html lang="en" data-bs-theme="dark">
+    <head>
+        <Head title="Anime • CSR" description={description} />
+    </head>
+    <body class="sidebar-collapsed">
+        <div class="sky"></div>
+
+        <div id="app-wrapper">
+            <nav id="main-nav" class="main-nav p-2">
+                <Nav />
+            </nav>
+
+            <section>
+                <div id="page-content-wrapper" class="page-content-wrapper d-flex flex-column">
+                    <main class="flex-grow-1">
+                        <div class="container-xxl py-3">
+                            <div id="anime-csr" class="anime-page">
+                                <div id="anime-loading" class="d-flex align-items-center gap-2" role="status" aria-live="polite">
+                                    <div class="spinner-border text-primary" aria-hidden="true"></div>
+                                    <span>Loading anime…</span>
+                                </div>
+                                <div id="anime-error" class="alert alert-danger d-none" role="alert"></div>
+
+                                <article id="anime-article" class="row g-3 d-none">
+                                    <div class="col-auto">
+                                        <img id="animePoster" class="rounded" alt="Poster" width="190" height="260" loading="lazy" decoding="async" />
+                                    </div>
+                                    <div class="col">
+                                        <h1 id="animeTitle" class="h3 mb-2">—</h1>
+                                        <div id="animeMeta" class="text-body-secondary small mb-2"></div>
+                                        <p id="animeSummary" class="mb-3"></p>
+                                        <div id="animeTags" class="d-flex flex-wrap gap-1"></div>
+                                    </div>
+                                </article>
+                            </div>
+                        </div>
+                    </main>
+
+                </div>
+            </section>
+        </div>
+
+        <script is:inline src={MainJS}></script>
+        <script is:inline src={ThisJS}></script>
+    </body>
+</html>
+

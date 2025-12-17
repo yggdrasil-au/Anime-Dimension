@@ -1,0 +1,108 @@
+/*
+|--------------------------------------------------------------------------
+| [OPTIONAL] NIGHT THEME & SKY ANIMATION
+|--------------------------------------------------------------------------
+*/
+
+html.night-mode {
+    --bs-body-tertiary-bg: rgba(10, 10, 20, 0.4);
+    --bs-border-color: rgba(255, 255, 255, 0.1);
+
+    body {
+        background-color: transparent;
+    }
+
+    .sky {
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: -1;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background:
+            linear-gradient(
+                to bottom,
+                #000 0%,
+                #1a001a 10%,
+                #303 25%,
+                #3d003d 37%,
+                #400040 50%,
+                #3d003d 63%,
+                #303 75%,
+                #1a001a 90%,
+                #000 100%
+            );
+    }
+
+    .star {
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+        background-color: #b0f;
+        box-shadow: 0 0 5px 1px #b0f, 0 0 8px 2px rgba(185, 0, 0, 0.7);
+    }
+
+    .shooting-star {
+        position: absolute;
+        height: 2px;
+        background: linear-gradient(to left, #609, rgba(96, 0, 153, 0));
+        opacity: 0;
+    }
+}
+
+// Animations (grouped with Night Theme)
+@keyframes twinkle {
+    0%,
+    100% {
+        opacity: 0.5;
+        transform: scale(0.95);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+@keyframes shoot-down-left {
+    0% {
+        opacity: 1;
+        transform: translateX(0) translateY(0) rotate(-225deg);
+    }
+    100% {
+        opacity: 0;
+        transform: translateX(-150vmin) translateY(150vmin) rotate(-225deg);
+    }
+}
+@keyframes shoot-down-right {
+    0% {
+        opacity: 1;
+        transform: translateX(0) translateY(0) rotate(-315deg);
+    }
+    100% {
+        opacity: 0;
+        transform: translateX(150vmin) translateY(150vmin) rotate(-315deg);
+    }
+}
+@keyframes shoot-up-right {
+    0% {
+        opacity: 1;
+        transform: translateX(0) translateY(0) rotate(315deg);
+    }
+    100% {
+        opacity: 0;
+        transform: translateX(150vmin) translateY(-150vmin) rotate(315deg);
+    }
+}
+
+
+// Accessibility: Reduced Motion
+@media (prefers-reduced-motion: no-preference) {
+    html.night-mode .star {
+        animation: twinkle 3s infinite alternate;
+    }
+    .dir--down-left { animation: shoot-down-left linear infinite; }
+    .dir--down-right { animation: shoot-down-right linear infinite; }
+    .dir--up-right { animation: shoot-up-right linear infinite; }
+}
+

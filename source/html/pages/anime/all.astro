@@ -1,0 +1,481 @@
+---
+/* Offline all-anime search page
+ * Route usage: /anime/all?name=love
+ * Renders the same layout as the offline slug page, with a client-side
+ * offline search over a build-time, hardcoded dataset (no network requests).
+ */
+
+import Head from "@components/_Head.astro";
+import Nav from "@components/_Nav.astro";
+import Footer from "@components/_Footer.astro";
+import UpperHeader from "@components/_UpperHeader.astro";
+import HeroBanner from "@components/_HeroBanner.astro";
+import ContentTopBanner from "@components/_ContentTopBanner.astro";
+import LeftAdSidebar from "@components/_LeftAdSidebar.astro";
+import InlineBanner from "@components/_InlineBanner.astro";
+import RightSidebar from "@components/_RightSidebar.astro";
+// Prefer SQLite at build time
+const path = await import('node:path');
+const fs = await import('node:fs');
+
+type AnimeLite = {
+    slug: string;
+    title: string;
+    thumbnailUrl?: string;
+    year?: number | string;
+    type?: string;
+    tags?: string[];
+    summary?: string;
+};
+
+// Prefer SQLite at build time
+// Use the new central Anime‑Dimension linker DB populated from Anime‑Planet
+const dbPath = path.resolve(process.cwd(), 'Anime-Dimension-Database-Orchestrator', 'anime-dimension.sqlite3');
+
+let items: AnimeLite[] = [];
+
+if (fs.existsSync(dbPath)) {
+    // Use WASM SQLite (sql.js) to avoid native dependency in the build
+    const SQLMod: any = await import('sql.js').catch(() => null);
+    if (SQLMod) {
+        const initSqlJs = (SQLMod.default ?? SQLMod) as any;
+        const wasmPath = path.resolve(process.cwd(), 'node_modules/sql.js/dist/sql-wasm.wasm');
+        const SQL = await initSqlJs({ wasmBinary: fs.readFileSync(wasmPath) });
+        const buf = fs.readFileSync(dbPath);
+        const db = new SQL.Database(new Uint8Array(buf));
+        const qAll = db.prepare('SELECT slug, title, thumbnail_url, "year" AS year, "type" AS type, synopsis, id FROM anime WHERE slug IS NOT NULL ORDER BY title');
+        const rows: any[] = [];
+        while (qAll.step()) rows.push(qAll.getAsObject());
+        qAll.free();
+        const qTags = db.prepare('SELECT t.name FROM tag t JOIN anime_tag at ON at.tag_id = t.id WHERE at.anime_id = ? ORDER BY t.name');
+        items = rows.map((r) => {
+            const tags: string[] = (() => {
+                const out: string[] = [];
+                qTags.bind([r.id]);
+                while (qTags.step()) out.push(qTags.getAsObject().name);
+                qTags.reset();
+                return out;
+            })();
+            return {
+                slug: r.slug,
+                title: r.title,
+                thumbnailUrl: r.thumbnail_url ?? undefined,
+                year: r.year ?? undefined,
+                type: r.type ?? undefined,
+                tags,
+                summary: r.synopsis ?? undefined,
+            } as AnimeLite;
+        });
+    }
+}
+
+
+// Stable sort for deterministic build output
+items.sort((a, b) => a.title.localeCompare(b.title));
+
+// include root JS file dont use relative path
+const MainJS = "/js/main.min.js";
+
+// Fully prerender at build time
+export const prerender = true;
+
+---
+
+<!doctype html>
+<html lang="en" data-bs-theme="dark">
+    <head>
+        <Head title="Anime • Offline Search" description="Browse and search anime offline. Results are pre-bundled for fast, no-network usage." />
+        <style>
+            .MainSection { margin-top: 5rem; }
+            .filters .form-control { max-width: 420px; }
+            .results-meta { min-height: 1.5rem; }
+        </style>
+    </head>
+    <body class="sidebar-collapsed">
+        <div class="sky"></div>
+
+        <header id="upper-header" class="upper-header p-3 d-table d-none">
+            <UpperHeader />
+        </header>
+
+        <div id="app-wrapper">
+            <nav id="main-nav" class="main-nav p-2">
+                <Nav />
+            </nav>
+            <section>
+                <section id="hero-banner" class="hero-banner sb sb-homepage fullbleed p-3 rounded">
+                    <HeroBanner />
+                </section>
+
+                <div id="page-content-wrapper" style="height: 100%;" class="page-content-wrapper d-flex flex-column">
+                    <section id="content-top-banner" class="content-top-banner p-3 rounded d-none">
+                        <ContentTopBanner />
+                    </section>
+
+                    <div class="MainSection d-flex flex-column flex-md-row flex-grow-1">
+                        <aside id="left-ad-sidebar" class="left-ad-sidebar-overlay rounded d-none">
+                            <div class="left-ad-sidebar-content">
+                                <button id="close-left-ad-sidebar" type="button" class="btn-close" aria-label="Close"></button>
+                                <LeftAdSidebar />
+                            </div>
+                        </aside>
+
+                        <main class="flex-grow-1 p-4">
+                            <section id="inline-banner" class="inline-banner p-3 text-center rounded d-none">
+                                <InlineBanner />
+                            </section>
+
+                            <section class="content-area">
+                                <div class="container-xxl py-3">
+                                    <header class="mb-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                        <h1 class="h4 mb-0">All Anime (Offline)</h1>
+                                        <div class="results-meta text-body-secondary small" id="resultsMeta" aria-live="polite"></div>
+                                    </header>
+
+                                    <!-- Search + controls -->
+                                    <form id="searchForm" class="filters d-flex align-items-center gap-2 mb-3" method="get" action="">
+                                        <div class="input-group" role="group" aria-label="Offline search">
+                                            <span class="input-group-text" id="searchLabel"><i class="bi bi-search"></i></span>
+                                            <input id="nameInput" name="name" type="search" class="form-control" placeholder="Search anime…" aria-labelledby="searchLabel" />
+                                        </div>
+                                        <button class="btn btn-primary" type="submit">Search</button>
+                                    </form>
+                                    <!-- Results grid (6-up like homepage) -->
+                                    <div id="resultsGrid" class="row g-3 anim-row-fluid-6 row-cols-lg-6"></div>
+
+                                    <!-- Pagination -->
+                                    <nav id="pager" class="mt-3 d-flex flex-column align-items-center gap-2" aria-label="Results pages"></nav>
+                                </div>
+                            </section>
+                        </main>
+
+                        <aside id="right-sidebar" class="right-sidebar rounded d-none">
+                            <RightSidebar />
+                        </aside>
+                    </div>
+                </div>
+            </section>
+
+            
+            <footer class="main-footer p-3 mt-auto d-none d-lg-block">
+                <Footer />
+            </footer>
+        </div>
+
+        <!-- Build-time dataset embedded for light, offline client search -->
+        <script is:inline type="application/json" id="offline-data" set:html={JSON.stringify(items)}></script>
+
+        <script is:inline>
+            (function() {
+                const byId = (id) => document.getElementById(id);
+                const dataEl = byId('offline-data');
+                /** @type {Array<{slug:string,title:string,thumbnailUrl?:string,year?:string|number,type?:string,tags?:string[],summary?:string}>} */
+                const DATA = dataEl ? JSON.parse(dataEl.textContent || '[]') : [];
+
+                const grid = byId('resultsGrid');
+                const pager = byId('pager');
+                const meta = byId('resultsMeta');
+                const form = byId('searchForm');
+                const input = byId('nameInput');
+
+                const PAGE_SIZE = 42; // 6 x 7
+
+                const getParams = () => new URLSearchParams(location.search);
+                const setParams = (params) => {
+                    const url = new URL(location.href);
+                    url.search = params.toString();
+                    history.replaceState(null, '', url);
+                };
+
+                const norm = (s) => String(s || '').toLowerCase();
+                const matches = (q, item) => {
+                    if (!q) return true;
+                    const nq = norm(q);
+                    if (norm(item.title).includes(nq)) return true;
+                    if (norm(item.slug).includes(nq)) return true;
+                    if (item.summary && norm(item.summary).includes(nq)) return true;
+                    if (Array.isArray(item.tags) && item.tags.some(t => norm(t).includes(nq))) return true;
+                    return false;
+                };
+
+                const toText = (v) => (v == null ? '' : String(v));
+
+                // Build safe tooltip HTML from a dataset item
+                const buildTooltipHtml = (it) => {
+                    const root = document.createElement('div');
+
+                    const title = document.createElement('h5');
+                    title.className = 'theme-font';
+                    title.textContent = toText(it.title || 'Untitled');
+                    root.append(title);
+
+                    const hasEntry = it.type || it.year;
+                    if (hasEntry) {
+                        const ul = document.createElement('ul');
+                        ul.className = 'entryBar';
+                        if (it.type) {
+                            const li = document.createElement('li');
+                            li.className = 'type';
+                            li.textContent = toText(it.type);
+                            ul.append(li);
+                        }
+                        if (it.year) {
+                            const li = document.createElement('li');
+                            li.className = 'iconYear';
+                            li.textContent = toText(it.year);
+                            ul.append(li);
+                        }
+                        root.append(ul);
+                    }
+
+                    if (it.summary) {
+                        const p = document.createElement('p');
+                        p.textContent = toText(it.summary);
+                        root.append(p);
+                    }
+
+                    if (Array.isArray(it.tags) && it.tags.length) {
+                        const tagsDiv = document.createElement('div');
+                        tagsDiv.className = 'tags';
+                        const h4 = document.createElement('h4');
+                        h4.textContent = 'Tags';
+                        tagsDiv.append(h4);
+                        const ul = document.createElement('ul');
+                        for (const t of it.tags) {
+                            if (!t) continue;
+                            const li = document.createElement('li');
+                            li.textContent = String(t);
+                            ul.append(li);
+                        }
+                        tagsDiv.append(ul);
+                        root.append(tagsDiv);
+                    }
+
+                    return root.innerHTML;
+                };
+
+                // Tooltips auto-init now handled by /js/ui/tooltips.min.js
+
+                const renderGrid = (list) => {
+                    grid.innerHTML = '';
+                    for (const it of list) {
+                        const col = document.createElement('div');
+                        //col.className = 'col';
+
+                        const card = document.createElement('div');
+                        card.className = 'card h-100 anim-card';
+
+                        const img = document.createElement('img');
+                        img.className = 'card-img-top';
+                        if (it.thumbnailUrl) img.src = it.thumbnailUrl;
+                        img.alt = it.title;
+                        img.loading = 'lazy';
+                        img.decoding = 'async';
+
+                        const body = document.createElement('div');
+                        body.className = 'card-body p-2';
+
+                        const title = document.createElement('h6');
+                        title.className = 'card-title anim-card-title mb-1';
+                        title.textContent = it.title;
+
+                        const link = document.createElement('a');
+                        link.href = `/anime/${encodeURIComponent(it.slug)}.html`;
+                        link.className = 'stretched-link';
+                        link.setAttribute('aria-label', it.title);
+
+                        // Tooltip attributes and content
+                        try {
+                            const tooltipHtml = buildTooltipHtml(it);
+                            if (tooltipHtml && tooltipHtml.trim() !== '') {
+                                card.setAttribute('data-bs-toggle', 'tooltip');
+                                card.setAttribute('data-bs-placement', 'auto');
+                                card.setAttribute('data-bs-custom-class', 'anim-tooltip');
+                                card.setAttribute('data-tooltip-html', tooltipHtml);
+                            }
+                        } catch { /* ignore */ }
+
+                        body.append(title);
+                        card.append(img, body, link);
+                        col.append(card);
+                        grid.append(col);
+                    }
+                };
+
+                const renderPager = (total, page, onPage) => {
+                    pager.innerHTML = '';
+                    const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+                    if (pages <= 1) return;
+
+                    const mkBtn = (label, p, { disabled = false, active = false, ariaLabel } = {}) => {
+                        const btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.className = 'btn btn-sm ' + (active ? 'btn-primary' : 'btn-outline-secondary');
+                        btn.textContent = label;
+                        if (ariaLabel) btn.setAttribute('aria-label', ariaLabel);
+                        if (active) btn.setAttribute('aria-current', 'page');
+                        btn.disabled = disabled;
+                        if (!disabled && !active) btn.addEventListener('click', () => onPage(p));
+                        return btn;
+                    };
+
+                    const mkEllipsis = () => {
+                        const btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.className = 'btn btn-sm btn-outline-secondary disabled';
+                        btn.textContent = '…';
+                        btn.setAttribute('tabindex', '-1');
+                        btn.setAttribute('aria-hidden', 'true');
+                        btn.disabled = true;
+                        return btn;
+                    };
+
+                    // Compact mode for very small screens
+                    const isCompact = (window.innerWidth || 0) < 430;
+
+                    const group = document.createElement('div');
+                    group.className = 'btn-group';
+                    group.setAttribute('role', 'group');
+                    group.setAttribute('aria-label', 'Pagination');
+
+                    // Prev
+                    group.append(mkBtn('Prev', Math.max(1, page - 1), {
+                        disabled: page <= 1,
+                        ariaLabel: 'Previous page',
+                    }));
+
+                    if (!isCompact) {
+                        // Determine set of pages to show (desktop/tablet)
+                        const around = 2;  // pages around current
+                        const edge = 1;    // pages at the edges
+                        const show = new Set();
+
+                        for (let i = 1; i <= edge; i++) show.add(i);
+                        for (let i = pages - edge + 1; i <= pages; i++) if (i >= 1) show.add(i);
+                        for (let i = page - around; i <= page + around; i++) if (i >= 1 && i <= pages) show.add(i);
+
+                        const list = Array.from(show).sort((a, b) => a - b);
+
+                        // Page numbers with ellipses
+                        let prevNum = 0;
+                        for (const num of list) {
+                            if (prevNum && num - prevNum > 1) {
+                                group.append(mkEllipsis());
+                            }
+                            group.append(mkBtn(String(num), num, { active: num === page }));
+                            prevNum = num;
+                        }
+                    }
+
+                    // Next
+                    group.append(mkBtn('Next', Math.min(pages, page + 1), {
+                        disabled: page >= pages,
+                        ariaLabel: 'Next page',
+                    }));
+
+                    pager.append(group);
+
+                    // Page jump (always shown when multiple pages)
+                    const jumpForm = document.createElement('form');
+                    jumpForm.className = 'd-flex align-items-center gap-2 pager-jump';
+                    jumpForm.setAttribute('aria-label', 'Go to page');
+
+                    const label = document.createElement('label');
+                    label.className = 'visually-hidden';
+                    label.textContent = 'Go to page';
+                    const inputId = 'pagerJumpInput';
+                    label.setAttribute('for', inputId);
+
+                    const inputNum = document.createElement('input');
+                    inputNum.type = 'number';
+                    inputNum.id = inputId;
+                    inputNum.className = 'form-control form-control-sm';
+                    inputNum.placeholder = 'Page #';
+                    inputNum.min = '1';
+                    inputNum.max = String(pages);
+                    inputNum.inputMode = 'numeric';
+                    inputNum.style.width = '6rem';
+
+                    const goBtn = document.createElement('button');
+                    goBtn.type = 'submit';
+                    goBtn.className = 'btn btn-sm btn-primary';
+                    goBtn.textContent = 'Go';
+
+                    jumpForm.append(label, inputNum, goBtn);
+                    jumpForm.addEventListener('submit', (ev) => {
+                        ev.preventDefault();
+                        const n = Number.parseInt(inputNum.value, 10);
+                        if (Number.isFinite(n)) {
+                            const target = Math.min(pages, Math.max(1, n));
+                            if (target && target !== page) onPage(target);
+                        }
+                    });
+
+                    pager.append(jumpForm);
+                };
+
+                const update = () => {
+                    const params = getParams();
+                    const q = params.get('name') || '';
+                    const pageParam = Math.max(1, Number.parseInt(params.get('page') || '1', 10) || 1);
+                    // sync input
+                    if (input) input.value = q;
+
+                    const pool = DATA.filter((it) => matches(q, it));
+                    const total = pool.length;
+
+                    // Clamp page within bounds and reflect in URL if needed
+                    const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+                    const page = Math.min(pages, pageParam);
+                    if (page !== pageParam) {
+                        const p = getParams();
+                        p.set('page', String(page));
+                        setParams(p);
+                    }
+
+                    const start = (page - 1) * PAGE_SIZE;
+                    const pageItems = pool.slice(start, start + PAGE_SIZE);
+
+                    renderGrid(pageItems);
+                    renderPager(total, page, (nextPage) => {
+                        const p = getParams();
+                        p.set('page', String(nextPage));
+                        setParams(p);
+                        update();
+                    });
+
+                    if (meta) {
+                        meta.textContent = q ? `${total} result${total === 1 ? '' : 's'} for "${q}"` : `${total} result${total === 1 ? '' : 's'}`;
+                    }
+                };
+
+                // Handle submit
+                form?.addEventListener('submit', (ev) => {
+                    ev.preventDefault();
+                    const q = input ? input.value.trim() : '';
+                    const p = getParams();
+                    if (q) p.set('name', q); else p.delete('name');
+                    p.delete('page'); // reset to page 1
+                    setParams(p);
+                    update();
+                });
+
+                // Initial render
+                update();
+
+                // Re-render on resize so pager adapts under 430px
+                let resizeTimer = 0;
+                window.addEventListener('resize', () => {
+                    clearTimeout(resizeTimer);
+                    resizeTimer = window.setTimeout(() => update(), 150);
+                });
+            })();
+        </script>
+
+        <!-- Main bundle (theme + utilities). Already used globally. -->
+        <script is:inline src={MainJS}></script>
+        <!-- Shared tooltip runtime (UMD) -->
+        <script is:inline src="/js/ui/tooltips.js"></script>
+
+    </body>
+</html>

@@ -1,0 +1,97 @@
+---
+/* url usage: https://anime-dimension.com/anime-ssr/naruto */
+
+// ssr varient of the anime data display page, not in use, kept for reference and possible future use
+// use csr or ssg-csr or ssg-offline for best mobile and seo support
+
+
+import Head from "@components/_Head.astro";
+import Nav from "@components/_Nav.astro";
+import Footer from "@components/_Footer.astro";
+
+export const prerender = true;
+
+interface Dict { [k: string]: unknown }
+
+const slug = (Astro.params.slug || '').toString();
+const apiBase = 'https://api.anime-dimension.com';
+
+let anime: Dict | null = null;
+try {
+    const res = await fetch(`${apiBase}/api/anime/by-slug/${encodeURIComponent(slug)}`, { headers: { 'accept': 'application/json' } });
+    if (res.ok) {
+        anime = await res.json() as Dict;
+    }
+} catch {
+    // ignore fetch errors
+}
+
+const title = (anime?.title as string | undefined) || slug || 'Anime';
+const year = (anime?.year as string | undefined) || '';
+const type = (anime?.type as string | undefined) || '';
+const tooltip = (anime?.tooltip as string | undefined) || '';
+const desc = (anime?.summary as string | undefined) || '';
+const poster = (anime?.thumbnailUrl as string | undefined) || (anime?.image as string | undefined) || '';
+// Add tags from API response when available
+const tagsCandidate = (anime as unknown as { tags?: unknown })?.tags;
+const tags = Array.isArray(tagsCandidate) ? (tagsCandidate as string[]).filter(Boolean) : [] as string[];
+
+const MainJS = "../../js/main.min.js";
+---
+
+<!doctype html>
+<html lang="en" data-bs-theme="dark">
+    <head>
+        <Head title={`Anime • ${title}`} description={desc || `Server-rendered page for ${title}`} />
+        <link rel="canonical" href={`https://anime-dimension.com/anime-ssr/${encodeURIComponent(slug)}`} />
+    </head>
+    <body class="sidebar-collapsed">
+        <div class="sky"></div>
+
+        <div id="app-wrapper">
+            <nav id="main-nav" class="main-nav p-2">
+                <Nav />
+            </nav>
+
+            <section>
+                <div id="page-content-wrapper" class="page-content-wrapper d-flex flex-column">
+                    <main class="flex-grow-1">
+                        <div class="container-xxl py-3">
+                            <div class="anime-page">
+                                { anime ?
+                                    (
+                                        <article class="row g-3">
+                                            <div class="col-auto">
+                                                { poster ?
+                                                    ( <img src={poster} alt={`${title} poster`} width="190" height="260" class="rounded" loading="lazy" decoding="async" /> ) :
+                                                    ( <div class="rounded bg-secondary" style="width:190px;height:260px;"></div> )
+                                                }
+                                            </div>
+                                            <div class="col">
+                                                <h1 class="h3 mb-2">{title}</h1>
+                                                <div class="text-body-secondary small mb-2">{[type, year].filter(Boolean).join(' • ')}</div>
+                                                <p class="mb-3">{desc}</p>
+                                                {tags.length > 0 && (
+                                                    <div id="animeTags" class="d-flex flex-wrap gap-1">
+                                                        {tags.map((t) => (
+                                                            <span class="badge text-bg-secondary" data-tag={t}>{t}</span>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </article>
+                                    ) :
+                                    ( <div class="alert alert-warning" role="alert">Anime not found.</div> )
+                                }
+                            </div>
+                        </div>
+                    </main>
+
+                </div>
+            </section>
+        </div>
+
+        <script is:inline src={MainJS}></script>
+    </body>
+</html>
+

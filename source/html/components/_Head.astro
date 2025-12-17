@@ -1,0 +1,107 @@
+---
+// /source/html/components/_Head.astro
+
+const { title, description } = Astro.props
+
+// Build-time API base: prefer JSON runtime config, fallback to TS constant
+import { PUBLIC_API_BASE as TS_PUBLIC_API_BASE } from "@components/api.js";
+const apiBase = (TS_PUBLIC_API_BASE || "https://api.anime-dimension.com").replace(/\/$/, "");
+
+// Smart path resolution: calculate relative path based on directory depth
+let pathname = Astro.url.pathname;
+// Only count directories, not the filename itself
+const pathSegments = pathname.split('/').filter(segment => segment !== '');
+const depth = pathSegments.length > 0 ? pathSegments.length - 1 : 0;
+const deploymentPath = depth === 0 ? '../' : '../'.repeat(depth);
+if (pathname == ('/')) {
+    pathname = 'index.html';
+}
+const thisCanon = "https://anime-dimension.com/" + pathname;
+
+---
+
+<meta charset="utf8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>{title}</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<link rel="canonical" href={thisCanon} />
+
+<link rel="icon" href="/assets/favicon.webp" />
+
+<link rel="manifest" href="/site.webmanifest" />
+<script is:inline src="/js/register-service-worker.min.js" type="module"></script>
+
+<!-- Expose API base once for the whole app -->
+<meta data-api-base={apiBase} />
+<script is:inline>
+    // Make available on window as AD_API_BASE for legacy code
+    window.AD_API_BASE = "{apiBase}";
+    // Also set a CSS variable for optional use
+    document.documentElement.style.setProperty('--ad-api-base', "{apiBase}");
+    console.debug('[AD] API base:', "{apiBase}");
+    </script>
+
+<script is:inline>
+    // --- Initial theme load to prevent FOUC ---
+    (function () {
+        const theme = localStorage.getItem("theme") || "night"; // Default to "night" if no theme is set
+        if (theme === "night") {
+            // Set the base theme to "dark" for Bootstrap compatibility
+            document.documentElement.setAttribute(
+                "data-bs-theme",
+                "dark",
+            );
+            // Add your custom class for night-mode styles
+            document.documentElement.classList.add("night-mode");
+        } else if (theme === "auto") {
+            const prefersDark = globalThis.matchMedia(
+                "(prefers-color-scheme: dark)",
+            ).matches;
+            document.documentElement.setAttribute(
+                "data-bs-theme",
+                prefersDark ? "dark" : "light",
+            );
+        } else {
+            document.documentElement.setAttribute(
+                "data-bs-theme",
+                theme,
+            );
+        }
+    })();
+</script>
+
+<script is:inline src="/js/capacitorinit.js"></script>
+<script is:inline src="/js/ionic.js"></script>
+
+
+<!--begin::Accessibility Meta Tags-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+<meta name="color-scheme" content="light dark" />
+<meta name="theme-color" content="#007bff" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="#1a1a1a" media="(prefers-color-scheme: dark)" />
+<!--end::Accessibility Meta Tags-->
+
+<!--begin::Primary Meta Tags-->
+<meta name="title" content={title} />
+<meta name="author" content="Samarixum" />
+<meta name="description" content={description} />
+<meta name="keywords" content="" />
+<!--end::Primary Meta Tags-->
+
+<!--begin::Accessibility Features-->
+<!-- Skip links will be dynamically added by accessibility.js -->
+<meta name="supported-color-schemes" content="light dark" />
+{
+    /**
+     *  Main CSS file
+     *  This file contains the main styles for the application.
+     *  It is required for the layout and themes to work.
+     *  it is preloaded for performance.
+     */
+}
+<link rel="preload" href={deploymentPath + "css/main.min.css"} as="style" />
+<!--end::Accessibility Features-->
+
+<link rel="stylesheet" href={deploymentPath + "css/main.min.css"} />

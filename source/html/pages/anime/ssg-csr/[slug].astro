@@ -1,0 +1,162 @@
+---
+/* url usage: https://anime-dimension.com/anime-ssg/naruto */
+
+import Head from "@components/_Head.astro";
+import Nav from "@components/_Nav.astro";
+import Footer from "@components/_Footer.astro";
+
+type AnimeLite = {
+    slug: string;
+    title: string;
+    summary?: string;
+    thumbnailUrl?: string;
+    year?: number | string;
+    type?: string;
+    tags?: string[];
+};
+
+export async function getStaticPaths() {
+    // Use the same central SQLite source as the SSR slug page
+    const path = await import('node:path');
+    const fs = await import('node:fs');
+
+    // New linker DB populated from Anime‑Planet
+    const dbPath = path.resolve(process.cwd(), 'Anime-Dimension-Database-Orchestrator', 'anime-dimension.sqlite3');
+
+    const items: AnimeLite[] = [];
+
+    if (fs.existsSync(dbPath)) {
+        try {
+            const SQLMod: any = await import('sql.js');
+            const initSqlJs = (SQLMod.default ?? SQLMod) as any;
+            const wasmPath = path.resolve(process.cwd(), 'node_modules/sql.js/dist/sql-wasm.wasm');
+            const SQL = await initSqlJs({ wasmBinary: fs.readFileSync(wasmPath) });
+            const db = new SQL.Database(new Uint8Array(fs.readFileSync(dbPath)));
+            const qAll = db.prepare('SELECT id, slug, title, thumbnail_url, "year" AS year, "type" AS type, summary, synopsis FROM anime WHERE slug IS NOT NULL ORDER BY slug');
+            const qTags = db.prepare('SELECT t.name FROM tag t JOIN anime_tag at ON at.tag_id = t.id WHERE at.anime_id = ? ORDER BY t.name');
+            while (qAll.step()) {
+                const r = qAll.getAsObject() as any;
+                const tags: string[] = (() => {
+                    const out: string[] = [];
+                    qTags.bind([r.id]);
+                    while (qTags.step()) out.push(String(qTags.getAsObject().name));
+                    qTags.reset();
+                    return out;
+                })();
+                items.push({
+                    slug: String(r.slug),
+                    title: String(r.title),
+                    summary: (r.summary ?? r.synopsis ?? undefined) as string | undefined,
+                    thumbnailUrl: (r.thumbnail_url ?? undefined) as string | undefined,
+                    year: (r.year ?? undefined) as string | number | undefined,
+                    type: (r.type ?? undefined) as string | undefined,
+                    tags,
+                });
+            }
+            qAll.free();
+            qTags.free?.();
+        } catch {
+            // fall through to JSON fallback
+        }
+    }
+
+    if (items.length === 0) {
+        // Fallback: iterate per‑show JSON under AnimeCards/processed_json_output/all
+        const allDir = path.resolve(process.cwd(), 'Anime-Dimension-Database-Orchestrator', 'scraper', 'data', 'main', 'Source', 'AnimePlanet', 'AnimeCards', 'processed_json_output', 'all');
+        const toSlug = (href?: string) => {
+            if (!href) return;
+            try {
+                const u = new URL(href, 'https://anime-dimension.com');
+                const parts = u.pathname.split('/').filter(Boolean);
+                const idx = parts.indexOf('anime');
+                return idx !== -1 && idx + 1 < parts.length ? parts[idx + 1] : undefined;
+            } catch { return; }
+        };
+        const files = fs.existsSync(allDir) ? fs.readdirSync(allDir).filter((f) => f.endsWith('.json')) : [];
+        for (const f of files) {
+            try {
+                const raw = JSON.parse(fs.readFileSync(path.join(allDir, f), 'utf-8')) as any;
+                const slug = toSlug(raw.link);
+                if (!slug) continue;
+                items.push({
+                    slug,
+                    title: raw.title,
+                    summary: raw.synopsis ?? undefined,
+                    thumbnailUrl: raw.image_url ?? undefined,
+                    year: raw.year ?? undefined,
+                    type: raw.type ?? undefined,
+                    tags: Array.isArray(raw.tags) ? raw.tags : undefined,
+                });
+            } catch { /* ignore */ }
+        }
+    }
+
+    // De‑dup by slug and return params + preloaded data
+    const seen = new Set<string>();
+    const unique = items.filter(it => (seen.has(it.slug) ? false : (seen.add(it.slug), true)));
+    return unique.map((anime) => ({ params: { slug: anime.slug }, props: { slug: anime.slug, anime } }));
+}
+
+const { slug: slugProp, anime } = Astro.props as { slug?: string; anime?: AnimeLite };
+const { slug: slugParam } = Astro.params as { slug: string };
+const slug = slugProp || slugParam;
+const MainJS = "../../js/main.min.js";
+const ThisJS = "../../js/anime-ssg-csr.min.js";
+const description = anime?.summary || `Pre-rendered shell for ${slug}`;
+export const prerender = true;
+---
+
+<!doctype html>
+<html lang="en" data-bs-theme="dark">
+    <head>
+        <Head title={`Anime • ${anime?.title || slug}`} description={description} />
+    </head>
+    <body class="sidebar-collapsed">
+        <div class="sky"></div>
+
+        <div id="app-wrapper">
+            <nav id="main-nav" class="main-nav p-2">
+                <Nav />
+            </nav>
+
+            <section>
+                <div id="page-content-wrapper" class="page-content-wrapper d-flex flex-column">
+                    <main class="flex-grow-1">
+                        <div class="container-xxl py-3">
+                            <div id="anime-ssg" class="anime-page" data-slug={slug}>
+                                <div id="anime-loading" class={anime ? "d-flex align-items-center gap-2 d-none" : "d-flex align-items-center gap-2"} role="status" aria-live="polite">
+                                    <div class="spinner-border text-primary" aria-hidden="true"></div>
+                                    <span>Loading anime…</span>
+                                </div>
+                                <div id="anime-error" class="alert alert-danger d-none" role="alert"></div>
+
+                                <article id="anime-article" class={anime ? "row g-3" : "row g-3 d-none"}>
+                                    <div class="col-auto">
+                                        <img id="animePoster" class="rounded" alt={anime?.title ? `${anime.title} Poster` : "Poster"} width="190" height="260" loading="lazy" decoding="async" src={anime?.thumbnailUrl} />
+                                    </div>
+                                    <div class="col">
+                                        <h1 id="animeTitle" class="h3 mb-2">{anime?.title || '—'}</h1>
+                                        <div id="animeMeta" class="text-body-secondary small mb-2">{[anime?.type, anime?.year].filter(Boolean).join(' • ')}</div>
+                                        <p id="animeSummary" class="mb-3">{anime?.summary}</p>
+                                        <div id="animeTags" class="d-flex flex-wrap gap-1">
+                                            {Array.isArray(anime?.tags) && anime!.tags!.map((t) => (
+                                                <span class="badge text-bg-secondary">{t}</span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </article>
+                            </div>
+                        </div>
+                    </main>
+
+                </div>
+            </section>
+        </div>
+
+        {anime && (
+            <script is:inline type="application/json" id="anime-ssg-data" set:html={JSON.stringify(anime)}></script>
+        )}
+        <script is:inline src={MainJS}></script>
+        <script is:inline src={ThisJS}></script>
+    </body>
+</html>

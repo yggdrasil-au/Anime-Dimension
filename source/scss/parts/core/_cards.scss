@@ -1,0 +1,113 @@
+/*
+|--------------------------------------------------------------------------
+| CARDS (Homepage lists)
+|--------------------------------------------------------------------------
+*/
+// Fluid 7-up row that slightly shrinks then wraps
+.anim-row-fluid-7 {
+    display: flex;
+    flex-wrap: wrap;
+    // Center items on each wrapped row so leftover space splits evenly
+    justify-content: center;
+    > * {
+        flex: 0 0 auto;
+        // Keep 7-per-row on wide screens; enforce a sensible min width to wrap earlier on smaller widths
+        width: max(14.2857142857%, 125px);
+    }
+}
+
+// Fluid 6-up row variant
+.anim-row-fluid-6 {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    > * {
+        //flex: 0 0 auto;
+        // Default (mobile to small tablets): exactly 3 per row, no min width
+        width: 33.3333333333%;
+    }
+}
+
+// Larger tablets and up: exactly 6 per row
+@media (min-width: 992px) { // Bootstrap lg breakpoint
+    .anim-row-fluid-6 > * {
+        // Clamp desktop card width to avoid oversized cards on very wide screens
+        // Keep up to 6-per-row layout, but cap each item to 175px and center the row via parent justify-content
+        width: min(16.6666666667%, 175px);
+        max-width: 30%;
+    }
+}
+
+.anim-card .card-img-top {
+    aspect-ratio: 2 / 3;
+    width: 100%;
+    object-fit: cover;
+    background-color: var(--bs-secondary-bg);
+}
+
+.anim-card-title {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+// Bootstrap tooltip custom style for anime cards
+.anim-tooltip .tooltip-inner {
+    max-width: 450px;
+    text-align: left;
+    // Ensure content sits above the hover-bridge pseudo-element
+    position: relative;
+    z-index: 1;
+}
+
+/* Make tooltip interactable and easier to hover */
+.anim-tooltip {
+    pointer-events: auto;
+    --bs-tooltip-margin: 6px;
+    // Keep tooltip background dark in both light & dark themes (override Bootstrap default which turns white in dark mode)
+    // Uses a near-black background blended with the page bg for subtle adaptation
+    --bs-tooltip-bg: color-mix(in srgb, #000 90%, var(--bs-body-bg, #000) 10%);
+    // Ensure readable text on the dark background
+    --bs-tooltip-color: #fff;
+}
+.anim-tooltip::before {
+    content: "";
+    position: absolute;
+    inset: -6px; /* enlarge hoverable area to bridge the gap */
+    // Place the hover-bridge underneath the actual tooltip content so it doesn't block clicks
+    z-index: 0;
+}
+
+// Tags list inside tooltip: wrap items and style as chips
+.anim-tooltip .tags ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem; // space between tags
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    background: transparent; // keep tooltip bg; items get their own
+}
+
+.anim-tooltip .tags ul li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.125rem 0.5rem;
+    font-size: 0.875em;
+    border-radius: 0.25rem;
+    // Slightly darker than tooltip background
+    background-color: color-mix(in srgb, var(--bs-tooltip-bg) 85%, #000 15%);
+    border: 1px solid color-mix(in srgb, var(--bs-tooltip-bg) 70%, #000 30%);
+    color: inherit;
+}
+
+.anim-tooltip .tags ul li > a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.anim-tooltip .tags ul li > a:hover {
+    text-decoration: underline;
+}

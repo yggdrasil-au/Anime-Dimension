@@ -1,0 +1,19 @@
+/*
+|--------------------------------------------------------------------------
+| NAVIGATION ITEM VISIBILITY HELPERS
+|--------------------------------------------------------------------------
+*/
+
+.nav-item-tablet-up {
+    display: none; // Hidden on mobile by default
+}
+
+@media (min-width: 768px) {
+    .nav-item-mobile-only {
+        display: none;
+    }
+    .nav-item-tablet-up {
+        display: list-item;
+    }
+}
+

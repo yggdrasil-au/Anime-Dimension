@@ -1,0 +1,277 @@
+---
+// /source/html/pages/auth/index.astro
+
+// this is the login page
+
+import Head from "@components/_Head.astro"
+import Nav from "@components/_Nav.astro";
+import Footer from "@components/_Footer.astro";
+import UpperHeader from "@components/_UpperHeader.astro";
+import HeroBanner from "@components/_HeroBanner.astro";
+import ContentTopBanner from "@components/_ContentTopBanner.astro";
+import LeftAdSidebar from "@components/_LeftAdSidebar.astro";
+import InlineBanner from "@components/_InlineBanner.astro";
+import RightSidebar from "@components/_RightSidebar.astro";
+
+const ThisJS = "../js/main.min.js"
+---
+<!doctype html>
+
+{/* this is an astro comment that wont appear in the build output unlike normal html comments */}
+
+{/* data-bs-theme defines the default bootstrap colour theme, class= night-mode sets the night mode styles as default, changing this is unessasary as its controled via the JS/TS theme Controller */}
+<html lang="en" data-bs-theme="dark">
+    <head>
+        <Head title="Multi Platform Bootstrap CSS Template" />
+    </head>
+    <body class="sidebar-collapsed">
+        {/* This is the animated night mode background. */}
+        <div class="sky"></div>
+
+        {
+            /**
+             *  upper banner
+             *  This banner is visible by default and can be toggled via JS or the default button.
+             *  it can be hidden by default by adding the class d-none.
+             *  placing above the app-wrapper allows it to be at the top of the page on all screens.
+             */
+        }
+        <header id="upper-header" class="upper-header p-3 d-table d-none">
+            <UpperHeader />
+        </header>
+
+        {
+            /**
+             *  Main application wrapper
+             *  the app-wrapper class is defined in the main CSS file
+             */
+        }
+        <div id="app-wrapper">
+            {
+                /**
+                 *  Main Navigation Bar
+                 *  it dynamically adjusts based on screen size, becoming a bottom nav on mobile, topnav on desktop, and a collapsible sidebar on tablets.
+                 */
+            }
+            <nav id="main-nav" class="main-nav p-2">
+                <Nav />
+            </nav>
+            <section>
+                {
+                    /**
+                     *  main banner 2
+                     *  This banner is visible by default and can be toggled via JS or the default button.
+                     *  hidden by default, by adding the class d-none.
+                     */
+                }
+                <section id="hero-banner" class="hero-banner sb sb-homepage fullbleed p-3 rounded">
+                    <HeroBanner />
+                </section>
+
+                {
+                    /**
+                     *  Main section
+                     *  This section contains the main content of the page, the footer, and the right sidebar.
+                     *  the classes d-flex and flex-column are from Bootstrap 5 and are used to create a flexible layout.
+                     */
+                }
+                <div id="page-content-wrapper" style="height: 100%;" class="page-content-wrapper d-flex flex-column">
+                    {
+                        /**
+                         *  main banner
+                         *  This banner is visible by default and can be toggled via JS or the default button.
+                         *  hidden by default, by adding the class d-none.
+                         */
+                    }
+                    <section id="content-top-banner" class="content-top-banner p-3 rounded d-none">
+                        <ContentTopBanner />
+                    </section>
+                    <div class="MainSection d-flex flex-column flex-md-row flex-grow-1">
+                        {
+                            /**
+                             * Inner left sidebar
+                             * This sidebar becomes a full-screen overlay on tablet and mobile.
+                             * It is hidden by default via the 'd-none' class, which is toggled by JS.
+                             * on mobile and tablet, it becomes a central overlay element over the entire screen, good for advertisements or important notices.
+                             * It can be toggled on and off via JS or the default button.
+                             * It is d-none by default, but can be made unhidden by default by toggling the 'd-none' class.
+                             */
+                        }
+                        <aside id="left-ad-sidebar" class="left-ad-sidebar-overlay rounded d-none">
+                            <div class="left-ad-sidebar-content">
+                                <button id="close-left-ad-sidebar" type="button" class="btn-close" aria-label="Close"></button>
+                                <LeftAdSidebar />
+                            </div>
+                        </aside>
+                        {
+                            /**
+                             * Main Content Area
+                             * This is where the main content of the page will be displayed.
+                             */
+                        }
+                        <main class="flex-grow-1 p-4">
+                            {
+                                /**
+                                 *  Inner banner
+                                 *  This banner is visible by default and can be toggled via JS or the default button.
+                                 *  it can be hidden by default by adding the class d-none.
+                                 */
+                            }
+                            <section id="inline-banner" class="inline-banner p-3 text-center rounded d-none" >
+                                <InlineBanner />
+                            </section>
+                            <section class="content-area">
+                                <div class="homepage pullup">
+                                    {/** Main content Area */}
+                                    <div id="authmodals">
+                                        <div>
+                                            <div class="">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-header">
+                                                        <sub></sub>
+                                                        <button class="modal-close">
+                                                            <i class="fas fa-times"></i>
+                                                        </button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <div class="modal-content">
+                                                            <div class="Login">
+                                                                <div class="LoginHeader">
+                                                                    <img src="/assets/inc/img/logos/dimension-kun.svg">
+                                                                    <h1> Log in to Anime-Dimension </h1>
+                                                                    <p> Need an account? <a href="/auth/register.html">Sign up now</a>
+                                                                    </p>
+                                                                </div>
+                                                                {/* api login endpoint: https://api.anime-dimension.com/api/login */}
+                                                                <form id="login-form" class="pure-form pure-form-aligned" novalidate>
+                                                                    <!-- -->
+                                                                    <div class="LoginInputs">
+                                                                        <div class="pure-control-group">
+                                                                            <input type="text" name="username" class="required" autofocus placeholder="Username or email address" autocomplete="username">
+                                                                        </div>
+                                                                        <div class="pure-control-group">
+                                                                            <input type="password" name="password" class="required" placeholder="Password" autocomplete="current-password">
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="LoginActions pure-controls">
+                                                                        <button class="button cta" type="submit"> Log in </button>
+                                                                    </div>
+                                                                    <div id="login-error" class="text-danger mt-2" role="alert" style="display:none"></div>
+                                                                    <div id="login-success" class="text-success mt-2" style="display:none"></div>
+                                                                </form>
+                                                                <div class="LoginFooter">
+                                                                    <p>
+                                                                        <a href="/forgot.html">Forgot your password?</a>
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+                        </main>
+
+                        {
+                            /**
+                             *  Right Sidebar
+                             *  This sidebar can be toggled on and off via JS or the default button.
+                             *  It is visible by default, but can be made hidden by default by adding the class d-none, this ensures the gap is maintained but the sidebar is not visible to avoid using the right side of the screen space on large screens.
+                             *  on mobile and tablet, it becomes a central element below the main content area.
+                             */
+                        }
+                        <aside id="right-sidebar" class="right-sidebar rounded d-none">
+                            <RightSidebar />
+                        </aside>
+                    </div>
+                </div>
+            </section>
+            {
+                /**
+                 *  Footer
+                 *  This footer is visible on larger screens and hidden on mobile and tablet.
+                 */
+            }
+            <footer class="main-footer p-3 mt-auto d-none d-lg-block">
+                <Footer />
+            </footer>
+        </div>
+
+        {
+            /**
+             *  This is the main JavaScript file.
+             *  It contains the theme switcher and sidebar toggle logic.
+             *  It is required for the theme switcher and right sidebar toggle.
+             */
+        }
+        <script is:inline src={ThisJS}></script>
+        <script is:inline>
+            (() => {
+                // If already logged in, bounce to home
+                const getApiBase = () => {
+                    const probe = document.querySelector('[data-api-base]');
+                    const base = probe && probe.getAttribute('data-api-base');
+                    return (base || 'https://api.anime-dimension.com').replace(/\/$/, '');
+                };
+                (async () => {
+                    try {
+                        const res = await fetch(`${getApiBase()}/api/login/validateState`, { method: 'PUT', credentials: 'include' });
+                        const data = await res.json().catch(() => ({}));
+                        if (data && data.status === 'ok') {
+                            window.location.replace('/');
+                            return;
+                        }
+                    } catch {
+                        //
+                    }
+                })();
+                const form = document.getElementById('login-form');
+                if (!form) return;
+                const errEl = document.getElementById('login-error');
+                const okEl = document.getElementById('login-success');
+
+                const show = (el, msg) => { if (!el) return; el.textContent = String(msg || ''); el.style.display = msg ? 'block' : 'none'; };
+                const clear = () => { show(errEl, ''); show(okEl, ''); };
+
+                form.addEventListener('submit', async (ev) => {
+                    ev.preventDefault();
+                    clear();
+
+                    const fd = new FormData(form);
+                    const username = (fd.get('username') || '').toString().trim();
+                    const password = (fd.get('password') || '').toString();
+                    if (!username || !password) {
+                        show(errEl, 'Please enter your username and password.');
+                        return;
+                    }
+                    const apiBase = getApiBase();
+                    try {
+                        const res = await fetch(`${apiBase}/api/login`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Platform': 'web',
+                            },
+                            body: JSON.stringify({ _username: username, _password: password, _remember_me: true }),
+                            credentials: 'include',
+                        });
+                        const data = await res.json().catch(() => ({}));
+                        const status = (data && data.status) || (res.ok ? 'ok' : 'err');
+                        if (status !== 'ok') {
+                            const msg = (data && data.msg) || 'Login failed. Check your details and try again.';
+                            show(errEl, msg);
+                            return;
+                        }
+                        show(okEl, 'Logged in! Redirecting…');
+                        setTimeout(() => { window.location.href = '/'; }, 600);
+                    } catch (error) {
+                        show(errEl, error instanceof Error ? error.message : 'Network error.');
+                    }
+                });
+            })();
+        </script>
+    </body>
+</html>

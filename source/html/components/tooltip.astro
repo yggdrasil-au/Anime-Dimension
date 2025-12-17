@@ -1,0 +1,53 @@
+---
+const { TITLE, ALT_TITLE, DESCRIPTION, NOTES, TAGS, TYPE, STUDIO, ICON_YEAR, RATING } = Astro.props;
+
+// placeholders
+let title = TITLE ?? "Pick Me Up";
+let alt_title = ALT_TITLE ?? "Tsuyokute New Saga";
+let type = TYPE ?? "TV (11+ eps)";
+let studio = STUDIO ?? "STUDIO MASSKET";
+let iconYear = ICON_YEAR ?? "2025 - ?";
+let rating = RATING ?? "3.4";
+let description = DESCRIPTION ?? "After a grueling battle, the magic knight Kyle finally defeats the demon lord... or so he believes. He wakes up to find himself in the land that had been destroyed in his past life. He is reunited with the precious person he thought he had lost forever. To stop the human world from being destroyed again, along with his friends, Kyle uses his memory from his previous life to once again save the world! A fantasy saga about a brave knight!";
+let notes = NOTES ?? ["Source: Alpha Manga"];
+let Tags = TAGS ?? ["Action", "Adventure", "Drama", "Fantasy", "Romance", "Age Transformation", "Demons", "Dragons", "Magic", "Second Chance", "Time Travel", "Based on a Manga"];
+
+
+
+---
+<div>
+    <h5 class="theme-font">{title}</h5>
+    { alt_title && (<h6 class="theme-font tooltip-alt">Alt title: {alt_title}</h6>) }
+    { (type && studio && iconYear && rating) &&
+        (<ul class="entryBar">
+            { type && <li class="type">{type}</li> }
+            { studio && <li>{studio}</li> }
+            { iconYear && <li class="iconYear">{iconYear}</li> }
+            { rating && (
+                <li>
+                    <div class="ttRating">{rating}</div>
+                </li>
+            ) }
+        </ul>)
+    }
+    { description && (<p>{description}</p>) }
+    { notes.length > 0 && (
+        <div class="tooltip notes">
+            { notes && (
+                notes.map((note: string) => (
+                    <p>{note}</p>
+                ))
+            )}
+        </div>
+    )}
+    { Tags.length > 0 && (
+        <div class="tags">
+            <h4>Tags</h4>
+            <ul>
+                {Tags.map((tag: string) => (
+                    <li>{tag}</li>
+                ))}
+            </ul>
+        </div>
+    )}
+</div>

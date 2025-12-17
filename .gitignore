@@ -1,0 +1,79 @@
+# generated types
+.astro/
+
+# unwanted types
+**/env.d.ts
+
+.VSCodeCounter/
+
+.old/
+**/.history/**
+.history/
+/.history/
+
+# System / Log files
+*.DS_Store
+*.log
+
+# Archives
+*.zip
+
+# Sass Cache
+.sass-cache
+
+# Project files
+.idea
+nbproject
+nbproject/private
+.vscode/
+.vs/
+
+# Node / Bower
+node_modules/
+bower_components/
+
+# Docs
+/docs/_site/
+/docs/vendor/
+/docs/.bundle/
+/docs_html/
+.jekyll-cache/
+.jekyll-metadata
+
+# ETC
+TODO
+test.html
+ad.js
+/.cache/
+CLAUDE.md
+
+ios/
+android/
+public/
+www/
+
+#source/assets/**
+
+package-lock.json
+
+#.gitmodules
+
+*.pyc
+
+Anime-Dimension-Database-Orchestrator/**
+!Anime-Dimension-Database-Orchestrator/
+
+android/
+ios/
+
+# Local environment files
+.env*
+!.env.deploy.example
+deploy.config.json
+
+Apache24/
+capacitor-assets/
+!Anime-dimension-api/
+Anime-dimension-api/**
+
+.lampctl-project.conf

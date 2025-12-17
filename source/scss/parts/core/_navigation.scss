@@ -1,0 +1,336 @@
+/*
+|--------------------------------------------------------------------------
+| MAIN NAVIGATION (.main-nav)
+|--------------------------------------------------------------------------
+*/
+
+.main-nav {
+    background-color: var(--bs-secondary-bg);
+    border: 1px solid var(--bs-border-color);
+    transition: width 0.3s ease;
+
+    // Mobile: Bottom Nav
+    @media (max-width: 767.98px) {
+        position: fixed;
+        bottom: 0;
+        z-index: 1030;
+        width: 100%;
+        height: 77px;
+    }
+
+    // Tablet: Collapsible Side Nav
+    @media (min-width: 768px) and (max-width: 992px) {
+        flex-shrink: 0;
+        width: 250px;
+        position: relative; // create stacking context for dropdowns within nav
+        z-index: 1030; // keep above adjacent content panes
+    }
+
+    // Desktop: Top Nav
+    @media (min-width: 992px) {
+        width: 100%;
+        height: auto;
+    }
+}
+
+.nav-list {
+    // Mobile
+    @media (max-width: 767.98px) {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-around;
+        height: 100%;
+    }
+
+    // Tablet
+    @media (min-width: 768px) and (max-width: 992px) {
+        flex-direction: column;
+    }
+
+    // Desktop
+    @media (min-width: 992px) {
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        // Prevent full-width container from blocking clicks to other header items
+        pointer-events: none;
+    }
+}
+
+.nav-item {
+    font-size: larger;
+}
+
+.main-nav .nav-label {
+    // Hide on mobile by default
+    @media (max-width: 767.98px) {
+        display: none;
+    }
+}
+
+.nav-icon {
+    margin-right: 0.5rem; // Space between icon and label
+}
+
+// Tablet-specific styles for collapsed sidebar state
+body.sidebar-collapsed {
+    @media (min-width: 768px) and (max-width: 992px) {
+        .main-nav {
+            width: 70px;
+        }
+        .main-nav .nav-label,
+        .main-nav .dropdown-toggle::after {
+            display: none;
+        }
+        .main-nav .nav-link {
+            justify-content: center;
+        }
+        .nav-icon {
+            margin-right: 0;
+        }
+        /* Prevent tablet logo from shrinking in collapsed sidebar */
+        .siteLogo {
+            overflow: visible;
+        }
+        .siteLogo,
+        .siteLogo svg {
+            flex: 0 0 auto;
+        }
+        .siteLogo svg {
+            max-width: none !important;
+        }
+    }
+}
+
+// Desktop: Theme toggler alignment
+#theme-toggler {
+    @media (min-width: 992px) {
+        position: absolute;
+        right: 1rem;
+    }
+}
+
+/* Auth buttons + Nav brand/logo */
+/* Hide both logo variants by default (mobile) */
+.siteLogo {
+    display: none;
+}
+.siteLogo svg .logo {
+    display: none;
+}
+
+/* Tablet: show tablet logo at top (above toggle) */
+@media (min-width: 768px) and (max-width: 991.98px) {
+    .siteLogo {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 0.5rem;
+    }
+    .siteLogo svg {
+        height: 37px;
+        width: auto;
+        // Prevent moving off screen in collapsed mode
+        position: sticky;
+        left: 0;
+    }
+    .siteLogo svg #tablet.logo {
+        display: inline;
+    }
+    .siteLogo svg #desktop.logo {
+        display: none;
+    }
+}
+
+/* Desktop: left-aligned desktop logo */
+@media (min-width: 992px) {
+    .main-nav {
+        position: relative;
+    }
+    .siteLogo {
+        display: block;
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+    .siteLogo svg {
+        height: 48px;
+        width: auto;
+    }
+    .siteLogo svg #desktop.logo {
+        display: inline;
+    }
+    .siteLogo svg #tablet.logo {
+        display: none;
+    }
+}
+
+/* Auth buttons: hidden on mobile, centered on tablet, right aligned on desktop */
+.auth-buttons {
+    display: none;
+}
+/* Loader: same placement rules as auth buttons */
+.auth-loading {
+    display: none;
+}
+@media (min-width: 768px) and (max-width: 991.98px) {
+    .auth-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        margin: 0.5rem 0 1rem;
+        flex-flow: wrap;
+    }
+    .auth-loading {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 0.5rem 0 1rem;
+    }
+}
+@media (min-width: 992px) {
+    .auth-buttons {
+        display: flex;
+        gap: 0.5rem;
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 2; // ensure above centered nav container
+    }
+    .auth-loading {
+        display: flex;
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 2;
+        align-items: center;
+    }
+}
+
+// Re-enable pointer events for actual interactive items inside the centered nav
+@media (min-width: 992px) {
+    .nav-list > li,
+    .nav-list a,
+    .nav-list .nav-link,
+    .nav-list .dropdown-toggle,
+    .nav-list .dropdown-menu {
+        pointer-events: auto;
+    }
+}
+
+/* User widget (replaces auth buttons when logged in) */
+#siteUser {
+    display: none; // hidden on mobile by default
+}
+
+@media (min-width: 768px) and (max-width: 991.98px) {
+    #siteUser {
+        display: flex;
+        justify-content: center;
+        margin: 0.5rem 0 1rem;
+        position: relative; // create stacking context for dropdown
+        z-index: 1042; // above Bootstrap dropdowns (1000) and offcanvas (1040)
+    }
+}
+
+@media (min-width: 992px) {
+    #siteUser {
+        display: block;
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 1042; // keep above content and dropdowns
+        pointer-events: auto;
+    }
+}
+
+#siteUser .loggedIn {
+    position: relative;
+    display: inherit; // should inherit 'flex' from parent #siteUser
+}
+
+#siteUser .user-avatar-link {
+    display: inherit; // should inherit 'flex' from parent .loggedIn
+    padding: 9px;
+}
+
+#siteUser .user-avatar {
+    width: 40px;
+    height: 40px;
+    max-width: 50px;
+    max-height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid var(--bs-border-color);
+}
+
+#siteUser .loggedInOptions {
+    position: absolute;
+    right: 0;
+    top: 100%; // position below avatar, by its entire height including padding
+    @media (min-width: 768px) and (max-width: 991.98px) {
+        left: 0; // keep within window on tablet, prevent floating off left edge
+    }
+    min-width: 220px;
+    padding: 0.5rem 0;
+    margin: 0;
+    list-style: none; // no bullets
+    background: var(--bs-body-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.5rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    display: none;
+    z-index: 1045; // above Bootstrap dropdowns (1000)
+}
+
+#siteUser .loggedIn:hover .loggedInOptions,
+#siteUser .loggedIn:focus-within .loggedInOptions {
+    display: inherit; // should inherit 'flex' from parent .loggedIn
+    flex-flow: column;
+}
+
+#siteUser .loggedInOptions li {
+    padding: 0;
+}
+
+#siteUser .loggedInOptions li > a,
+#siteUser .loggedInOptions li > button {
+    display: inherit;
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    text-decoration: none;
+    color: var(--bs-body-color);
+    background: transparent;
+    border: 0;
+    text-align: left;
+}
+
+#siteUser .loggedInOptions li > a:hover,
+#siteUser .loggedInOptions li > a:focus,
+#siteUser .loggedInOptions li > button:hover,
+#siteUser .loggedInOptions li > button:focus {
+    background: var(--bs-secondary-bg);
+}
+
+#siteUser .loggedInOptions hr {
+    margin: 0.25rem 0;
+    border-color: var(--bs-border-color);
+    opacity: 0.4;
+}
+
+/* Simple CSS spinner animation (uses Bootstrap Icon) */
+@keyframes ad-rotate {
+    to { transform: rotate(360deg); }
+}
+.ad-spin {
+    display: inline-block;
+    width: 1.25rem;
+    height: 1.25rem;
+    animation: ad-rotate 0.9s linear infinite;
+}

@@ -1,0 +1,400 @@
+---
+// /source/html/pages/index.astro
+import Head from "@components/_Head.astro";
+import Nav from "@components/_Nav.astro";
+import Footer from "@components/_Footer.astro";
+import UpperHeader from "@components/_UpperHeader.astro";
+import HeroBanner from "@components/_HeroBanner.astro";
+import ContentTopBanner from "@components/_ContentTopBanner.astro";
+import LeftAdSidebar from "@components/_LeftAdSidebar.astro";
+import InlineBanner from "@components/_InlineBanner.astro";
+import RightSidebar from "@components/_RightSidebar.astro";
+
+const ThisJS = "../js/main.min.js"
+const ThisUsersJS = "../js/users.min.js"
+const description = "Anime Dimension is a multi platform anime discovery and tracking web app, built with modern web technologies and designed to work on all devices, including mobile, tablet and desktop. It features a responsive design, dark mode, and a variety of other features to enhance your anime experience.";
+
+---
+
+<!doctype html>
+{/* this is an astro comment that wont appear in the build output unlike normal html comments */}
+
+{/* data-bs-theme defines the default bootstrap colour theme, class= night-mode sets the night mode styles as default, changing this is un-necessary as its controlled via the JS/TS theme Controller */}
+<html lang="en" data-bs-theme="dark">
+    <head>
+        <Head title="Multi Platform Bootstrap CSS Template" description={description} />
+    </head>
+    <body class="sidebar-collapsed">
+        <script is:inline>
+            // Redirect to login if user is not authenticated
+            (() => {
+                const getApiBase = () => {
+                    const probe = document.querySelector('[data-api-base]');
+                    const base = probe && probe.getAttribute('data-api-base');
+                    return (base || 'https://api.anime-dimension.com').replace(/\/$/, '');
+                };
+                (async () => {
+                    try {
+                        const res = await fetch(`${getApiBase()}/api/login/validateState`, {
+                            method: 'PUT',
+                            credentials: 'include',
+                        });
+                        const data = await res.json().catch(() => ({}));
+                        if (!data || data.status !== 'ok' || !data.data) {
+                            window.location.replace('/auth/index.html');
+                        }
+                    } catch {
+                        // On error, assume not logged in
+                        window.location.replace('/auth/index.html');
+                    }
+                })();
+            })();
+        </script>
+        {/* This is the animated night mode background. */}
+        <div class="sky"></div>
+
+        {
+            /**
+             *  upper banner
+             *  This banner is visible by default and can be toggled via JS or the default button.
+             *  it can be hidden by default by adding the class d-none.
+             *  placing above the app-wrapper allows it to be at the top of the page on all screens.
+             */
+        }
+        <header id="upper-header" class="upper-header p-3 d-table d-none">
+            <UpperHeader />
+        </header>
+
+        {
+            /**
+             *  Main application wrapper
+             *  the app-wrapper class is defined in the main CSS file
+             */
+        }
+        <div id="app-wrapper">
+            {
+                /**
+                 *  Main Navigation Bar
+                 *  it dynamically adjusts based on screen size, becoming a bottom nav on mobile, topnav on desktop, and a collapsible sidebar on tablets.
+                 */
+            }
+            <nav id="main-nav" class="main-nav p-2">
+                <Nav />
+            </nav>
+            <section>
+                {
+                    /**
+                     *  main banner 2
+                     *  This banner is visible by default and can be toggled via JS or the default button.
+                     *  hidden by default, by adding the class d-none.
+                     */
+                }
+                <section id="hero-banner" class="hero-banner sb sb-homepage fullbleed p-3 rounded d-none">
+                    <HeroBanner />
+                </section>
+                
+                {
+                    /**
+                     *  Main section
+                     *  This section contains the main content of the page, the footer, and the right sidebar.
+                     *  the classes d-flex and flex-column are from Bootstrap 5 and are used to create a flexible layout.
+                     */
+                }
+                <div id="page-content-wrapper" style="height: 100%;" class="page-content-wrapper d-flex flex-column">
+                    {
+                        /**
+                         *  main banner
+                         *  This banner is visible by default and can be toggled via JS or the default button.
+                         *  hidden by default, by adding the class d-none.
+                         */
+                    }
+                    <section id="content-top-banner" class="content-top-banner p-0 rounded">
+                        <div class="container-xxl py-3">
+                            <div class="user-banner rounded overflow-hidden">
+                                <div class="user-banner__image" id="userBannerImage" role="img" aria-label="User banner image"></div>
+                                <div class="user-banner__overlay"></div>
+                                <div class="user-banner__actions">
+                                    <div class="d-flex gap-2 align-items-center">
+                                        <label class="btn btn-sm btn-outline-light" for="bannerUploadInput">
+                                            <i class="bi bi-image"></i>
+                                            Change banner
+                                        </label>
+                                        <input id="bannerUploadInput" class="visually-hidden" type="file" accept="image/*" />
+                                        <button id="bannerClearBtn" class="btn btn-sm btn-outline-secondary" type="button">Reset</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    <div class="MainSection d-flex flex-column flex-md-row flex-grow-1">
+                        {
+                            /**
+                             * Inner left sidebar
+                             * This sidebar becomes a full-screen overlay on tablet and mobile.
+                             * It is hidden by default via the 'd-none' class, which is toggled by JS.
+                             * on mobile and tablet, it becomes a central overlay element over the entire screen, good for advertisements or important notices.
+                             * It can be toggled on and off via JS or the default button.
+                             * It is d-none by default, but can be made unhidden by default by toggling the 'd-none' class.
+                             */
+                        }
+                        <aside id="left-ad-sidebar" class="left-ad-sidebar-overlay rounded d-none">
+                            <div class="left-ad-sidebar-content">
+                                <button id="close-left-ad-sidebar" type="button" class="btn-close" aria-label="Close"></button>
+                                <LeftAdSidebar />
+                            </div>
+                        </aside>
+                        {
+                            /**
+                             * Main Content Area
+                             * This is where the main content of the page will be displayed.
+                             */
+                        }
+                        <main class="flex-grow-1 p-4">
+                            {
+                                /**
+                                 *  Inner banner
+                                 *  This banner is visible by default and can be toggled via JS or the default button.
+                                 *  it can be hidden by default by adding the class d-none.
+                                 */
+                            }
+                            <section id="inline-banner" class="inline-banner p-3 text-center rounded d-none" >
+                                <InlineBanner />
+                            </section>
+                            <section class="content-area">
+                                <div class="container-xxl py-3">
+                                    <!-- Profile header -->
+                                    <div class="profile-header card bg-body-tertiary border-0 mb-4">
+                                        <div class="card-body p-3 p-md-4">
+                                            <div class="d-flex gap-3 align-items-center">
+                                                <div class="profile-avatar position-relative">
+                                                    <div class="avatar-initials" id="avatarInitials" aria-hidden="true">U</div>
+                                                    <img id="userAvatar" class="d-none" alt="User avatar" loading="lazy" decoding="async" onerror="this.src='/assets/inc/img/logos/dimension-kun.svg'" />
+                                                    <div class="avatar-actions">
+                                                        <label class="btn btn-sm btn-outline-light" for="avatarUploadInput">
+                                                            <i class="bi bi-person-fill"></i>
+                                                            Change avatar
+                                                        </label>
+                                                        <input id="avatarUploadInput" class="visually-hidden" type="file" accept="image/*" />
+                                                    </div>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <h1 class="h3 mb-1" id="profileUsername">User</h1>
+                                                    <div class="text-body-secondary small">
+                                                        Joined <span id="profileJoined">—</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Life on Anime (full width) -->
+                                    <div class="row g-3 g-md-4 align-items-stretch mb-4">
+                                        <div class="col-12">
+                                            <div class="card h-100">
+                                                <div class="card-body">
+                                                    <h3 class="h5">Life on Anime</h3>
+                                                    <div class="d-flex align-items-center justify-content-between mb-2">
+                                                        <div class="text-body-secondary small">Time spent watching</div>
+                                                        <div class="fw-semibold" id="lifeOnAnimeText">—</div>
+                                                    </div>
+                                                    <div class="progress" role="progressbar" aria-label="Time spent watching" aria-valuemin="0" aria-valuemax="100">
+                                                        <div id="lifeOnAnimeBar" class="progress-bar" style="width: 0%"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Watch status + Ratings -->
+                                    <div class="row g-3 g-md-4 align-items-stretch mb-4">
+                                        <div class="col-12 col-lg-6">
+                                            <div class="card h-100">
+                                                <div class="card-body">
+                                                    <h3 class="h5 mb-3">Watch status</h3>
+                                                    <ul class="list-unstyled d-flex flex-column gap-2 mb-0 profile-stats" id="watchStats">
+                                                        <li>
+                                                            <a class="btn btn-outline-secondary d-flex align-items-center justify-content-between w-100 text-start" data-k="watched" href="#">
+                                                                <span class="d-flex align-items-center">
+                                                                    <span class="me-2 rounded-circle flex-shrink-0" style="width: .625rem; height: .625rem; background-color: var(--bs-primary);"></span>
+                                                                    <span>Watched</span>
+                                                                </span>
+                                                                <span class="stat-num" data-k="watched">363</span>
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a class="btn btn-outline-secondary d-flex align-items-center justify-content-between w-100 text-start" data-k="watching" href="#">
+                                                                <span class="d-flex align-items-center">
+                                                                    <span class="me-2 rounded-circle flex-shrink-0" style="width: .625rem; height: .625rem; background-color: var(--bs-success);"></span>
+                                                                    <span>Watching</span>
+                                                                </span>
+                                                                <span class="stat-num" data-k="watching">14</span>
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a class="btn btn-outline-secondary d-flex align-items-center justify-content-between w-100 text-start" data-k="want" href="#">
+                                                                <span class="d-flex align-items-center">
+                                                                    <span class="me-2 rounded-circle flex-shrink-0" style="width: .625rem; height: .625rem; background-color: var(--bs-warning);"></span>
+                                                                    <span>Want to watch</span>
+                                                                </span>
+                                                                <span class="stat-num" data-k="want">81</span>
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a class="btn btn-outline-secondary d-flex align-items-center justify-content-between w-100 text-start" data-k="stalled" href="#">
+                                                                <span class="d-flex align-items-center">
+                                                                    <span class="me-2 rounded-circle flex-shrink-0" style="width: .625rem; height: .625rem; background-color: var(--bs-orange, #fd7e14);"></span>
+                                                                    <span>Stalled</span>
+                                                                </span>
+                                                                <span class="stat-num" data-k="stalled">2</span>
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a class="btn btn-outline-secondary d-flex align-items-center justify-content-between w-100 text-start" data-k="dropped" href="#">
+                                                                <span class="d-flex align-items-center">
+                                                                    <span class="me-2 rounded-circle flex-shrink-0" style="width: .625rem; height: .625rem; background-color: var(--bs-danger);"></span>
+                                                                    <span>Dropped</span>
+                                                                </span>
+                                                                <span class="stat-num" data-k="dropped">119</span>
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a class="btn btn-outline-secondary d-flex align-items-center justify-content-between w-100 text-start" data-k="wont" href="#">
+                                                                <span class="d-flex align-items-center">
+                                                                    <span class="me-2 rounded-circle flex-shrink-0" style="width: .625rem; height: .625rem; background-color: var(--bs-purple, #6f42c1);"></span>
+                                                                    <span>Won’t watch</span>
+                                                                </span>
+                                                                <span class="stat-num" data-k="wont">4,068</span>
+                                                            </a>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-lg-6">
+                                            <div class="card h-100">
+                                                <div class="card-body">
+                                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                                        <h3 class="h5 mb-0">Anime ratings</h3>
+                                                        <span class="text-body-secondary small">Total <span id="ratingsTotal">497</span></span>
+                                                    </div>
+                                                    <ul class="statGraph" id="ratingsGraph">
+                                                        <li title="10" class="least" style="height: 6%">
+                                                            <span>5</span>
+                                                        </li>
+                                                        <li title="18" class="least" style="height: 11%">
+                                                            <span>4.5</span>
+                                                        </li>
+                                                        <li title="79" class="mid" style="height: 50%">
+                                                            <span>4</span>
+                                                        </li>
+                                                        <li title="109" class="most" style="height: 69%">
+                                                            <span>3.5</span>
+                                                        </li>
+                                                        <li title="157" class="most" style="height: 100%">
+                                                            <span>3</span>
+                                                        </li>
+                                                        <li title="83" class="mid" style="height: 53%">
+                                                            <span>2.5</span>
+                                                        </li>
+                                                        <li title="29" class="least" style="height: 18%">
+                                                            <span>2</span>
+                                                        </li>
+                                                        <li title="8" class="least" style="height: 5%">
+                                                            <span>1.5</span>
+                                                        </li>
+                                                        <li title="3" class="least" style="height: 2%">
+                                                            <span>1</span>
+                                                        </li>
+                                                        <li title="1" class="least" style="height: 1%">
+                                                            <span>0.5</span>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Suggestions (reuses home card logic) -->
+                                    <section class="text-center mb-4">
+                                        <h2 class="h4" id="userSuggestionsTitle">Suggestions for <span id="userSuggestionsName">User</span></h2>
+                                        <div id="popular-section" class="position-relative">
+                                            <div id="popular-loading" class="d-flex justify-content-center my-3" role="status" aria-live="polite">
+                                                <div class="spinner-border text-primary me-2" aria-hidden="true"></div>
+                                                <span class="visually-hidden">Loading suggestions…</span>
+                                            </div>
+                                            <div id="popular-error" class="alert alert-danger d-none" role="alert"></div>
+                                            <div
+                                                id="popular-grid"
+                                                class="row g-3 anim-row-fluid-6 d-none"
+                                                data-suggest-action="get"
+                                                data-total-requested="12"
+                                                data-show-max="6"
+                                                data-type="anime"
+                                                data-shuffle="true">
+                                            </div>
+                                        </div>
+                                    </section>
+
+                                    <!-- Related anime you haven’t marked -->
+                                    <section class="text-center">
+                                        <h2 class="h4">Related anime you haven’t marked</h2>
+                                        <div id="season-section" class="position-relative">
+                                            <div id="season-loading" class="d-flex justify-content-center my-3" role="status" aria-live="polite">
+                                                <div class="spinner-border text-primary me-2" aria-hidden="true"></div>
+                                                <span class="visually-hidden">Loading related anime…</span>
+                                            </div>
+                                            <div id="season-error" class="alert alert-danger d-none" role="alert"></div>
+                                            <div
+                                                id="season-grid"
+                                                class="row g-3 anim-row-fluid-6 d-none"
+                                                data-suggest-action="get_related"
+                                                data-total-requested="12"
+                                                data-show-max="6"
+                                                data-type="anime"
+                                                data-year="2025"
+                                                data-season="spring"
+                                                data-shuffle="true">
+                                            </div>
+                                        </div>
+                                    </section>
+                                </div>
+                            </section>
+                        </main>
+
+                        {
+                            /**
+                             *  Right Sidebar
+                             *  This sidebar can be toggled on and off via JS or the default button.
+                             *  It is visible by default, but can be made hidden by default by adding the class d-none, this ensures the gap is maintained but the sidebar is not visible to avoid using the right side of the screen space on large screens.
+                             *  on mobile and tablet, it becomes a central element below the main content area.
+                             */
+                        }
+                        <aside id="right-sidebar" class="right-sidebar rounded d-none">
+                            <RightSidebar />
+                        </aside>
+                    </div>
+                </div>
+            </section>
+            {
+                /**
+                 *  Footer
+                 *  This footer is visible on larger screens and hidden on mobile and tablet.
+                 */
+            }
+            <footer class="main-footer p-3 mt-auto d-none d-lg-block">
+                <Footer />
+            </footer>
+        </div>
+
+        {
+            /**
+             *  This is the main JavaScript file.
+             *  It contains the theme switcher and sidebar toggle logic.
+             *  It is required for the theme switcher and right sidebar toggle.
+             */
+        }
+        <script is:inline src={ThisJS}></script>
+        <!-- User page specific helpers -->
+        <script is:inline src={ThisUsersJS}></script>
+    </body>
+</html>

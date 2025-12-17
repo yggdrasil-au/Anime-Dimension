@@ -1,0 +1,50 @@
+/*
+|--------------------------------------------------------------------------
+| CORE APP LAYOUT
+|--------------------------------------------------------------------------
+*/
+
+#app-wrapper {
+    display: flex;
+    flex-direction: row; // Default (Tablet)
+    min-height: 100vh;
+
+    // Desktop: Top nav layout
+    @media (min-width: 992px) {
+        flex-direction: column;
+    }
+}
+
+#page-content-wrapper {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.page-content-wrapper {
+    width: 100%;
+    //max-width: 1800px;
+    max-width: 1320px;
+    margin: 0 auto 0 auto;
+}
+main {
+    // Mobile: Add padding to prevent content from being hidden by the bottom nav
+    @media (max-width: 767.98px) {
+        padding-bottom: 70px;
+    }
+}
+
+.MainSection {
+    @media screen and (max-width: 767.98px) {
+        margin-bottom: 5rem;
+    }
+    //margin-top: 5rem;
+}
+
+// Tablet: ensure main content flexes alongside the sidebar without overflowing
+@media (min-width: 768px) and (max-width: 991.98px) {
+    #app-wrapper > section {
+        flex: 1 1 auto;
+        min-width: 0; // allow content to shrink within available space
+        width: auto;  // override any fixed width that can cause overhang
+    }
+}

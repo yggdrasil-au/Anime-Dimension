@@ -1,0 +1,67 @@
+---
+// Capacitor/source/html/components/_Footer.astro
+// get details like version from package.json
+import { version, name, description, author } from "../../../../../package.json";
+const appVersion = version || "err";
+const currentYear = new Date().getFullYear();
+const startYear = 2025; // Change this to the year you want the copyright to start
+---
+
+<div class="container">
+    <div class="row g-4">
+        <div class="col-12 col-md-5 col-lg-6">
+            <h2><strong>Anime-Dimension</strong> is run by fans, for fans</h2>
+        </div>
+
+        <div class="col-12 col-md-5 col-lg-3">
+
+            <a class="nav-link d-flex align-items-center dropdown-toggle" href="#" id="theme-dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="nav-icon bi" id="theme-icon-active"></i>
+                <span class="nav-label">Theme</span>
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="theme-dropdown-toggle">
+                <li>
+                    <button class="dropdown-item d-flex align-items-center" type="button" data-theme="light">
+                        <i class="nav-icon bi bi-sun-fill"></i> Light
+                    </button>
+                </li>
+                <li>
+                    <button class="dropdown-item d-flex align-items-center" type="button" data-theme="dark">
+                        <i class="nav-icon bi bi-moon-fill"></i> Dark
+                    </button>
+                </li>
+                <li>
+                    <button
+                        class="dropdown-item d-flex align-items-center"
+                        type="button"
+                        data-theme="night"
+                    ><i class="nav-icon bi bi-moon-stars-fill"></i> Night</button>
+                </li>
+                <li>
+                    <button class="dropdown-item d-flex align-items-center" type="button" data-theme="auto">
+                        <i class="nav-icon bi bi-circle-half"></i> Auto
+                    </button>
+                </li>
+            </ul>
+        </div>
+
+        <div class="col-12 col-md-2 col-lg-3">
+            <nav>
+                <ul class="nav flex-column">
+                    <li class="nav-item"><a class="nav-link p-0" rel="nofollow" href="/contact.html">Contact</a></li>
+                    <li class="nav-item"><a class="nav-link p-0" rel="nofollow" href="/about.html">About</a></li>
+                    <li class="nav-item"><a class="nav-link p-0" rel="nofollow" href="/termsofuse.html">Terms of Use</a></li>
+                    <li class="nav-item"><a class="nav-link p-0" rel="nofollow" href="/privacypolicy.html">Privacy Policy</a></li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<p class="footer-copyright mb-0">
+    Version: {appVersion}
+    App Name: {name}
+    Description: {description}
+    &copy; {startYear}-{currentYear}
+    {author}. All Rights Reserved.
+</p>

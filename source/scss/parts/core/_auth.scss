@@ -1,0 +1,237 @@
+/*
+|--------------------------------------------------------------------------
+| Auth Pages (Login & Register)
+|--------------------------------------------------------------------------
+| Styles for the authentication modals, headers, inputs, and actions.
+| Uses Bootstrap CSS variables to adapt to light/dark themes.
+*/
+
+#authmodals {
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 1050;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        background: rgba(var(--bs-black-rgb, 0, 0, 0), 0.55);
+        backdrop-filter: blur(2px);
+    }
+
+    .modal-dialog {
+        width: 100%;
+        max-width: 520px;
+        /* Comfortable width for auth */
+    }
+
+    .modal-content {
+        color: var(--bs-body-color);
+        background: var(--bs-card-bg, var(--bs-body-bg));
+        border: 1px solid var(--bs-border-color);
+        border-radius: var(--bs-border-radius-lg);
+        box-shadow: var(--bs-box-shadow-lg, 0 1rem 3rem rgba(0, 0, 0, 0.175));
+        overflow: hidden;
+    }
+
+    .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--bs-border-color);
+    }
+
+    .modal-close {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2rem;
+        height: 2rem;
+        border: 0;
+        border-radius: var(--bs-border-radius);
+        background: transparent;
+        color: var(--bs-body-color);
+        cursor: pointer;
+        transition: background-color 0.2s ease, color 0.2s ease;
+
+        &:hover {
+            background-color: var(--bs-secondary-bg);
+        }
+    }
+
+    .modal-body {
+        padding: 1.25rem;
+    }
+
+    .modal-content > .Login,
+    .modal-content > .SignUp {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    /* Shared Header styles */
+    .LoginHeader,
+    .SignUpHeader {
+        padding: 0.25rem 0 0.5rem;
+        text-align: center;
+
+        img {
+            display: block;
+            width: clamp(48px, 10vw, 72px);
+            /* reduce oversized icon */
+            margin: 0 auto 0.75rem;
+            height: auto;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.25));
+        }
+
+        h1 {
+            margin: 0 0 0.25rem;
+            font-size: 1.25rem;
+            line-height: 1.2;
+            color: var(--bs-emphasis-color, var(--bs-body-color));
+        }
+
+        p {
+            margin: 0;
+            color: var(--bs-secondary-color);
+
+            a {
+                color: var(--bs-link-color);
+            }
+        }
+    }
+
+    /* Inputs */
+    .LoginInputs,
+    .SignUpInputs {
+        display: grid;
+        gap: 0.75rem;
+    }
+
+    .pure-control-group {
+        display: block;
+    }
+
+    .LoginInputs input,
+    .SignUpInputs input {
+        display: block;
+        width: 100%;
+        padding: 0.65rem 0.85rem;
+        border: 1px solid var(--bs-input-border-color, var(--bs-border-color));
+        border-radius: var(--bs-border-radius);
+        background: var(--bs-input-bg, var(--bs-body-bg));
+        color: var(--bs-body-color);
+        transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+
+        &::placeholder {
+            color: var(--bs-secondary-color);
+        }
+
+        &:focus {
+            outline: 0;
+            border-color: rgba(var(--bs-primary-rgb, 13, 110, 253), 1);
+            box-shadow: 0 0 0 var(--bs-focus-ring-width, 0.25rem) rgba(var(--bs-primary-rgb, 13, 110, 253), var(--bs-focus-ring-opacity, 0.25));
+            background: var(--bs-body-bg);
+        }
+    }
+
+    /* Notices (checkbox + text) on SignUp */
+    .SignUpNotices {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+        margin-top: 0.25rem;
+
+        input[type="checkbox"] {
+            margin-top: 0.2rem;
+        }
+
+        p {
+            margin: 0;
+            color: var(--bs-secondary-color);
+
+            a {
+                color: var(--bs-link-color);
+            }
+        }
+    }
+
+    /* Actions */
+    .LoginActions,
+    .SignUpActions {
+        margin-top: 0.25rem;
+
+        .button.cta,
+        button.button.cta {
+            display: inline-block;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--bs-primary);
+            border-radius: var(--bs-border-radius);
+            background: var(--bs-primary);
+            color: var(--bs-white, #fff);
+            font-weight: 600;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+
+            &:hover {
+                background: rgba(var(--bs-primary-rgb, 13, 110, 253), 0.9);
+                border-color: rgba(var(--bs-primary-rgb, 13, 110, 253), 0.95);
+            }
+
+            &:active {
+                transform: translateY(0.5px);
+            }
+
+            &:disabled {
+                opacity: 0.65;
+                cursor: not-allowed;
+            }
+        }
+    }
+
+    /* Footer links under forms */
+    .LoginFooter,
+    .SignUpFooter {
+        margin-top: 0.5rem;
+        text-align: center;
+
+        p {
+            margin: 0;
+            color: var(--bs-secondary-color);
+
+            a {
+                color: var(--bs-link-color);
+            }
+        }
+    }
+
+    /* Feedback messages */
+    #login-error,
+    #signup-error {
+        display: none;
+        margin-top: 0.5rem;
+        color: var(--bs-danger);
+    }
+
+    #login-success,
+    #signup-success {
+        display: none;
+        margin-top: 0.5rem;
+        color: var(--bs-success);
+    }
+
+    /* Small screens: tighter padding & full width */
+    @media (max-width: 420px) {
+        .modal-body {
+            padding: 1rem;
+        }
+
+        .modal-dialog {
+            max-width: 100%;
+        }
+    }
+}

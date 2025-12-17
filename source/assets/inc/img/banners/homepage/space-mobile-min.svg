@@ -1,0 +1,170 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="320" height="222"
+    viewBox="0 0 320 222">
+    <defs>
+        <style>
+            .background {
+                fill: url(#bgGradient)
+            }
+
+            .softBlue {
+                fill: #309;
+                opacity: 0.6
+            }
+
+            .blue {
+                fill: #b0f
+            }
+
+            .star {
+                fill: #fff
+            }
+
+            .starFade {
+                fill: #fff;
+                opacity: 0.2
+            }
+
+            .twinkle use {
+                animation: twinkle 1s infinite alternate
+            }
+
+            @keyframes twinkle {
+                0% {
+                    opacity: 0.5
+                }
+
+                30% {
+                    opacity: 1
+                }
+
+                60% {
+                    opacity: 1
+                }
+
+                80% {
+                    opacity: 0.7
+                }
+
+                100% {
+                    opacity: 1
+                }
+            }
+
+            .planet4 {
+                fill: url(#planet4Texture)
+            }
+
+            .cloud {
+                animation: infinite 160s cloud linear;
+                animation-delay: -10s
+            }
+
+            @keyframes cloud {
+                0% {
+                    transform: translateX(0)
+                }
+
+                50% {
+                    transform: translateX(-800px)
+                }
+
+                100% {
+                    transform: translateX(-800px)
+                }
+            }
+
+            .shootingStar {
+                fill: #609;
+                opacity: 0.45
+            }
+
+            .shoot1 {
+                animation: shoot1 6s infinite linear
+            }
+
+            @keyframes shoot1 {
+                0% {
+                    transform: translate(-10px, 0);
+                    opacity: 0.5
+                }
+
+                50% {
+                    transform: translate(-400px, 50px);
+                    opacity: 1
+                }
+
+                100% {
+                    transform: translate(-400px, 50px);
+                    opacity: 1
+                }
+            }
+
+            .flowerTexture-stroke {
+                fill: none;
+                stroke: #15274c;
+                stroke-width: 0.7px;
+                opacity: 0.7
+            }
+        </style>
+        <filter id="blur">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="1" />
+        </filter>
+        <linearGradient id="bgGradient" x1="690.47" y1="829.54" x2="690.47" y2="641.54"
+            gradientTransform="translate(-89.47 -654.54)" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#303" />
+            <stop offset="1" stop-color="#000" />
+        </linearGradient>
+        <pattern id="planet4Texture" width="33.3" height="27" patternUnits="userSpaceOnUse" viewBox="0 0 100 81">
+            <image
+                xlink:href="data:image/png;base64,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" />
+        </pattern>
+        <path id="starShape" class="star"
+            d="M251.75,47.48a6,6,0,0,1,5.6,5.41A6,6,0,0,1,263,47.48a6,6,0,0,1-5.61-5.41A6,6,0,0,1,251.75,47.48Z" />
+        <g id="star">
+            <circle class="starFade" cx="257.5" cy="47.5" r="5" filter="url(#blur)" />
+            <use class="star" xlink:href="#starShape" />
+        </g>
+        <path class="softBlue cloud" id="cloud"
+            d="M480.12,15.22H418a5.41,5.41,0,0,1,0-10.81h27.15A5.42,5.42,0,0,0,450.55-1a5.42,5.42,0,0,0-5.41-5.4H323.84A5.42,5.42,0,0,0,318.43-1a5.43,5.43,0,0,0,5.41,5.41h72.55a5.4,5.4,0,0,1,0,10.79H384.31a5.41,5.41,0,0,0,0,10.81h95.81a5.41,5.41,0,1,0,0-10.81Z" />
+        <g id="flower">
+            <path class="blue"
+                d="M19.91,15.83a2,2,0,0,0,.58-3.25c-1.55-1.57-3.33.08-3.33.08A2.33,2.33,0,0,0,14,10.86c-2.17.94-1.11,3.6-1.11,3.6a2,2,0,0,0-1.95,3c1,3,2.75,1.42,2.75,1.42s-.22,2.92,2,2.92c0,0,2.4-.31,1.73-2.3a2.56,2.56,0,0,0,3.42.17c2.08-1.33,0-3.5-.42-3.65Z"
+                transform="translate(-10.7 -10.7)" />
+            <circle class="flowerTexture-stroke" cx="5.49" cy="5.38" r="1.24" />
+            <g class="flowerTexture-stroke">
+                <line x1="4.78" y1="4.37" x2="3.89" y2="2.49" />
+                <line x1="5.49" y1="4.14" x2="4.99" y2="2.01" />
+                <line x1="6.34" y1="4.48" x2="7.94" y2="2.75" />
+                <line x1="6.67" y1="4.99" x2="8.68" y2="4.02" />
+                <line x1="6.67" y1="5.78" x2="9.1" y2="6.63" />
+                <line x1="6.42" y1="6.2" x2="8.18" y2="7.69" />
+                <line x1="4.99" y1="6.63" x2="4.34" y2="8.78" />
+                <line x1="5.49" y1="6.63" x2="5.67" y2="8.78" />
+                <line x1="4.25" y1="5.38" x2="2.15" y2="4.99" />
+                <line x1="4.25" y1="5.92" x2="2.15" y2="6.63" />
+            </g>
+        </g>
+    </defs>
+    <title>banner-mobile</title>
+    <rect class="background" width="320" height="222" />
+    <g class="twinkle">
+        <use xlink:href="#star" style="animation-delay: 0.5s" transform="translate(-80 150) scale(0.6)" />
+        <use xlink:href="#star" style="animation-delay: 2s" transform="translate(-50 40) scale(0.6)" />
+        <use xlink:href="#star" style="animation-delay: 1s" transform="translate(-130 140)" />
+        <use xlink:href="#star" style="animation-delay: 1.5s" transform="translate(-100 0)" />
+        <use xlink:href="#star" style="animation-delay: 2.5s" transform="translate(140 140) scale(0.6)" />
+    </g>
+    <g id="flowers">
+        <use xlink:href="#flower" transform="translate(280 70)" />
+        <use xlink:href="#flower" transform="translate(20 190)" />
+    </g>
+    <g id="clouds">
+        <use xlink:href="#cloud" />
+        <use xlink:href="#cloud" class="cloud2" transform="translate(300, 200)" />
+    </g>
+    <circle class="planet4" cx="31.56" cy="6.39" r="60.22" />
+    <path class="softBlue"
+        d="M-32.36,6.12c-18,.51-34.71,2.79-36.8,7-4.26,8.65,34.23,21.07,86.59,28.37s100.73,7.26,105-1.39c2.06-4.19-10.56-10.4-25.42-15.48L97,27.1c6.89,3,10.08,6.41,8.9,8.81-3.31,6.71-40.8,7.21-84.65,1.1S-55,20.51-51.7,13.8c1.22-2.48,7.92-4.54,17.15-5.3Z" />
+    <path class="shootingStar shoot1"
+        d="M333,68.89c16.43-1.89,43.57-5.65,43.57-5.65s-27.68,4.8-43.19,8c-6.7,1.39-16.11,1.83-16.21,1.17S324.36,69.89,333,68.89Z" />
+</svg>

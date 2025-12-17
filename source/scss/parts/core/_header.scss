@@ -1,0 +1,22 @@
+/*
+|--------------------------------------------------------------------------
+| HEADER & TITLE
+|--------------------------------------------------------------------------
+*/
+
+.upper-header {
+    width: 100%;
+    flex-shrink: 0;
+    background-color: var(--bs-tertiary-bg);
+
+    // Mobile: Adjust height for fixed nav
+    @media (max-width: 767.98px) {
+        padding-top: 2rem !important;
+        height: 77px;
+    }
+}
+
+.upper-header-row {
+    min-height: 13vh;
+}
+

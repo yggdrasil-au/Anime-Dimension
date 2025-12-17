@@ -1,0 +1,38 @@
+{
+    "root": true,
+    "compilerOptions": {
+        "noFallthroughCasesInSwitch": true,
+        "noUnusedParameters": true,
+        "noImplicitReturns": true,
+        "noUnusedLocals": false, // Set to false to allow unused variables
+        "noImplicitAny": true,
+        "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+        "alwaysStrict": true,
+        "strict": true,
+        "strictNullChecks": true,
+        "strictBindCallApply": true,
+        "strictFunctionTypes": true,
+        "strictPropertyInitialization": true,
+        "baseUrl": ".",
+        "paths": {
+            "@capacitor/*": ["node_modules/@capacitor/*"],
+            "@capacitor-community/*": ["node_modules/@capacitor-community/*"],
+            "@ionic/*": ["node_modules/@ionic/*"],
+            "@components/*": ["source/html/components/*"],
+        },
+        /* Language and Environment */
+        "target": "es2022",
+    "lib": ["es2022", "DOM", "WebWorker"],
+    },
+    "include": [
+        "source/**/*",
+    ],
+    "exclude": [
+        "www",
+        "node_modules",
+        "Anime-dimension-api",
+    ]
+}

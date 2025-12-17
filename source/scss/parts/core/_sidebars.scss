@@ -1,0 +1,113 @@
+/*
+|--------------------------------------------------------------------------
+| SIDEBARS & CONTENT BLOCKS
+|--------------------------------------------------------------------------
+*/
+
+// Left sidebar (with responsive overlay behavior)
+.left-ad-sidebar {
+    // Default desktop styles
+    width: 280px;
+    padding: 1rem;
+    margin: 1rem 0 1rem 1rem;
+    background-color: var(--bs-tertiary-bg);
+    border: 1px solid var(--bs-border-color);
+}
+
+.left-ad-sidebar-overlay {
+    // Tablet & Mobile: Modal/Overlay behavior
+    @media (max-width: 1200px) {
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 1045;
+        width: 100%;
+        height: 100%;
+        padding: 1rem;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: rgba(0, 0, 0, 0.4);
+        opacity: 0;
+        transition: opacity 0.3s ease-in-out;
+
+        &:not(.invisible) {
+            opacity: 1;
+        }
+    }
+
+    // Desktop: Resets to behave like a standard static container
+    @media (min-width: 1200px) {
+        width: 280px;
+        padding: 0;
+        margin: 1rem 0 1rem 1rem;
+        background-color: transparent;
+        border: none;
+        position: static;
+        transition: none;
+    }
+}
+
+.left-ad-sidebar-content {
+    // Tablet & Mobile: Modal panel styles
+    @media (max-width: 1200px) {
+        width: 280px;
+        max-height: 90vh;
+        overflow-y: auto;
+        padding: 1rem;
+        position: relative;
+        background-color: var(--bs-tertiary-bg);
+        border: 1px solid var(--bs-border-color);
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+        border-radius: 0.375rem;
+
+        .btn-close {
+            position: absolute;
+            top: 0;
+            right: 0;
+            z-index: 10;
+        }
+    }
+
+    // Desktop: Static panel styles
+    @media (min-width: 1200px) {
+        /* background-color: var(--bs-tertiary-bg); */
+        border: 1px solid var(--bs-border-color);
+        padding: 1rem;
+        /* height: 100%; */
+
+        .btn-close {
+            display: none;
+        }
+    }
+}
+
+
+// Right sidebar
+.right-sidebar {
+    padding: 1rem;
+    margin: 1rem 1rem 1rem 0;
+    /* background-color: var(--bs-tertiary-bg); */
+    height: fit-content;
+    border: 1px solid var(--bs-border-color);
+
+
+    // Mobile
+    @media screen and (max-width: 767.98px) {
+        margin: 15px;
+    }
+}
+
+@media (min-width: 768px) {
+    .right-sidebar {
+        width: 280px;
+    }
+}
+.right-sidebar-block {
+    /*padding: 1rem;*/
+    margin: 0 0 1rem 0; // Fixed a potential typo from `1` to `1rem`
+    background-color: var(--bs-tertiary-bg);
+    /*border: 1px solid var(--bs-border-color);*/
+}
+

@@ -1,0 +1,50 @@
+{
+    "extends": [
+        "stylelint-config-twbs-bootstrap"
+    ],
+    "reportInvalidScopeDisables": true,
+    "reportNeedlessDisables": true,
+    "defaultSeverity": "warning",
+    "overrides": [
+        {
+            "files": ["**/*.scss"],
+            "rules": {
+                "shorthand-property-no-redundant-values": null,
+                "color-hex-length": null,
+                "comment-empty-line-before": null,
+                "@stylistic/indentation": 4,
+                "@stylistic/max-empty-lines": 6,
+                "@stylistic/number-leading-zero": "always",
+                "selector-id-pattern": null,
+                "order/properties-order": null,
+                "selector-class-pattern": null,
+                "comment-whitespace-inside": null,
+                "declaration-no-important": null,
+                "declaration-property-value-disallowed-list": {
+                    "border": "none",
+                    "outline": "none"
+                },
+                "function-disallowed-list": [
+                    "calc",
+                    "lighten",
+                    "darken"
+                ],
+                "keyframes-name-pattern": null,
+                "scss/dollar-variable-default": [
+                    true,
+                    {
+                        "ignore": "local"
+                    }
+                ],
+                "scss/selector-no-union-class-name": true,
+                "selector-max-class": null,
+                "selector-max-combinators": null,
+                "selector-max-compound-selectors": null,
+                "selector-max-id": null,
+                "selector-max-specificity": null,
+                "selector-max-type": null,
+                "selector-no-qualifying-type": null
+            }
+        }
+    ]
+}
