@@ -41,10 +41,10 @@ export const attachAvatarUploader = (username: string): void => {
                 const uploadUrl = `${getApiBase()}/api/users/me/avatar`;
                 await fetch(uploadUrl, { method: 'POST', body: fd, credentials: 'include' });
             } catch (error) {
-                console.warn('[AD] Failed to upload avatar to backend', error);
+                console.warn('[AD::_avatar.ts::attachAvatarUploader()] Failed to upload avatar to backend', error);
             }
         } catch (error) {
-            console.warn('[AD] Failed to load avatar', error);
+            console.warn('[AD::_avatar.ts::attachAvatarUploader()] Failed to load avatar', error);
         } finally {
             avatarInput.value = '';
         }

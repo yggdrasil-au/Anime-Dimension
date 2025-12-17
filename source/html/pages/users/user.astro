@@ -317,14 +317,14 @@ const description = "Anime Dimension is a multi platform anime discovery and tra
                                     <!-- Suggestions (reuses home card logic) -->
                                     <section class="text-center mb-4">
                                         <h2 class="h4" id="userSuggestionsTitle">Suggestions for <span id="userSuggestionsName">User</span></h2>
-                                        <div id="popular-section" class="position-relative">
-                                            <div id="popular-loading" class="d-flex justify-content-center my-3" role="status" aria-live="polite">
+                                        <div id="user-suggestions-section" class="position-relative">
+                                            <div id="user-suggestions-loading" class="d-flex justify-content-center my-3" role="status" aria-live="polite">
                                                 <div class="spinner-border text-primary me-2" aria-hidden="true"></div>
                                                 <span class="visually-hidden">Loading suggestions…</span>
                                             </div>
-                                            <div id="popular-error" class="alert alert-danger d-none" role="alert"></div>
+                                            <div id="user-suggestions-error" class="alert alert-danger d-none" role="alert"></div>
                                             <div
-                                                id="popular-grid"
+                                                id="user-suggestions-grid"
                                                 class="row g-3 anim-row-fluid-6 d-none"
                                                 data-suggest-action="get"
                                                 data-total-requested="12"
@@ -338,14 +338,14 @@ const description = "Anime Dimension is a multi platform anime discovery and tra
                                     <!-- Related anime you haven’t marked -->
                                     <section class="text-center">
                                         <h2 class="h4">Related anime you haven’t marked</h2>
-                                        <div id="season-section" class="position-relative">
-                                            <div id="season-loading" class="d-flex justify-content-center my-3" role="status" aria-live="polite">
+                                        <div id="user-related-section" class="position-relative">
+                                            <div id="user-related-loading" class="d-flex justify-content-center my-3" role="status" aria-live="polite">
                                                 <div class="spinner-border text-primary me-2" aria-hidden="true"></div>
                                                 <span class="visually-hidden">Loading related anime…</span>
                                             </div>
-                                            <div id="season-error" class="alert alert-danger d-none" role="alert"></div>
+                                            <div id="user-related-error" class="alert alert-danger d-none" role="alert"></div>
                                             <div
-                                                id="season-grid"
+                                                id="user-related-grid"
                                                 class="row g-3 anim-row-fluid-6 d-none"
                                                 data-suggest-action="get_related"
                                                 data-total-requested="12"

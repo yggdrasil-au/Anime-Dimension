@@ -7,6 +7,7 @@ import { applyInitialAvatar, attachAvatarUploader, toggleAvatarActions } from '.
 import { applyInitialBanner, attachBannerHandlers, toggleBannerActions } from './user_logic/_banner';
 import { renderWatchStats, renderWatchTime } from './user_logic/_stats';
 import { renderRatingsGraph } from './user_logic/_ratings';
+import { initUserRelated, initUserSuggestions } from './user_logic/_suggestions';
 
 const initUserPage = async (): Promise<void> => {
     // Resolve username from URL; redirect if missing
@@ -83,6 +84,10 @@ const initUserPage = async (): Promise<void> => {
 
     // Ratings
     renderRatingsGraph(profile.ratings);
+
+    // Suggestions & Related
+    void initUserSuggestions();
+    void initUserRelated();
 };
 
 if (document.readyState === 'loading') {

@@ -55,7 +55,7 @@ const initCardSection = async (
     const grid = document.getElementById(gridId);
     if (!grid) return;
     if (!gridId) {
-        console.warn(`[AD] ${gridId}: No grid element found`);
+        console.warn(`[AD::home.ts::initCardSection()] ${gridId}: No grid element found`);
     }
     const loading = document.getElementById(loadingId);
     const error = document.getElementById(errorId);
@@ -114,14 +114,14 @@ const initCardSection = async (
         const data = await res.json();
         const items = normalizeListResponse(data);
         // Debug: surface counts to help diagnose empty UI
-        console.debug(`[AD] ${gridId}: fetched`, Array.isArray(items) ? items.length : 0, 'items');
+        console.debug(`[AD::home.ts::initCardSection()] ${gridId}: fetched`, Array.isArray(items) ? items.length : 0, 'items');
         if (!Array.isArray(items) || items.length === 0) {
             if (error) {
                 error.textContent = 'No results found.';
                 error.classList.remove('d-none');
-                console.warn(`[AD] ${gridId}: No results found from API`, data);
+                console.warn(`[AD::home.ts::initCardSection()] ${gridId}: No results found from API`, data);
             }
-            console.warn(`[AD] ${gridId}: No results found from API`, data);
+            console.warn(`[AD::home.ts::initCardSection()] ${gridId}: No results found from API`, data);
         } else {
             const maxToShow = Math.max(0, Number.parseInt(ds.showMax ?? '6', 10) || 6);
             const shouldShuffle = boolish(ds.shuffle) || boolish(ds.randomize);
@@ -130,7 +130,7 @@ const initCardSection = async (
             renderCards(grid, toRender);
             grid.classList.remove('d-none');
             enableTooltips(grid);
-            console.debug(`[AD] ${gridId}: rendered`);
+            console.debug(`[AD::home.ts::initCardSection()] ${gridId}: rendered`);
         }
     } catch (error_) {
         showError(error_);
@@ -142,7 +142,7 @@ const initCardSection = async (
 export const initHomeSections = (): void => {
     // Popular this week
     void initCardSection('popular-grid', 'popular-loading', 'popular-error');
-    // Current season
+    // Current season, used in user page as well for now
     void initCardSection('season-grid', 'season-loading', 'season-error');
 };
 

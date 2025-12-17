@@ -70,10 +70,10 @@ export const attachBannerHandlers = (
                 const uploadUrl = `${getApiBase()}/api/users/me/banner`;
                 await fetch(uploadUrl, { method: 'POST', body: fd, credentials: 'include' });
             } catch (error) {
-                console.warn('[AD] Failed to upload banner to backend', error);
+                console.warn('[AD::_banner.ts::attachBannerHandlers()] Failed to upload banner to backend', error);
             }
         } catch (error) {
-            console.warn('[AD] Failed to load banner', error);
+            console.warn('[AD::_banner.ts::attachBannerHandlers()] Failed to load banner', error);
         } finally {
             bannerInput.value = '';
         }

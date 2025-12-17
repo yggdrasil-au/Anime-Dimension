@@ -157,7 +157,7 @@ export const enableTooltips = (root: HTMLElement): void => {
     try {
         const rootDesc = (root === document.body ? 'document' : (root.id ? `#${root.id}` : root.tagName.toLowerCase()));
 
-        console.debug(`[AD/tooltips] Scan @ ${rootDesc}: total=${els.length}, inited=${initialized}, skipped(noHTML)=${skippedNoHtml}, skipped(already)=${skippedAlready}`);
+        console.debug(`[AD::tooltips.ts::enableTooltips()] Scan @ ${rootDesc}: total=${els.length}, inited=${initialized}, skipped(noHTML)=${skippedNoHtml}, skipped(already)=${skippedAlready}`);
     } catch {}
 };
 
@@ -170,18 +170,18 @@ export const initAuto = (): void => {
     const ensureBootstrap = (cb: () => void): void => {
         if (w.bootstrap && (w.bootstrap as any).Tooltip) {
 
-            console.debug('[AD/tooltips] Bootstrap detected. Initializing tooltips.');
+            console.debug('[AD::tooltips.ts::initAuto()] Bootstrap detected. Initializing tooltips.');
             cb();
             return;
         }
 
-        console.debug('[AD/tooltips] Waiting for Bootstrap.Tooltip...');
+        console.debug('[AD::tooltips.ts::initAuto()] Waiting for Bootstrap.Tooltip...');
         const onReady = () => {
             if (w.bootstrap && (w.bootstrap as any).Tooltip) {
                 window.removeEventListener('DOMContentLoaded', onReady);
                 window.removeEventListener('load', onReady);
 
-                console.debug('[AD/tooltips] Bootstrap ready after event.');
+                console.debug('[AD::tooltips.ts::initAuto()] Bootstrap ready after event.');
                 cb();
             }
         };
@@ -193,11 +193,11 @@ export const initAuto = (): void => {
                 clearInterval(id);
                 if (w.bootstrap && (w.bootstrap as any).Tooltip) {
 
-                    console.debug('[AD/tooltips] Bootstrap ready after polling.');
+                    console.debug('[AD::tooltips.ts::initAuto()] Bootstrap ready after polling.');
                     cb();
                 } else {
 
-                    console.warn('[AD/tooltips] Bootstrap.Tooltip not detected; skipping tooltip init.');
+                    console.warn('[AD::tooltips.ts::initAuto()] Bootstrap.Tooltip not detected; skipping tooltip init.');
                 }
             }
         }, 50);
@@ -233,10 +233,10 @@ export const initAuto = (): void => {
             });
             mo.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-bs-toggle'] });
 
-            console.debug('[AD/tooltips] MutationObserver attached for auto-detection.');
+            console.debug('[AD::tooltips.ts::initAuto()] MutationObserver attached for auto-detection.');
         } catch {
 
-            console.warn('[AD/tooltips] MutationObserver unavailable; auto-detect disabled.');
+            console.warn('[AD::tooltips.ts::initAuto()] MutationObserver unavailable; auto-detect disabled.');
         }
     };
 
@@ -247,9 +247,9 @@ export const initAuto = (): void => {
 try {
     if (typeof window !== 'undefined' && typeof document !== 'undefined') {
 
-        console.debug('[AD/tooltips] Loaded. Auto-init enabled.');
+        console.debug('[AD::tooltips.ts::(global)] Loaded. Auto-init enabled.');
         initAuto();
     }
 } catch {
-    console.error('[AD/tooltips] Error during auto-init.');
+    console.error('[AD::tooltips.ts::(global)] Error during auto-init.');
 }

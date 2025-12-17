@@ -6,10 +6,10 @@ export default class Main {
         const swUrl = '/service-worker.js'
         navigator.serviceWorker.register(swUrl, { scope: '/' })
             .then((reg) => {
-                console.log('[SW] Registered:', reg.scope)
+                console.log('[AD::register-service-worker.ts::constructor()] Registered:', reg.scope)
             })
             .catch((error) => {
-                console.warn('[SW] Registration failed:', error)
+                console.warn('[AD::register-service-worker.ts::constructor()] Registration failed:', error)
             })
     }
 }

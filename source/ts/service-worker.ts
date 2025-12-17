@@ -26,7 +26,7 @@ sw.addEventListener('install', (event: ExtendableEvent) => {
     event.waitUntil(
         caches.open(STATIC_CACHE).then((cache) => cache.addAll(CORE_ASSETS)).catch((error) => {
             // Ignore if some assets aren't available during dev
-            console.warn('[SW] Install cache error:', error);
+            console.warn('[AD::service-worker.ts::install()] Install cache error:', error);
         }),
     );
 });
@@ -62,7 +62,7 @@ async function cacheFirst(request: Request): Promise<Response> {
         if (res && res.ok) await cache.put(request, res.clone());
         return res;
     } catch (error) {
-        console.debug('[SW] cacheFirst failed:', error);
+        console.debug('[AD::service-worker.ts::cacheFirst()] cacheFirst failed:', error);
         return cached || new Response('Offline', { status: 503, statusText: 'Offline' });
     }
 }
@@ -75,7 +75,7 @@ async function networkFirst(request: Request): Promise<Response> {
         if (res && res.ok) await cache.put(request, res.clone());
         return res;
     } catch (error) {
-        console.debug('[SW] networkFirst failed:', error);
+        console.debug('[AD::service-worker.ts::networkFirst()] networkFirst failed:', error);
         const cached = await cache.match(request);
         if (cached) return cached;
         const offline = await caches.match(OFFLINE_URL);

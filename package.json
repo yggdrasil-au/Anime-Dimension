@@ -2,13 +2,13 @@
     "name": "anime-dimension",
     "description": "a public database for western and eastern animated works including TV shows and movies, with user reviews, ratings, and recommendations, directly based on the anime-planet.com website",
 
-    "version": "0.8.1",
+    "version": "0.8.2",
 
     "type": "module",
     "private": true,
 
     "license": "AGPL-3.0-only",
-    "author": "Yggdrasil-au <https://github.com/yggdrasil-au>",
+    "author": "Yggdrasil-au <https://github.com/yggdrasil-au/Anime-Dimension>",
     "homepage": "https://www.anime-dimension.com",
 
     "style": "www/dist/css/main.css",

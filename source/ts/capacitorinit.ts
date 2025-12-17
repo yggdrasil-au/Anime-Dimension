@@ -58,15 +58,15 @@ globalThis.EventBus = {
             this.events[event] = [];
         }
         this.events[event].push(callback);
-        console.debug(`[EventBus] New listener registered for event: "${event}"`);
+        console.debug(`[AD::capacitorinit.ts::EventBus] New listener registered for event: "${event}"`);
 
         // If the event was already emitted, call the listener immediately with the stored data
         if (Object.hasOwn(this.emittedEvents, event)) {
-            console.debug(`[EventBus] Immediately invoking late listener for event: "${event}"`);
+            console.debug(`[AD::capacitorinit.ts::EventBus] Immediately invoking late listener for event: "${event}"`);
             try {
                 callback(this.emittedEvents[event]);
             } catch (error) {
-                console.error(`[EventBus] Error in late listener for event "${event}":`, error);
+                console.error(`[AD::capacitorinit.ts::EventBus] Error in late listener for event "${event}":`, error);
             }
         }
     },
@@ -78,11 +78,11 @@ globalThis.EventBus = {
      */
     emit(event, data) {
         if (Object.hasOwn(this.emittedEvents, event)) {
-            console.warn(`[EventBus] Event "${event}" has already been emitted. Ignoring subsequent emit.`);
+            console.warn(`[AD::capacitorinit.ts::EventBus] Event "${event}" has already been emitted. Ignoring subsequent emit.`);
             return; // Prevent multiple emits for the same event
         }
 
-        console.debug(`[EventBus] Emitting event: "${event}"`, data || '');
+        console.debug(`[AD::capacitorinit.ts::EventBus] Emitting event: "${event}"`, data || '');
         this.emittedEvents[event] = data;
 
         if (this.events[event]) {
@@ -90,7 +90,7 @@ globalThis.EventBus = {
                 try {
                     callback(data);
                 } catch (error) {
-                    console.error(`[EventBus] Error in listener for event "${event}":`, error);
+                    console.error(`[AD::capacitorinit.ts::EventBus] Error in listener for event "${event}":`, error);
                 }
             });
         }
@@ -180,12 +180,12 @@ try {
     window.PLATFORM = globalThis.App.Capacitor.getPlatform();
     // EMIT event to the bus instead of using document.dispatchEvent
     window.EventBus.emit('capacitorReady');
-    console.debug("{Mobile::01} Capacitor and plugins initialized. 'capacitorReady' event emitted.");
+    console.debug("[AD::capacitorinit.ts::(global)] Capacitor and plugins initialized. 'capacitorReady' event emitted.");
     // (Optional) Log available plugins
     for (const key in globalThis.App) {
         if (Object.hasOwn(globalThis.App, key)) {
             if (globalThis.App.Capacitor.isPluginAvailable(key)) {
-                console.debug(`{Mobile::03} Plugin ${key} is available on ${window.PLATFORM}`);
+                console.debug(`[AD::capacitorinit.ts::(global)] Plugin ${key} is available on ${window.PLATFORM}`);
             }
             else {
                 //console.warn(`{Mobile::04} Plugin ${key} is NOT available on ${window.PLATFORM}`);
@@ -193,7 +193,7 @@ try {
         }
     }
 } catch (error) {
-    console.error("{Mobile::06} Error initializing Capacitor or plugins:", error);
+    console.error("[AD::capacitorinit.ts::(global)] Error initializing Capacitor or plugins:", error);
     window.EventBus.emit('capacitorInitError', error);
 }
 const onDOMContentLoaded = () => {
@@ -213,20 +213,20 @@ const onCapacitorReady = () => {
 };
 // Use an async function to manage the ready states
 (async () => {
-    console.debug("{Mobile::08} Waiting for DOM content and Capacitor to be ready...");
+    console.debug("[AD::capacitorinit.ts::(global)] Waiting for DOM content and Capacitor to be ready...");
     // Wait for both events to complete
     await Promise.all([
         onDOMContentLoaded(),
         onCapacitorReady(),
     ]);
-    console.debug('{Mobile::09} Both DOM and Capacitor are ready. Emitting "DOMandCapReady".');
+    console.debug('[AD::capacitorinit.ts::(global)] Both DOM and Capacitor are ready. Emitting "DOMandCapReady".');
     // EMIT the combined ready event to the bus
     window.EventBus.emit('DOMandCapReady');
     // Hide splash screen after DOM is ready
     try {
         await globalThis.App.SplashScreen.hide();
-        console.debug("{Mobile::07} Splash screen hidden.");
+        console.debug("[AD::capacitorinit.ts::(global)] Splash screen hidden.");
     } catch (error) {
-        console.error("{Mobile::08} Error hiding splash screen:", error);
+        console.error("[AD::capacitorinit.ts::(global)] Error hiding splash screen:", error);
     }
 })();
