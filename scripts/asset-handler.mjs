@@ -54,7 +54,7 @@ async function extractApiWebsiteFromDist() {
         return { found: false }
     }
 
-    const apiProjectWww = path.resolve(root, 'Anime-dimension-api', 'api', 'www')
+    const apiProjectWww = path.resolve(root, 'subModules', 'Anime-Dimension-api', 'api', 'www')
     if (dryRun) log('[dry-run] ensure empty', apiProjectWww)
     else await emptyDir(apiProjectWww)
 

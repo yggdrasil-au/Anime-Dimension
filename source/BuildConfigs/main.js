@@ -1,0 +1,93 @@
+///
+/// central built time data getter for Astro build
+///
+// purpose is to allow all astro files to obtain any data from package.json or data.json with auto error handling in this script, to prevent repetition of error handling code in each astro file or any other logic for data handling, just a simple import from this file gets all data
+//
+
+// hardcoded for now, should be in data.json
+var data = {
+    // site name variants
+    "siteName1": "Anime-Dimension",
+    "siteName2": "Anime Dimension",
+    "siteName3": "AnimeDimension",
+    "siteName4": "anime dimension",
+    "siteName5": "animedimension",
+    // short name
+    "siteShortName": "AD",
+
+    // site description variants
+    "footerdescription2": "Api for Anime-Dimension",
+
+    // footer text variants
+    "footerText1": " is run by fans, for fans", // space at start is intentional
+
+    "copyRightStartYear": 2025
+
+}
+
+
+//import * as data from "@BuildConfigs/data.json";
+import * as packagejson from "@PackageRoot/package.json";
+
+////
+// expporting the entire json objects above ensures the data is accessable, as a fallback, even if it lacks a specific var in this file below
+////
+
+export const data_json = data || {}; // export entire file as object for easy access when extra logic is not needed or not yet implemented
+export const package_json = packagejson || {}; // export entire file as object for easy access when extra logic is not needed or not yet implemented
+
+
+
+////
+// Export Package.json values with error handling
+////
+
+export const packageVersion = package_json.version || "[JS-ERROR]";
+export const packageName = package_json.name || "[JS-ERROR]";
+export const packageDescription = package_json.description || "[JS-ERROR]";
+export const packageAuthorName = package_json.author.name || "[JS-ERROR]";
+
+
+////
+// Export extra data
+////
+
+export const currentYear = new Date().getFullYear(); // year at build time
+export const startYear = data.copyRightStartYear || "2025"; // start year for copyright, defaults to 2025 if missing
+
+
+
+/// Api Footer CopyRight text
+
+export const footerCopyRightText = `
+    Version: ${packageVersion}
+    App Name: ${packageName}
+    Description: ${data_json.footerdescription2}
+    &copy; ${startYear}-${currentYear}
+    ${packageAuthorName}. All Rights Reserved.
+`
+
+
+/// url used for queries to the api from frontend client side
+
+// Build-time API base: prefer JSON runtime config, fallback to TS constant
+import { PUBLIC_API_BASE as TS_PUBLIC_API_BASE } from "@components/api.js";
+export var apiBase = (TS_PUBLIC_API_BASE || "https://api.anime-dimension.com").replace(/\/$/, "");
+
+// shared function to resolve deployment path and canonical url
+export const resolvedepPath = function(pathname) {
+    // Smart path resolution: calculate relative path based on directory depth
+    // Only count directories, not the filename itself
+    const pathSegments = pathname.split('/').filter(segment => segment !== '');
+    const depth = pathSegments.length > 0 ? pathSegments.length - 1 : 0;
+    const deploymentPath = depth === 0 ? '../' : '../'.repeat(depth);
+
+    if (pathname == ('/')) {
+        pathname = 'index.html';
+    }
+
+    const thisCanon = "https://anime-dimension.com/" + pathname;
+
+    return { deploymentPath, thisCanon };
+
+}

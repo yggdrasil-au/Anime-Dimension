@@ -1,10 +1,11 @@
 ---
 // Capacitor/source/html/components/_Nav.astro
+import * as buildconf from "@BuildConfigs/main.js";
 ---
 
 
                 <a itemprop="url" id="siteLogo" class="siteLogo" href="/index.html" aria-label="Anime Dimension home">
-                    <svg id="logo" data-name="Anime-Dimension" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 725 95" width="720" height="95" fill="#FC5342" role="img">
+                    <svg id="logo" data-name={buildconf.data_json.siteName1} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 725 95" width="720" height="95" fill="#FC5342" role="img">
                         <title>Anime Dimension</title>
                         <g id="desktop" class="logo">
                             <!-- a -->

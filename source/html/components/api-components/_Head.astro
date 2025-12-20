@@ -3,9 +3,8 @@
 
 const { title, description } = Astro.props
 
-// Build-time API base: prefer JSON runtime config, fallback to TS constant
-import { PUBLIC_API_BASE as TS_PUBLIC_API_BASE } from "@components/api.js";
-const apiBase = (TS_PUBLIC_API_BASE || "https://api.anime-dimension.com").replace(/\/$/, "");
+import * as buildconf from "@BuildConfigs/main.js";
+
 
 // Smart path resolution: calculate relative path based on directory depth
 let pathname = Astro.url.pathname;
@@ -28,13 +27,24 @@ const thisCanon = "https://anime-dimension.com/" + pathname;
 
 <link rel="canonical" href={thisCanon} />
 
-<!-- Expose API base once for the whole app -->
-<meta data-api-base={apiBase} />
+
+
+
+
+
+<!-- Expose API base once for the whole app - ->
+
+ // this is not required when page hosted by API
+
+<meta data-api-base={buildconf.apiBase} />
 <script is:inline>
-    window.AD_API_BASE = "{apiBase}";
-    document.documentElement.style.setProperty('--ad-api-base', "{apiBase}");
-    console.debug('[AD] API base:', "{apiBase}");
+    // todo: get value from meta tag instead
+    // this wont work, astro cant inject values into js script blocks
+    window.AD_API_BASE = "{buildconf.apiBase}";
+    document.documentElement.style.setProperty('--ad-api-base', "{buildconf.apiBase}");
+    console.debug('[AD] API base:', "{buildconf.apiBase}");
 </script>
+-->
 
 <script is:inline>
     // --- Initial theme load to prevent FOUC ---

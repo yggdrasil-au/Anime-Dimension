@@ -1,20 +1,15 @@
 ---
 // Capacitor/source/html/components/_Footer.astro
-// get details like version from package.json
-import { version, name, description, author } from "../../../../../package.json";
-const appVersion = version || "err";
-const currentYear = new Date().getFullYear();
-const startYear = 2025; // Change this to the year you want the copyright to start
+import * as buildconf from "@BuildConfigs/main.js";
 ---
 
 <div class="container">
     <div class="row g-4">
         <div class="col-12 col-md-5 col-lg-6">
-            <h2><strong>Anime-Dimension</strong> is run by fans, for fans</h2>
+            <h2><strong>{buildconf.data_json.siteName1}</strong>{buildconf.data_json.footerText1}</h2>
         </div>
 
         <div class="col-12 col-md-5 col-lg-3">
-
             <a class="nav-link d-flex align-items-center dropdown-toggle" href="#" id="theme-dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                 <i class="nav-icon bi" id="theme-icon-active"></i>
                 <span class="nav-label">Theme</span>
@@ -34,8 +29,9 @@ const startYear = 2025; // Change this to the year you want the copyright to sta
                     <button
                         class="dropdown-item d-flex align-items-center"
                         type="button"
-                        data-theme="night"
-                    ><i class="nav-icon bi bi-moon-stars-fill"></i> Night</button>
+                        data-theme="night">
+                        <i class="nav-icon bi bi-moon-stars-fill"></i> Night
+                    </button>
                 </li>
                 <li>
                     <button class="dropdown-item d-flex align-items-center" type="button" data-theme="auto">
@@ -59,9 +55,5 @@ const startYear = 2025; // Change this to the year you want the copyright to sta
 </div>
 
 <p class="footer-copyright mb-0">
-    Version: {appVersion}
-    App Name: {name}
-    Description: {description}
-    &copy; {startYear}-{currentYear}
-    {author}. All Rights Reserved.
+    {buildconf.footerCopyRightText}
 </p>

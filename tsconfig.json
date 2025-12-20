@@ -7,9 +7,9 @@
         "noUnusedLocals": false, // Set to false to allow unused variables
         "noImplicitAny": true,
         "module": "esnext",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "allowSyntheticDefaultImports": true,
+        "moduleResolution": "node",
+        "resolveJsonModule": true,
+        "allowSyntheticDefaultImports": true,
         "alwaysStrict": true,
         "strict": true,
         "strictNullChecks": true,
@@ -22,10 +22,13 @@
             "@capacitor-community/*": ["node_modules/@capacitor-community/*"],
             "@ionic/*": ["node_modules/@ionic/*"],
             "@components/*": ["source/html/components/*"],
+            "@WWW-API-components/*": ["source/html/components/api-components/*"],
+            "@BuildConfigs/*": ["source/BuildConfigs/*"],
+            "@PackageRoot/*": ["./*"]
         },
         /* Language and Environment */
         "target": "es2022",
-    "lib": ["es2022", "DOM", "WebWorker"],
+        "lib": ["es2022", "DOM", "WebWorker"],
     },
     "include": [
         "source/**/*",
@@ -34,5 +37,6 @@
         "www",
         "node_modules",
         "Anime-dimension-api",
+        "subModules",
     ]
 }

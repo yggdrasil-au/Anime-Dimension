@@ -1,19 +1,23 @@
 ---
 const { TITLE, ALT_TITLE, DESCRIPTION, NOTES, TAGS, TYPE, STUDIO, ICON_YEAR, RATING } = Astro.props;
 
-// placeholders
-let title = TITLE ?? "Pick Me Up";
-let alt_title = ALT_TITLE ?? "Tsuyokute New Saga";
-let type = TYPE ?? "TV (11+ eps)";
-let studio = STUDIO ?? "STUDIO MASSKET";
-let iconYear = ICON_YEAR ?? "2025 - ?";
-let rating = RATING ?? "3.4";
-let description = DESCRIPTION ?? "After a grueling battle, the magic knight Kyle finally defeats the demon lord... or so he believes. He wakes up to find himself in the land that had been destroyed in his past life. He is reunited with the precious person he thought he had lost forever. To stop the human world from being destroyed again, along with his friends, Kyle uses his memory from his previous life to once again save the world! A fantasy saga about a brave knight!";
-let notes = NOTES ?? ["Source: Alpha Manga"];
-let Tags = TAGS ?? ["Action", "Adventure", "Drama", "Fantasy", "Romance", "Age Transformation", "Demons", "Dragons", "Magic", "Second Chance", "Time Travel", "Based on a Manga"];
+
+/// populate variables for use in template
+// if props are null/undefined, set to error message, allow empty strings/arrays
+let title = TITLE ?? "[ASTRO COMPONENT TOOLTIP ERROR :: TITLE MISSING]";
+let alt_title = ALT_TITLE ?? "[ASTRO COMPONENT TOOLTIP ERROR :: ALT_TITLE MISSING]";
+let type = TYPE ?? "[ASTRO COMPONENT TOOLTIP ERROR :: TYPE MISSING]";
+let studio = STUDIO ?? "[ASTRO COMPONENT TOOLTIP ERROR :: STUDIO MISSING]";
+let iconYear = ICON_YEAR ?? "[ASTRO COMPONENT TOOLTIP ERROR :: ICON_YEAR MISSING]";
+let rating = RATING ?? "[ASTRO COMPONENT TOOLTIP ERROR :: RATING MISSING]";
+let description = DESCRIPTION ?? "[ASTRO COMPONENT TOOLTIP ERROR :: DESCRIPTION MISSING]";
+let notes = NOTES ?? ["[ASTRO COMPONENT TOOLTIP ERROR :: NOTES MISSING]"];
+let Tags = TAGS ?? ["[ASTRO COMPONENT TOOLTIP ERROR :: TAGS MISSING]"];
 
 
-
+///
+// this is the template for generating tooltips for anime cards
+///
 ---
 <div>
     <h5 class="theme-font">{title}</h5>

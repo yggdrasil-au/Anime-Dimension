@@ -1,5 +1,4 @@
 {
-
     "name": "anime-dimension",
     "description": "a public database for western and eastern animated works including TV shows and movies, with user reviews, ratings, and recommendations, directly based on the anime-planet.com website",
 
@@ -9,45 +8,33 @@
     "private": true,
 
     "license": "Apache-2.0",
-    "author": {
-        "name": "Yggdrasil-au",
-        "email": "",
-        "url": "https://github.com/yggdrasil-au/Anime-Dimension"
-    },
-    "homepage": "https://anime-dimension.com",
+    "author": "Yggdrasil-au <https://github.com/yggdrasil-au/Anime-Dimension>",
+    "homepage": "https://www.anime-dimension.com",
 
     "style": "www/dist/css/main.css",
     "sass": "source/scss/main.scss",
-    "main": "www/dist/js/main.js",
-    "keywords":[],
-    "files":[],
-    "exports":null,
 
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/yggdrasil-au/Anime-Dimension.git"
+        "url": "git://github.com/yggdrasil-au/Anime-Dimension.git"
     },
     "github": {
         "owner": "yggdrasil-au",
         "repo": "Anime-Dimension",
         "url": "https://github.com/yggdrasil-au/Anime-Dimension"
     },
-
     "bugs": {
-        "url": "https://github.com/yggdrasil-au/Anime-Dimension/issues",
-        "email": ""
-    },
-
-    "funding": {
-        "type": "",
-        "url": ""
+        "url": "https://github.com/yggdrasil-au/Anime-Dimension/issues"
     },
 
     "buildConfig": {
         "banner": "/*!\n * Anime-Dimension v${version} (${homepage})\n * Copyright 2025-${year} ${author}\n * Licensed under ${license} (${github.url}/blob/main/LICENSE)\n */"
     },
 
+    "main": "www/dist/js/main.js",
+
     "scripts": {
+
 
         "webp": "ygg-webp",
         "appAssetsGen": "node ../../../Tools/capacitor-assets/bin/capacitor-assets generate --android --pwa --pwaOutRoot source/web/ --pwaIconsPath manifest/icons --pwaManifestPath source/web/site.webmanifest --assetPath resources/pwa-capacitor",
@@ -107,51 +94,12 @@
             "deploy:www": "deploy --www",
 
         "update-api-www": "npm run compile && node scripts/asset-handler.mjs --update-api",
-        "dotnet:build-release": "npm run update-api-www && cd subModules/Anime-Dimension-api && rimraf publish && dotnet publish ./ASP.NETCoreWebApi.csproj -c Release -f net10.0 -r linux-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=true -p:IncludeAllContentForSelfExtract=true -o ./publish/linux-x64",
+        "dotnet:build-release": "cd subModules/Anime-Dimension-api && rimraf publish && dotnet publish ./ASP.NETCoreWebApi.csproj -c Release -f net10.0 -r linux-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=true -p:IncludeAllContentForSelfExtract=true -o ./publish/linux-x64",
 
         "dotnet:run": "cd subModules/Anime-Dimension-api && dotnet run -c Debug --project ./ASP.NETCoreWebApi.csproj --framework net10.0"
 
     },
 
-    "dependencies": {
-        "@astrojs/node": "^9.5.1",
-        "@capacitor-community/sqlite": "^7.0.2",
-        "@sqlite.org/sqlite-wasm": "^3.50.4-build1",
-        "ssh2": "^1.17.0",
-        "@capacitor/action-sheet": "^8.0.0",
-        "@capacitor/android": "^8.0.0",
-        "@capacitor/app": "^8.0.0",
-        "@capacitor/app-launcher": "^8.0.0",
-        "@capacitor/background-runner": "^3.0.0",
-        "@capacitor/barcode-scanner": "^3.0.0",
-        "@capacitor/browser": "^8.0.0",
-        "@capacitor/camera": "^8.0.0",
-        "@capacitor/clipboard": "^8.0.0",
-        "@capacitor/core": "^8.0.0",
-        "@capacitor/device": "^8.0.0",
-        "@capacitor/dialog": "^8.0.0",
-        "@capacitor/file-transfer": "^2.0.0",
-        "@capacitor/file-viewer": "^2.0.0",
-        "@capacitor/filesystem": "^8.0.0",
-        "@capacitor/geolocation": "^8.0.0",
-        "@capacitor/haptics": "^8.0.0",
-        "@capacitor/inappbrowser": "^3.0.0",
-        "@capacitor/ios": "^8.0.0",
-        "@capacitor/keyboard": "^8.0.0",
-        "@capacitor/local-notifications": "^8.0.0",
-        "@capacitor/network": "^8.0.0",
-        "@capacitor/preferences": "^8.0.0",
-        "@capacitor/privacy-screen": "^2.0.0",
-        "@capacitor/push-notifications": "^8.0.0",
-        "@capacitor/screen-orientation": "^8.0.0",
-        "@capacitor/screen-reader": "^8.0.0",
-        "@capacitor/share": "^8.0.0",
-        "@capacitor/splash-screen": "^8.0.0",
-        "@capacitor/status-bar": "^8.0.0",
-        "@capacitor/toast": "^8.0.0",
-        "@ionic/pwa-elements": "^3.3.0",
-        "jeep-sqlite": "^2.8.0"
-    },
     "devDependencies": {
         "@astrojs/check": "^0.9.6",
         "@astrojs/mdx": "^4.3.13",
@@ -208,12 +156,43 @@
         "@yggdrasil-au/ygg-webp": "workspace:*"
     },
 
-    "engines": {
-        "node": ">=22.14.0",
-        "pnpm": ">=10.24.0"
-    },
-    "os": ["win32"],
-    "cpu": ["x64"],
-    "devEngines": {}
-
+    "dependencies": {
+        "@astrojs/node": "^9.5.1",
+        "@capacitor-community/sqlite": "^7.0.2",
+        "@sqlite.org/sqlite-wasm": "^3.50.4-build1",
+        "ssh2": "^1.17.0",
+        "@capacitor/action-sheet": "^8.0.0",
+        "@capacitor/android": "^8.0.0",
+        "@capacitor/app": "^8.0.0",
+        "@capacitor/app-launcher": "^8.0.0",
+        "@capacitor/background-runner": "^3.0.0",
+        "@capacitor/barcode-scanner": "^3.0.0",
+        "@capacitor/browser": "^8.0.0",
+        "@capacitor/camera": "^8.0.0",
+        "@capacitor/clipboard": "^8.0.0",
+        "@capacitor/core": "^8.0.0",
+        "@capacitor/device": "^8.0.0",
+        "@capacitor/dialog": "^8.0.0",
+        "@capacitor/file-transfer": "^2.0.0",
+        "@capacitor/file-viewer": "^2.0.0",
+        "@capacitor/filesystem": "^8.0.0",
+        "@capacitor/geolocation": "^8.0.0",
+        "@capacitor/haptics": "^8.0.0",
+        "@capacitor/inappbrowser": "^3.0.0",
+        "@capacitor/ios": "^8.0.0",
+        "@capacitor/keyboard": "^8.0.0",
+        "@capacitor/local-notifications": "^8.0.0",
+        "@capacitor/network": "^8.0.0",
+        "@capacitor/preferences": "^8.0.0",
+        "@capacitor/privacy-screen": "^2.0.0",
+        "@capacitor/push-notifications": "^8.0.0",
+        "@capacitor/screen-orientation": "^8.0.0",
+        "@capacitor/screen-reader": "^8.0.0",
+        "@capacitor/share": "^8.0.0",
+        "@capacitor/splash-screen": "^8.0.0",
+        "@capacitor/status-bar": "^8.0.0",
+        "@capacitor/toast": "^8.0.0",
+        "@ionic/pwa-elements": "^3.3.0",
+        "jeep-sqlite": "^2.8.0"
+    }
 }
