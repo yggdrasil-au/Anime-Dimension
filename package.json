@@ -54,8 +54,8 @@
 
         "dev": "npm-run-all build dev-apache-watch",
             "dev-apache-watch": "npm-run-all --parallel watch dev-apache-server",
-            "dev-apache-server": "powershell -Command lampctl.exe apache start --output --DocumentRoot A:\\WebDev\\Sites\\Anime-Dimension\\main\\www\\website --port 8080",
-            "dev-apache-server-status": "powershell -Command lampctl.exe apache status",
+            "dev-apache-server": "powershell -Command wlampctl.exe apache start --output --DocumentRoot A:\\WebDev\\Sites\\Anime-Dimension\\main\\www\\website --port 8080",
+            "dev-apache-server-status": "powershell -Command wlampctl.exe apache status",
 
         "capSync": "npx cap sync",
 
