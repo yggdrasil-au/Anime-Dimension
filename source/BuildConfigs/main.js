@@ -21,7 +21,7 @@ var data = {
     // footer text variants
     "footerText1": " is run by fans, for fans", // space at start is intentional
 
-    "copyRightStartYear": 2025
+    "copyRightStartYear": 2025,
 
 }
 
@@ -69,10 +69,12 @@ export const footerCopyRightText = `
 
 
 /// url used for queries to the api from frontend client side
+import {PUBLIC_API_BASE} from '../BuildConfigs/api.js';
 
-// Build-time API base: prefer JSON runtime config, fallback to TS constant
-import { PUBLIC_API_BASE as TS_PUBLIC_API_BASE } from "@components/api.js";
-export var apiBase = (TS_PUBLIC_API_BASE || "https://api.anime-dimension.com").replace(/\/$/, "");
+//const PUBLIC_API_BASE: string = (PUBLIC_API_BASE);
+// this is used in the TS files
+export const apiBase = PUBLIC_API_BASE.replace(/\/$/, '');
+
 
 // shared function to resolve deployment path and canonical url
 export const resolvedepPath = function(pathname) {
@@ -91,3 +93,4 @@ export const resolvedepPath = function(pathname) {
     return { deploymentPath, thisCanon };
 
 }
+

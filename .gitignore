@@ -77,3 +77,8 @@ capacitor-assets/
 Anime-dimension-api/**
 
 .wlampctl-project.conf
+
+subModules/db/
+subModules/publish/
+
+

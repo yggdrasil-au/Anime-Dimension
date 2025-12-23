@@ -100,7 +100,7 @@ import * as buildconf from "@BuildConfigs/main.js";
                         // and also bind click handler on the generated logout link.
                         const doLogout = async () => {
                             try {
-                                await fetch(`${getApiBase()}/api/logout`, {
+                                await fetch(`${window.getApiBase()}/api/logout`, {
                                     method: 'POST',
                                     credentials: 'include',
                                 });
@@ -116,7 +116,7 @@ import * as buildconf from "@BuildConfigs/main.js";
                         (async () => {
                             let isLoggedIn = false;
                             try {
-                                const res = await fetch(`${getApiBase()}/api/login/validateState`, {
+                                const res = await fetch(`${window.getApiBase()}/api/login/validateState`, {
                                     method: 'PUT',
                                     credentials: 'include',
                                 });

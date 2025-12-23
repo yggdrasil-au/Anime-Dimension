@@ -1,6 +1,6 @@
 
-import globals from 'globals';
-import pluginJs from '@eslint/js';
+import globals from 'globals/index.js';
+import pluginJs from '@eslint/js/src/index.js';
 import tseslint from 'typescript-eslint';
 import pluginUnicorn from 'eslint-plugin-unicorn';
 import astroPlugin from 'eslint-plugin-astro';
@@ -8,8 +8,9 @@ import astroPlugin from 'eslint-plugin-astro';
 export default [
     {
         ignores: [
+            "subModules/",
             "dist/",
-            ".history/",
+            "**/.history/",
             "node_modules/",
             ".cache/",
             ".astro/",
@@ -52,7 +53,7 @@ export default [
             'new-cap': 'off',
             'no-console': 'off',
             'no-negated-condition': 'off',
-            'object-curly-spacing': ['warn', 'never'],
+            'object-curly-spacing': 'off',
             'operator-linebreak': ['warn', 'after'],
             'no-unused-vars': 'off',
             'no-new': 'off',
@@ -75,13 +76,13 @@ export default [
             'astro/no-set-html-directive': 'off',
             'unicorn/filename-case': 'off',
             '@typescript-eslint/no-unused-vars': 'off',
-            '@typescript-eslint/no-explicit-any': 'warn',
+            '@typescript-eslint/no-explicit-any': 'off',
             'unicorn/prefer-global-this': 'off',
             'unicorn/prefer-top-level-await': 'off',
             'unicorn/prefer-ternary': 'off',
             'unicorn/prefer-switch': 'warn',
             'unicorn/import-style': 'warn',
-            'unicorn/text-encoding-identifier-case': 'warn',
+            'unicorn/text-encoding-identifier-case': 'off',
             'unicorn/prefer-add-event-listener': 'warn',
             'unicorn/catch-error-name': 'warn',
             'unicorn/no-process-exit': 'warn',
@@ -103,12 +104,8 @@ export default [
             'unicorn/prefer-optional-catch-binding': 'warn',
             'no-prototype-builtins': 'warn',
             'unicorn/prefer-includes': 'warn',
-            'object-curly-spacing': 'warn',
             'unicorn/prefer-native-coercion-functions': 'warn',
             'unicorn/no-new-array': 'warn',
-            'comma-dangle': 'warn',
-            'operator-linebreak': 'warn',
-            'multiline-ternary': 'warn',
             'no-dupe-keys': 'warn',
 
         },

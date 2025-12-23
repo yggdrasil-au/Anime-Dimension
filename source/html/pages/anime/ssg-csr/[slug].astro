@@ -21,7 +21,7 @@ export async function getStaticPaths() {
     const fs = await import('node:fs');
 
     // New linker DB populated from Anime‑Planet
-    const dbPath = path.resolve(process.cwd(), 'Anime-Dimension-Database-Orchestrator', 'anime-dimension.sqlite3');
+    const dbPath = path.resolve(process.cwd(), 'subModules', 'db', 'anime-dimension.sqlite3');
 
     const items: AnimeLite[] = [];
 

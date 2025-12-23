@@ -28,10 +28,9 @@ var { deploymentPath, thisCanon } = buildconf.resolvedepPath(Astro.url.pathname)
 <!-- Expose API base once for the whole app -->
 <meta data-api-base={buildconf.apiBase} />
 <script is:inline>
-    // Make available on window as AD_API_BASE for legacy code
-    // todo: get value from meta tag instead
-    // this wont work, astro cant inject values into js script blocks
-    window.AD_API_BASE = "{buildconf.apiBase}";
+    // Function to get API base URL
+    window.AD_API_BASE = document.querySelector('meta[data-api-base]').getAttribute('data-api-base');
+    // Also set as CSS variable for use in css if needed
     document.documentElement.style.setProperty('--ad-api-base', "{buildconf.apiBase}");
     console.debug('[AD] API base:', "{buildconf.apiBase}");
 </script>

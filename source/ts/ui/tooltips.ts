@@ -158,7 +158,9 @@ export const enableTooltips = (root: HTMLElement): void => {
         const rootDesc = (root === document.body ? 'document' : (root.id ? `#${root.id}` : root.tagName.toLowerCase()));
 
         console.debug(`[AD::tooltips.ts::enableTooltips()] Scan @ ${rootDesc}: total=${els.length}, inited=${initialized}, skipped(noHTML)=${skippedNoHtml}, skipped(already)=${skippedAlready}`);
-    } catch {}
+    } catch {
+        // ignore
+    }
 };
 
 export default enableTooltips;

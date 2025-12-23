@@ -45,22 +45,28 @@ const assets = createAssetManager({
 })
 
 async function extractApiWebsiteFromDist() {
-    const apiDir = (await pathExists(distHtmlApiDir))
-        ? distHtmlApiDir
-        : ((await pathExists(path.join(distRoot, 'api'))) ? path.join(distRoot, 'api') : null)
+    const apiDir = (await pathExists(distHtmlApiDir)) ? distHtmlApiDir : ((await pathExists(path.join(distRoot, 'api'))) ? path.join(distRoot, 'api') : null)
 
     if (!apiDir) {
         vlog('No html/api directory found in dist; skipping API website extraction')
         return { found: false }
     }
 
-    const apiProjectWww = path.resolve(root, 'subModules', 'Anime-Dimension-api', 'api', 'www')
-    if (dryRun) log('[dry-run] ensure empty', apiProjectWww)
-    else await emptyDir(apiProjectWww)
+    const apiProjectWww = path.resolve(root, 'subModules', 'Anime-Dimension-api', 'www')
+    if (dryRun) {
+        log('[dry-run] ensure empty', apiProjectWww)
+    } else {
+        // Ensure dotnet www/api is empty
+        await emptyDir(apiProjectWww)
+    }
 
     const destApiDir = path.join(apiProjectWww, 'api')
-    if (dryRun) log('[dry-run] copy', apiDir, '->', destApiDir)
-    else await copyPath(apiDir, destApiDir, { overwrite: true, dereference: true })
+    if (dryRun) {
+        log('[dry-run] copy', apiDir, '->', destApiDir)
+    } else {
+        // Copy extracted API website to dotnet www/api
+        await copyPath(apiDir, destApiDir, { overwrite: true, dereference: true })
+    }
 
     const maybeCopy = async (fromRel, toRel = fromRel) => {
         const from = path.join(distRoot, fromRel)
@@ -78,7 +84,7 @@ async function extractApiWebsiteFromDist() {
     if (dryRun) log('[dry-run] remove', apiDir)
     else await removePath(apiDir)
 
-    log('Extracted /api/** pages to Anime-dimension-api/api/www and pruned from dist')
+    log('Extracted /api/** pages to Anime-dimension-api/www/api and pruned from dist')
     return { found: true, dest: apiProjectWww }
 }
 
@@ -99,13 +105,15 @@ async function main() {
         await assets.split({ cleanupCapSync: true, cleanupWebsite: false })
     }
 
-    if (updateApiWww) {
-        await extractApiWebsiteFromDist()
-    }
 }
 
 try {
-    await main()
+    if (updateApiWww) {
+        // only do API update if that flag is set
+        await extractApiWebsiteFromDist()
+    } else {
+        await main()
+    }
 } catch (error) {
     console.error('[assets] Failed:', error?.message || error)
     process.exitCode = 1

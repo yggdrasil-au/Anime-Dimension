@@ -36,7 +36,7 @@ const initUserSection = async (
     gridId: string,
     loadingId: string,
     errorId: string,
-    emptyMessage: string
+    emptyMessage: string,
 ): Promise<void> => {
     console.log(`[AD::_suggestions::initUserSection()] Initializing user section: ${gridId}`);
     const grid = document.getElementById(gridId);
@@ -58,8 +58,7 @@ const initUserSection = async (
             // We use the error container for the empty message, but style it differently if needed
             // Or just textContent.
             error.textContent = emptyMessage;
-            error.classList.remove('d-none');
-            error.classList.remove('alert', 'alert-danger'); // Remove danger styling if present
+            error.classList.remove('d-none', 'alert', 'alert-danger'); // Remove danger styling if present
             error.classList.add('text-muted', 'fst-italic', 'py-3'); // Add friendly styling
         }
         if (grid) grid.classList.add('d-none');
@@ -74,12 +73,12 @@ const initUserSection = async (
             const apiBase = ds.apiBase || `${apiBaseNoSlash}/api/suggestions`;
             const url = `${String(apiBase).replace(/\/$/, '')}/${suggestAction}`;
             const bodyObj: Record<string, string> = {};
-            
+
             if (ds.totalRequested) bodyObj.totalRequested = String(ds.totalRequested);
             if (ds.type) bodyObj.type = String(ds.type);
             if (ds.year) bodyObj.year = String(ds.year);
             if (ds.season) bodyObj.season = String(ds.season);
-            
+
             // Defaults
             bodyObj.totalRequested ??= '24';
             bodyObj.type ??= 'anime';
@@ -109,11 +108,11 @@ const initUserSection = async (
         if (!Array.isArray(items) || items.length === 0) {
             showEmpty();
         } else {
-            const maxToShow = Math.max(0, parseInt(ds.showMax ?? '6', 10) || 6);
+            const maxToShow = Math.max(0, Number.parseInt(ds.showMax ?? '6', 10) || 6);
             const shouldShuffle = boolish(ds.shuffle) || boolish(ds.randomize);
             const pool = shouldShuffle ? shuffleArray(items as unknown[]) : (items as unknown[]);
             const toRender = pool.slice(0, maxToShow);
-            
+
             if (toRender.length === 0) {
                 showEmpty();
             } else {
@@ -122,21 +121,21 @@ const initUserSection = async (
                 enableTooltips(grid);
             }
         }
-    } catch (err) {
-        console.error(`[AD::_suggestions.ts::initUserSection()] User section error (${gridId}):`, err);
+    } catch (error_) {
+        console.error(`[AD::_suggestions.ts::initUserSection()] User section error (${gridId}):`, error_);
         showError('Failed to load content.');
     } finally {
         if (loading) loading.classList.add('d-none');
     }
 };
 
-export const initUserSuggestions = () => 
+export const initUserSuggestions = () =>
     initUserSection('user-suggestions-grid', 'user-suggestions-loading', 'user-suggestions-error', 'No suggestions available at the moment.');
 
-export const initUserRelated = () => 
+export const initUserRelated = () =>
     initUserSection(
-        'user-related-grid', 
-        'user-related-loading', 
-        'user-related-error', 
-        "Su...sugoi! You've already marked everything we had in mind - add more titles to your list so we can come up with some new suggestions!"
+        'user-related-grid',
+        'user-related-loading',
+        'user-related-error',
+        "Su...sugoi! You've already marked everything we had in mind - add more titles to your list so we can come up with some new suggestions!",
     );
