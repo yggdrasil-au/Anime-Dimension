@@ -22,7 +22,7 @@ const ThisJS = "../js/main.min.js"
 {/* data-bs-theme defines the default bootstrap colour theme, class= night-mode sets the night mode styles as default, changing this is unessasary as its controled via the JS/TS theme Controller */}
 <html lang="en" data-bs-theme="dark">
     <head>
-        <Head title="Multi Platform Bootstrap CSS Template" />
+        <Head title="Anime Dimension" />
     </head>
     <body class="sidebar-collapsed">
         {/* This is the animated night mode background. */}
@@ -233,7 +233,7 @@ const ThisJS = "../js/main.min.js"
                 };
                 (async () => {
                     try {
-                        const res = await fetch(`${getApiBase()}/api/login/validateState`, { method: 'PUT', credentials: 'include' });
+                        const res = await fetch(`${getApiBase()}/api/login/validateState?caller=auth_register`, { method: 'PUT', credentials: 'include' });
                         const data = await res.json().catch(() => ({}));
                         if (data && data.status === 'ok') {
                             window.location.replace('/');

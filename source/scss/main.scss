@@ -63,6 +63,11 @@ $bootstrap-icons-font-dir: "assets/icons/font/fonts" !default;
 // Import the Sass files as usual
 @import "bootstrap-icons/font/bootstrap-icons";
 
+// Font Awesome
+@import "@fortawesome/fontawesome-free/scss/fontawesome";
+@import "@fortawesome/fontawesome-free/scss/solid";
+@import "@fortawesome/fontawesome-free/scss/regular";
+@import "@fortawesome/fontawesome-free/scss/brands";
 
 // Parts
 // ---------------------------------------------------

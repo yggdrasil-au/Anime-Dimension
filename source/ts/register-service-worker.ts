@@ -14,5 +14,5 @@ export default class Main {
     }
 }
 
-// disable auto-run for now
-//new Main();
+// auto-run
+new Main();

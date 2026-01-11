@@ -13,11 +13,12 @@ const sourceDir = path.join(root, 'source');
 
 // Map file extensions to the task list they should trigger.
 // Note: docs-compile already runs asset handling after build via assets:handle in our pipeline.
-const TASKS_BY_TYPE = {
+/*const TASKS_BY_TYPE = {
     scss: ['css'],
     ts: ['js'],
-    astro: ['docs-compile', 'docs-format', 'move-astro-output-to-dist', 'assets:handle'],
-};
+    //
+    astro: ['clean-www-dist-html', 'clean-www-website-html', 'docs-compile', 'docs-format', 'move-astro-output-to-dist', 'assets:handle'],
+};*/
 
 // Debounce window in ms to coalesce rapid changes.
 const DEBOUNCE_MS = 200;
@@ -77,33 +78,62 @@ function buildTaskPlan(changeTypes) {
     // If astro is present, skip explicit copy-assets because docs-compile includes it.
     const hasAstro = types.has('astro');
 
+    // 1. Cleaning tasks
+    // if (types.has('scss')) addTasks(['clean-pub-css']);
+    // if (types.has('ts')) addTasks(['clean-pub-js']);
+    // if (types.has('astro')) addTasks(['clean-pub-assets']);
+
+    // 2. Compilation tasks
     if (types.has('scss')) {
         addTasks(['css']);
     }
     if (types.has('ts')) {
         addTasks(['js']);
     }
+    // if (types.has('scss')) addTasks(['assets:prepare-public']);
 
+    // 3. Astro Pipeline
     if (types.has('astro')) {
-        addTasks(['clean', 'docs-compile', 'docs-format', 'move-astro-output-to-dist', 'assets:handle']);
+        addTasks([
+            'clean-www-dist-html',
+            'clean-www-website-html',
+
+            'docs-compile',
+            'docs-format',
+            'move-astro-output-to-dist',
+            'assets:handle',
+
+        ]);
     }
 
     return tasks;
 }
 
 let pendingTypes = new Set();
+let currentRunningTypes = new Set(); // Tracks what is currently building
 const changedFiles = { scss: new Set(), ts: new Set(), astro: new Set() };
 let debounceTimer = null;
 let running = false;
 let rerunRequested = false;
 
 function scheduleRunFor(type, filePath) {
+    // LOOP PROTECTION:
+    // If the build is running, and the detected change matches a type currently being built,
+    // we ignore it. This prevents infinite loops caused by scripts like 'php:prebuild'
+    // modifying source files during the build process.
+    if (running && currentRunningTypes.has(type)) {
+        return;
+    }
+
     pendingTypes.add(type);
     if (filePath) changedFiles[type]?.add(path.relative(root, filePath));
+
     if (debounceTimer) clearTimeout(debounceTimer);
+
     debounceTimer = setTimeout(async () => {
         if (running) {
             // If a run is in progress, mark for rerun and exit; pendingTypes already updated.
+            // If running a DIFFERENT type (e.g. scss changed while ts is building), queue a rerun.
             rerunRequested = true;
             return;
         }
@@ -125,10 +155,13 @@ async function runTasks(changeTypes) {
     if (taskPlan.length === 0) return;
 
     running = true;
+    currentRunningTypes = new Set(changeTypes); // Lock these types
+
     const typeList = Array.from(changeTypes).join(', ');
     const details = Array.from(changeTypes)
         .map(t => `${t}: ${Array.from(changedFiles[t] || []).slice(0, 5).join(', ')}`)
         .join(' | ');
+
     console.log(`\n[watch] Changes detected in: ${typeList}`);
     if (details.trim()) console.log(`[watch] Files: ${details}${Object.values(changedFiles).some(s=>s.size>5)?' …':''}`);
     console.log(`[watch] Running: ${taskPlan.join(' -> ')}`);
@@ -145,8 +178,10 @@ async function runTasks(changeTypes) {
     }
 
     console.log('[watch] Done. Waiting for changes...');
-    // Clear tracked files after a cycle
+
+    // Cleanup
     for (const key of Object.keys(changedFiles)) changedFiles[key].clear?.();
+    currentRunningTypes.clear();
     running = false;
 }
 

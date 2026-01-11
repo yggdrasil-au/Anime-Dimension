@@ -15,7 +15,7 @@ export const fetchUserProfile = async (uname: string): Promise<UserProfile | nul
 
 export const fetchLoginState = async (): Promise<LoginState | null> => {
     try {
-        const res = await fetch(`${getApiBase()}/api/login/validateState`, { method: 'PUT', credentials: 'include' });
+        const res = await fetch(`${getApiBase()}/api/login/validateState?caller=TS_user_logic_api`, { method: 'PUT', credentials: 'include' });
         const data = await res.json().catch(() => ({} as any));
         if (data && data.status === 'ok' && data.data) {
             return {

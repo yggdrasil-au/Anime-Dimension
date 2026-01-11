@@ -1,7 +1,8 @@
 ---
-/* API-driven All Anime page (SSG shell + CSR data)
- * Route usage: /experimental/anime-ssg-csr/all?name=love
- * Visually mirrors the offline All page but fetches data from the public API
+/* Offline all-anime search page
+ * Route usage: /anime/all?name=love
+ * Renders the same layout as the offline slug page, with a client-side
+ * offline search over a build-time, hardcoded dataset (no network requests).
  */
 
 import Head from "@components/_Head.astro";
@@ -13,18 +14,77 @@ import ContentTopBanner from "@components/_ContentTopBanner.astro";
 import LeftAdSidebar from "@components/_LeftAdSidebar.astro";
 import InlineBanner from "@components/_InlineBanner.astro";
 import RightSidebar from "@components/_RightSidebar.astro";
+// Prefer SQLite at build time
+const path = await import('node:path');
+const fs = await import('node:fs');
 
-// Fully prerender at build time (shell only; data loads via API)
-export const prerender = true;
+type AnimeLite = {
+    slug: string;
+    title: string;
+    thumbnailUrl?: string;
+    year?: number | string;
+    type?: string;
+    tags?: string[];
+    summary?: string;
+};
+
+// Prefer SQLite at build time
+// Use the new central Anime‑Dimension linker DB populated from Anime‑Planet
+const dbPath = path.resolve(process.cwd(), 'subModules', 'db', 'anime-dimension.sqlite3');
+
+let items: AnimeLite[] = [];
+
+if (fs.existsSync(dbPath)) {
+    // Use WASM SQLite (sql.js) to avoid native dependency in the build
+    const SQLMod: any = await import('sql.js').catch(() => null);
+    if (SQLMod) {
+        const initSqlJs = (SQLMod.default ?? SQLMod) as any;
+        const wasmPath = path.resolve(process.cwd(), 'node_modules/sql.js/dist/sql-wasm.wasm');
+        const SQL = await initSqlJs({ wasmBinary: fs.readFileSync(wasmPath) });
+        const buf = fs.readFileSync(dbPath);
+        const db = new SQL.Database(new Uint8Array(buf));
+        const qAll = db.prepare('SELECT slug, title, thumbnail_url, "year" AS year, "type" AS type, synopsis, id FROM anime WHERE slug IS NOT NULL ORDER BY title');
+        const rows: any[] = [];
+        while (qAll.step()) rows.push(qAll.getAsObject());
+        qAll.free();
+        const qTags = db.prepare('SELECT t.name FROM tag t JOIN anime_tag at ON at.tag_id = t.id WHERE at.anime_id = ? ORDER BY t.name');
+        items = rows.map((r) => {
+            const tags: string[] = (() => {
+                const out: string[] = [];
+                qTags.bind([r.id]);
+                while (qTags.step()) out.push(qTags.getAsObject().name);
+                qTags.reset();
+                return out;
+            })();
+            return {
+                slug: r.slug,
+                title: r.title,
+                thumbnailUrl: r.thumbnail_url ?? undefined,
+                year: r.year ?? undefined,
+                type: r.type ?? undefined,
+                tags,
+                summary: r.synopsis ?? undefined,
+            } as AnimeLite;
+        });
+    }
+}
+
+
+// Stable sort for deterministic build output
+items.sort((a, b) => a.title.localeCompare(b.title));
 
 // include root JS file dont use relative path
 const MainJS = "/js/main.min.js";
+
+// Fully prerender at build time
+export const prerender = true;
+
 ---
 
 <!doctype html>
 <html lang="en" data-bs-theme="dark">
     <head>
-        <Head title="Anime • All (API)" description="Browse and search anime via API. The page shell is pre-rendered; data loads dynamically." />
+        <Head title="Anime • Offline Search" description="Browse and search anime offline. Results are pre-bundled for fast, no-network usage." />
         <style>
             .MainSection { margin-top: 5rem; }
             .filters .form-control { max-width: 420px; }
@@ -68,13 +128,13 @@ const MainJS = "/js/main.min.js";
                             <section class="content-area">
                                 <div class="container-xxl py-3">
                                     <header class="mb-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
-                                        <h1 class="h4 mb-0">All Anime (API)</h1>
+                                        <h1 class="h4 mb-0">All Anime (Offline)</h1>
                                         <div class="results-meta text-body-secondary small" id="resultsMeta" aria-live="polite"></div>
                                     </header>
 
                                     <!-- Search + controls -->
                                     <form id="searchForm" class="filters d-flex align-items-center gap-2 mb-3" method="get" action="">
-                                        <div class="input-group" role="group" aria-label="API search">
+                                        <div class="input-group" role="group" aria-label="Offline search">
                                             <span class="input-group-text" id="searchLabel"><i class="bi bi-search"></i></span>
                                             <input id="nameInput" name="name" type="search" class="form-control" placeholder="Search anime…" aria-labelledby="searchLabel" />
                                         </div>
@@ -96,14 +156,22 @@ const MainJS = "/js/main.min.js";
                 </div>
             </section>
 
+            
             <footer class="main-footer p-3 mt-auto d-none d-lg-block">
                 <Footer />
             </footer>
         </div>
 
+        <!-- Build-time dataset embedded for light, offline client search -->
+        <script is:inline type="application/json" id="offline-data" set:html={JSON.stringify(items)}></script>
+
         <script is:inline>
             (function() {
                 const byId = (id) => document.getElementById(id);
+                const dataEl = byId('offline-data');
+                /** @type {Array<{slug:string,title:string,thumbnailUrl?:string,year?:string|number,type?:string,tags?:string[],summary?:string}>} */
+                const DATA = dataEl ? JSON.parse(dataEl.textContent || '[]') : [];
+
                 const grid = byId('resultsGrid');
                 const pager = byId('pager');
                 const meta = byId('resultsMeta');
@@ -111,13 +179,6 @@ const MainJS = "/js/main.min.js";
                 const input = byId('nameInput');
 
                 const PAGE_SIZE = 42; // 6 x 7
-                const MAX_FETCH = 420; // sanity cap to avoid huge payloads
-
-                const getApiBase = () => {
-                    const w = window;
-                    const b = (w && w.AD_API_BASE) ? String(w.AD_API_BASE) : 'https://api.anime-dimension.com';
-                    return b.replace(/\/$/, '');
-                };
 
                 const getParams = () => new URLSearchParams(location.search);
                 const setParams = (params) => {
@@ -127,87 +188,103 @@ const MainJS = "/js/main.min.js";
                 };
 
                 const norm = (s) => String(s || '').toLowerCase();
-                const stripHtml = (html) => {
-                    if (!html) return '';
-                    const div = document.createElement('div');
-                    div.innerHTML = String(html);
-                    return (div.textContent || '').replace(/\s+/g, ' ').trim();
+                const matches = (q, item) => {
+                    if (!q) return true;
+                    const nq = norm(q);
+                    if (norm(item.title).includes(nq)) return true;
+                    if (norm(item.slug).includes(nq)) return true;
+                    if (item.summary && norm(item.summary).includes(nq)) return true;
+                    if (Array.isArray(item.tags) && item.tags.some(t => norm(t).includes(nq))) return true;
+                    return false;
                 };
 
-                const toSlug = (u) => {
-                    if (!u) return undefined;
-                    try {
-                        const m = /^\/?anime\/(.+)$/i.exec(String(u));
-                        if (m) return m[1];
-                        const url = new URL(String(u), 'https://anime-dimension.com');
-                        const parts = url.pathname.split('/').filter(Boolean);
-                        const i = parts.indexOf('anime');
-                        return (i !== -1 && i + 1 < parts.length) ? parts[i + 1] : undefined;
-                    } catch { return undefined; }
-                };
+                const toText = (v) => (v == null ? '' : String(v));
 
-                const normalizeItem = (raw) => {
-                    const title = raw?.title || raw?.name || 'Untitled';
-                    const slug = raw?.slug || toSlug(raw?.url) || toSlug(raw?.link) || title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-                    const thumb = raw?.thumbnailUrl || raw?.imageUrl || raw?.image_url || raw?.image;
-                    const summary = raw?.summary || stripHtml(raw?.tooltip || '');
-                    const year = raw?.year;
-                    const type = raw?.type;
-                    const tooltip = typeof raw?.tooltip === 'string' ? raw.tooltip : '';
-                    // Some APIs return tags array
-                    const tags = Array.isArray(raw?.tags) ? raw.tags.filter(Boolean).map(String) : undefined;
-                    return { slug, title, thumbnailUrl: thumb, summary, year, type, tooltip, tags };
-                };
-
+                // Build safe tooltip HTML from a dataset item
                 const buildTooltipHtml = (it) => {
-                    // Prefer server-provided tooltip HTML if available
-                    if (it.tooltip && it.tooltip.trim() !== '') return it.tooltip;
                     const root = document.createElement('div');
+
                     const title = document.createElement('h5');
                     title.className = 'theme-font';
-                    title.textContent = String(it.title || 'Untitled');
+                    title.textContent = toText(it.title || 'Untitled');
                     root.append(title);
+
                     const hasEntry = it.type || it.year;
                     if (hasEntry) {
                         const ul = document.createElement('ul');
                         ul.className = 'entryBar';
-                        if (it.type) { const li = document.createElement('li'); li.className = 'type'; li.textContent = String(it.type); ul.append(li); }
-                        if (it.year) { const li = document.createElement('li'); li.className = 'iconYear'; li.textContent = String(it.year); ul.append(li); }
+                        if (it.type) {
+                            const li = document.createElement('li');
+                            li.className = 'type';
+                            li.textContent = toText(it.type);
+                            ul.append(li);
+                        }
+                        if (it.year) {
+                            const li = document.createElement('li');
+                            li.className = 'iconYear';
+                            li.textContent = toText(it.year);
+                            ul.append(li);
+                        }
                         root.append(ul);
                     }
-                    if (it.summary) { const p = document.createElement('p'); p.textContent = String(it.summary); root.append(p); }
+
+                    if (it.summary) {
+                        const p = document.createElement('p');
+                        p.textContent = toText(it.summary);
+                        root.append(p);
+                    }
+
                     if (Array.isArray(it.tags) && it.tags.length) {
                         const tagsDiv = document.createElement('div');
                         tagsDiv.className = 'tags';
-                        const h4 = document.createElement('h4'); h4.textContent = 'Tags'; tagsDiv.append(h4);
+                        const h4 = document.createElement('h4');
+                        h4.textContent = 'Tags';
+                        tagsDiv.append(h4);
                         const ul = document.createElement('ul');
-                        for (const t of it.tags) { const li = document.createElement('li'); li.textContent = String(t); ul.append(li); }
-                        tagsDiv.append(ul); root.append(tagsDiv);
+                        for (const t of it.tags) {
+                            if (!t) continue;
+                            const li = document.createElement('li');
+                            li.textContent = String(t);
+                            ul.append(li);
+                        }
+                        tagsDiv.append(ul);
+                        root.append(tagsDiv);
                     }
+
                     return root.innerHTML;
                 };
+
+                // Tooltips auto-init now handled by /js/ui/tooltips.min.js
 
                 const renderGrid = (list) => {
                     grid.innerHTML = '';
                     for (const it of list) {
                         const col = document.createElement('div');
+                        //col.className = 'col';
+
                         const card = document.createElement('div');
                         card.className = 'card h-100 anim-card';
+
                         const img = document.createElement('img');
                         img.className = 'card-img-top';
                         if (it.thumbnailUrl) img.src = it.thumbnailUrl;
-                        img.alt = it.title || '';
+                        img.alt = it.title;
                         img.loading = 'lazy';
                         img.decoding = 'async';
+
                         const body = document.createElement('div');
                         body.className = 'card-body p-2';
+
                         const title = document.createElement('h6');
                         title.className = 'card-title anim-card-title mb-1';
-                        title.textContent = it.title || '';
+                        title.textContent = it.title;
+
                         const link = document.createElement('a');
-                        link.href = it.slug ? `/experimental/anime-ssg-csr/${encodeURIComponent(it.slug)}` : '#';
+                        link.href = `/anime/${encodeURIComponent(it.slug)}.html`;
                         link.className = 'stretched-link';
-                        link.setAttribute('aria-label', it.title || 'View');
+                        link.setAttribute('aria-label', it.title);
+
+                        // Tooltip attributes and content
                         try {
                             const tooltipHtml = buildTooltipHtml(it);
                             if (tooltipHtml && tooltipHtml.trim() !== '') {
@@ -217,6 +294,7 @@ const MainJS = "/js/main.min.js";
                                 card.setAttribute('data-tooltip-html', tooltipHtml);
                             }
                         } catch { /* ignore */ }
+
                         body.append(title);
                         card.append(img, body, link);
                         col.append(card);
@@ -252,6 +330,7 @@ const MainJS = "/js/main.min.js";
                         return btn;
                     };
 
+                    // Compact mode for very small screens
                     const isCompact = (window.innerWidth || 0) < 430;
 
                     const group = document.createElement('div');
@@ -259,117 +338,93 @@ const MainJS = "/js/main.min.js";
                     group.setAttribute('role', 'group');
                     group.setAttribute('aria-label', 'Pagination');
 
+                    // Prev
                     group.append(mkBtn('Prev', Math.max(1, page - 1), {
                         disabled: page <= 1,
                         ariaLabel: 'Previous page',
                     }));
 
                     if (!isCompact) {
-                        const around = 2;
-                        const edge = 1;
+                        // Determine set of pages to show (desktop/tablet)
+                        const around = 2;  // pages around current
+                        const edge = 1;    // pages at the edges
                         const show = new Set();
-                        const pagesCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
                         for (let i = 1; i <= edge; i++) show.add(i);
-                        for (let i = pagesCount - edge + 1; i <= pagesCount; i++) if (i >= 1) show.add(i);
-                        for (let i = page - around; i <= page + around; i++) if (i >= 1 && i <= pagesCount) show.add(i);
+                        for (let i = pages - edge + 1; i <= pages; i++) if (i >= 1) show.add(i);
+                        for (let i = page - around; i <= page + around; i++) if (i >= 1 && i <= pages) show.add(i);
+
                         const list = Array.from(show).sort((a, b) => a - b);
+
+                        // Page numbers with ellipses
                         let prevNum = 0;
                         for (const num of list) {
-                            if (prevNum && num - prevNum > 1) group.append(mkEllipsis());
+                            if (prevNum && num - prevNum > 1) {
+                                group.append(mkEllipsis());
+                            }
                             group.append(mkBtn(String(num), num, { active: num === page }));
                             prevNum = num;
                         }
                     }
 
-                    group.append(mkBtn('Next', page + 1, {
-                        disabled: page >= Math.max(1, Math.ceil(total / PAGE_SIZE)),
+                    // Next
+                    group.append(mkBtn('Next', Math.min(pages, page + 1), {
+                        disabled: page >= pages,
                         ariaLabel: 'Next page',
                     }));
 
                     pager.append(group);
 
-                    // Page jump
+                    // Page jump (always shown when multiple pages)
                     const jumpForm = document.createElement('form');
                     jumpForm.className = 'd-flex align-items-center gap-2 pager-jump';
                     jumpForm.setAttribute('aria-label', 'Go to page');
+
                     const label = document.createElement('label');
                     label.className = 'visually-hidden';
                     label.textContent = 'Go to page';
                     const inputId = 'pagerJumpInput';
                     label.setAttribute('for', inputId);
+
                     const inputNum = document.createElement('input');
                     inputNum.type = 'number';
                     inputNum.id = inputId;
                     inputNum.className = 'form-control form-control-sm';
                     inputNum.placeholder = 'Page #';
                     inputNum.min = '1';
-                    inputNum.max = String(Math.max(1, Math.ceil(total / PAGE_SIZE)));
+                    inputNum.max = String(pages);
                     inputNum.inputMode = 'numeric';
                     inputNum.style.width = '6rem';
+
                     const goBtn = document.createElement('button');
                     goBtn.type = 'submit';
                     goBtn.className = 'btn btn-sm btn-primary';
                     goBtn.textContent = 'Go';
+
                     jumpForm.append(label, inputNum, goBtn);
                     jumpForm.addEventListener('submit', (ev) => {
                         ev.preventDefault();
                         const n = Number.parseInt(inputNum.value, 10);
                         if (Number.isFinite(n)) {
-                            const target = Math.max(1, n);
-                            onPage(target);
+                            const target = Math.min(pages, Math.max(1, n));
+                            if (target && target !== page) onPage(target);
                         }
                     });
+
                     pager.append(jumpForm);
                 };
 
-                // Cache last fetched list to avoid re-downloading on small interactions
-                let cached = { count: 0, items: [] };
-
-                const fetchPool = async (needCount) => {
-                    const needed = Math.min(Math.max(PAGE_SIZE, needCount), MAX_FETCH);
-                    if (cached.count >= needed && cached.items.length >= needed) return cached.items.slice();
-                    try {
-                        const body = new URLSearchParams();
-                        body.set('totalRequested', String(needed));
-                        body.set('type', 'anime');
-                        const res = await fetch(`${getApiBase()}/api/suggestions/get`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
-                            body: body.toString(),
-                            credentials: 'include',
-                        });
-                        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                        const json = await res.json();
-                        const list = Array.isArray(json?.list) ? json.list : (Array.isArray(json) ? json : []);
-                        const items = list.map(normalizeItem).filter(it => it.slug && it.title);
-                        cached = { count: needed, items };
-                        return items.slice();
-                    } catch (e) {
-                        console.error('[AD] suggestions/get failed', e);
-                        return [];
-                    }
-                };
-
-                const update = async () => {
+                const update = () => {
                     const params = getParams();
                     const q = params.get('name') || '';
                     const pageParam = Math.max(1, Number.parseInt(params.get('page') || '1', 10) || 1);
+                    // sync input
                     if (input) input.value = q;
 
-                    // Ensure we have at least enough items for the requested page
-                    const poolRaw = await fetchPool(pageParam * PAGE_SIZE);
-                    // Filter locally by query
-                    const pool = poolRaw.filter((it) => {
-                        if (!q) return true;
-                        const nq = norm(q);
-                        if (norm(it.title).includes(nq)) return true;
-                        if (norm(it.slug).includes(nq)) return true;
-                        if (it.summary && norm(it.summary).includes(nq)) return true;
-                        if (Array.isArray(it.tags) && it.tags.some(t => norm(t).includes(nq))) return true;
-                        return false;
-                    });
-
+                    const pool = DATA.filter((it) => matches(q, it));
                     const total = pool.length;
+
+                    // Clamp page within bounds and reflect in URL if needed
                     const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
                     const page = Math.min(pages, pageParam);
                     if (page !== pageParam) {
@@ -386,7 +441,7 @@ const MainJS = "/js/main.min.js";
                         const p = getParams();
                         p.set('page', String(nextPage));
                         setParams(p);
-                        void update();
+                        update();
                     });
 
                     if (meta) {
@@ -394,24 +449,25 @@ const MainJS = "/js/main.min.js";
                     }
                 };
 
+                // Handle submit
                 form?.addEventListener('submit', (ev) => {
                     ev.preventDefault();
                     const q = input ? input.value.trim() : '';
                     const p = getParams();
                     if (q) p.set('name', q); else p.delete('name');
-                    p.delete('page');
+                    p.delete('page'); // reset to page 1
                     setParams(p);
-                    void update();
+                    update();
                 });
 
                 // Initial render
-                void update();
+                update();
 
                 // Re-render on resize so pager adapts under 430px
                 let resizeTimer = 0;
                 window.addEventListener('resize', () => {
                     clearTimeout(resizeTimer);
-                    resizeTimer = window.setTimeout(() => { void update(); }, 150);
+                    resizeTimer = window.setTimeout(() => update(), 150);
                 });
             })();
         </script>
@@ -423,4 +479,3 @@ const MainJS = "/js/main.min.js";
 
     </body>
 </html>
-

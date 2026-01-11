@@ -2,6 +2,6 @@
 	path = subModules/Anime-Dimension-api
 	url = https://github.com/yggdrasil-au/Anime-Dimension-api.git
 
-[submodule "Anime-Dimension-Database-Orchestrator"]
-	path = subModules/Anime-Dimension-Database-Orchestrator
-	url = https://github.com/yggdrasil-au/Anime-Dimension-Database-Orchestrator.git
+#[submodule "Database-Orchestrator"]
+#	path = subModules/Database-Orchestrator
+	#url = https://github.com/yggdrasil-au/Anime-Dimension-Database-Orchestrator.git

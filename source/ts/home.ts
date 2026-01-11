@@ -34,6 +34,7 @@ const htmlToPlainText = (html: unknown, maxLen = 220): string => {
 
 import { renderCards } from './ui/cards';
 import { enableTooltips } from './ui/tooltips';
+import { coerceAnimeItemList } from './anime-types';
 
 // Parse common truthy strings like "true", "1", "yes", "on"
 const boolish = (s?: string): boolean => (s ? /^(1|true|yes|on)$/i.test(s) : false);
@@ -112,10 +113,11 @@ const initCardSection = async (
         }
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
-        const items = normalizeListResponse(data);
+        const rawItems = normalizeListResponse(data);
+        const items = coerceAnimeItemList(rawItems);
         // Debug: surface counts to help diagnose empty UI
-        console.debug(`[AD::home.ts::initCardSection()] ${gridId}: fetched`, Array.isArray(items) ? items.length : 0, 'items');
-        if (!Array.isArray(items) || items.length === 0) {
+        console.debug(`[AD::home.ts::initCardSection()] ${gridId}: fetched`, items.length, 'items');
+        if (items.length === 0) {
             if (error) {
                 error.textContent = 'No results found.';
                 error.classList.remove('d-none');
@@ -125,7 +127,7 @@ const initCardSection = async (
         } else {
             const maxToShow = Math.max(0, Number.parseInt(ds.showMax ?? '6', 10) || 6);
             const shouldShuffle = boolish(ds.shuffle) || boolish(ds.randomize);
-            const pool = shouldShuffle ? shuffleArray(items as unknown[]) : (items as unknown[]);
+            const pool = shouldShuffle ? shuffleArray(items) : items;
             const toRender = pool.slice(0, maxToShow);
             renderCards(grid, toRender);
             grid.classList.remove('d-none');

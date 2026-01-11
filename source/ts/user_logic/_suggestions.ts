@@ -2,6 +2,7 @@ import { apiBaseNoSlash } from '../config';
 import { normalizeListResponse } from '../home';
 import { renderCards } from '../ui/cards';
 import { enableTooltips } from '../ui/tooltips';
+import { coerceAnimeItemList } from '../anime-types';
 
 // Helper: Parse common truthy strings
 const boolish = (s?: string): boolean => (s ? /^(1|true|yes|on)$/i.test(s) : false);
@@ -103,14 +104,15 @@ const initUserSection = async (
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
         const data = await res.json();
-        const items = normalizeListResponse(data);
+        const rawItems = normalizeListResponse(data);
+        const items = coerceAnimeItemList(rawItems);
 
-        if (!Array.isArray(items) || items.length === 0) {
+        if (items.length === 0) {
             showEmpty();
         } else {
             const maxToShow = Math.max(0, Number.parseInt(ds.showMax ?? '6', 10) || 6);
             const shouldShuffle = boolish(ds.shuffle) || boolish(ds.randomize);
-            const pool = shouldShuffle ? shuffleArray(items as unknown[]) : (items as unknown[]);
+            const pool = shouldShuffle ? shuffleArray(items) : items;
             const toRender = pool.slice(0, maxToShow);
 
             if (toRender.length === 0) {

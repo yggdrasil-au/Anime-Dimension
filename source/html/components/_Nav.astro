@@ -112,9 +112,15 @@
                         window.Logout = doLogout;
 
                         (async () => {
+                            if (document.cookie.indexOf('session_token=') === -1) {
+                                // No session cookie; skip the API call
+                                if (authLoading) authLoading.classList.add('d-none');
+                                if (authBtns) authBtns.classList.remove('d-none');
+                                return;
+                            }
                             let isLoggedIn = false;
                             try {
-                                const res = await fetch(`${getApiBase()}/api/login/validateState`, {
+                                const res = await fetch(`${getApiBase()}/api/login/validateState?caller=nav`, {
                                     method: 'PUT',
                                     credentials: 'include',
                                 });

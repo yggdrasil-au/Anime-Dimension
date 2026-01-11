@@ -1,0 +1,839 @@
+---
+/* url usage: https://anime-dimension.com/anime-ssg-offline/naruto */
+
+import Head from "@components/_Head.astro";
+import Nav from "@components/_Nav.astro";
+import Footer from "@components/_Footer.astro";
+import UpperHeader from "@components/_UpperHeader.astro";
+import HeroBanner from "@components/_HeroBanner.astro";
+import ContentTopBanner from "@components/_ContentTopBanner.astro";
+import LeftAdSidebar from "@components/_LeftAdSidebar.astro";
+import InlineBanner from "@components/_InlineBanner.astro";
+import RightSidebar from "@components/_RightSidebar.astro";
+
+type Maybe<T> = T | undefined;
+
+type Recommendation = {
+    slug: string;
+    title: string;
+    thumbnailUrl?: string;
+    year?: number | string;
+    type?: string;
+    votes?: number;
+};
+
+type Review = {
+    id: string;
+    user?: { username?: string; avatarUrl?: string; profileUrl?: string };
+    date?: string;
+    rating?: number | string;
+    excerpt?: string;
+};
+
+type Related = {
+    title: string;
+    year?: string | number;
+    type?: string;
+    image?: string;
+    externalUrl?: string;
+    relation?: string;
+};
+
+type Character = { name: string; image?: string; voice?: string };
+
+type Staff = { name: string; role?: string; image?: string };
+
+type Discussion = { user: string; avatarUrl?: string; date: string; title: string; excerpt: string; url?: string };
+
+type CustomList = { title: string; user?: string; images?: string[]; comments?: number; likes?: number; url?: string };
+
+type Anime = {
+    slug: string;
+    title: string;
+    summary?: string;
+    description?: string;
+    poster?: string;
+    posterUrl?: string;
+    image?: string;
+    cover?: string;
+    // Include alternate dataset key to avoid casts
+    thumbnailUrl?: string;
+    genres?: string[];
+    tags?: string[];
+    year?: number;
+    type?: string;
+    format?: string;
+    episodes?: number;
+    status?: string;
+    related?: string[]; // optional list of related slugs
+    // Extended fields used by the page
+    recommendations?: { anime?: Recommendation[]; manga?: Recommendation[] };
+    reviews?: Review[];
+    relatedAnime?: Related[];
+    relatedManga?: Related[];
+    characters?: Character[];
+    staff?: Staff[];
+    discussions?: Discussion[];
+    customLists?: CustomList[];
+};
+
+function normalizePoster(a: Anime): string | undefined {
+    // Prefer normalized fields but fall back to common alternates
+    return a.posterUrl || a.poster || a.image || a.cover || a.thumbnailUrl;
+}
+
+// Remove top-level toNormalizedAnime; we'll define it inside getStaticPaths for safer bundling
+
+export async function getStaticPaths() {
+    // Prefer SQLite, fallback to per‑show JSON from AnimeCards/all
+    const path = await import('node:path');
+    const fs = await import('node:fs');
+    const { fileURLToPath } = await import('node:url');
+
+    // Use the new central Anime‑Dimension linker DB populated from all sources
+    const dbPath = path.resolve(process.cwd(), 'subModules', 'db', 'anime-dimension.sqlite3');
+    const hasDb = fs.existsSync(dbPath);
+
+    const toAnimeFromDb = (row: any, bySlug: (slug: string, kind?: string) => any) => {
+        const slug = String(row.slug);
+        const tags = bySlug(slug, 'tags') as string[];
+        const characters = bySlug(slug, 'characters') as any[];
+        const staff = bySlug(slug, 'staff') as any[];
+        const reviews = bySlug(slug, 'reviews') as any[];
+        const relatedAnime = bySlug(slug, 'relatedAnime') as any[];
+        return {
+            slug,
+            title: row.title,
+            summary: row.summary ?? row.synopsis ?? undefined,
+            description: row.synopsis ?? undefined,
+            posterUrl: row.thumbnail_url ?? undefined,
+            thumbnailUrl: row.thumbnail_url ?? undefined,
+            tags,
+            year: row.year ?? undefined,
+            type: row.type ?? undefined,
+            episodes: row.data_total_episodes ?? undefined,
+            characters,
+            staff,
+            reviews,
+            relatedAnime,
+        } as Anime;
+    };
+
+    if (hasDb) {
+        // Use WASM SQLite (sql.js) to avoid native dependency in the build
+        const SQLMod: any = await import('sql.js').catch(() => null);
+        if (SQLMod) {
+            const initSqlJs = (SQLMod.default ?? SQLMod) as any;
+            const wasmPath = path.resolve(process.cwd(), 'node_modules/sql.js/dist/sql-wasm.wasm');
+            const SQL = await initSqlJs({ wasmBinary: fs.readFileSync(wasmPath) });
+            const buf = fs.readFileSync(dbPath);
+            const db = new SQL.Database(new Uint8Array(buf));
+            const qAll = db.prepare('SELECT slug, title, synopsis, thumbnail_url, "year" AS year, "type" AS type, data_total_episodes FROM anime WHERE slug IS NOT NULL ORDER BY slug');
+            const rows: any[] = [];
+            while (qAll.step()) rows.push(qAll.getAsObject());
+            qAll.free();
+
+            const qId = db.prepare('SELECT id FROM anime WHERE slug = ?');
+            const qTags = db.prepare('SELECT t.name FROM tag t JOIN anime_tag at ON at.tag_id = t.id WHERE at.anime_id = ? ORDER BY t.name');
+            const qChars = db.prepare('SELECT name, image_url, voice_actor FROM character_role WHERE anime_id = ? ORDER BY id');
+            const qStaff = db.prepare('SELECT name, role, image_url FROM staff WHERE anime_id = ? ORDER BY id');
+            const qReviews = db.prepare('SELECT username, user_avatar_url, user_profile_url, review_date, rating, excerpt, review_key FROM review WHERE anime_id = ? ORDER BY id DESC');
+            const qRelated = db.prepare('SELECT title, image_url, external_url, relation, "year" AS year, "type" AS type FROM related_anime WHERE anime_id = ? ORDER BY id');
+
+            const bySlug = (slug: string, kind?: string) => {
+                qId.bind([slug]);
+                const idRow = qId.step() ? qId.getAsObject() : null;
+                qId.reset();
+                if (!idRow) return kind ? [] : null;
+                const id = (idRow as any).id;
+                const collect = (stmt: any, mapper: (r: any) => any) => {
+                    stmt.bind([id]);
+                    const out: any[] = [];
+                    while (stmt.step()) out.push(mapper(stmt.getAsObject()));
+                    stmt.reset();
+                    return out;
+                };
+                switch (kind) {
+                    case 'tags': {
+                        return collect(qTags, (r) => r.name);
+                    } case 'characters': {
+                        return collect(qChars, (r) => ({ name: r.name, image: r.image_url ?? undefined, voice: r.voice_actor ?? undefined }));
+                    } case 'staff': {
+                        return collect(qStaff, (r) => ({ name: r.name, role: r.role, image: r.image_url ?? undefined }));
+                    } case 'reviews': {
+                        return collect(qReviews, (r) => ({ id: r.review_key, user: { username: r.username ?? undefined, avatarUrl: r.user_avatar_url ?? undefined, profileUrl: r.user_profile_url ?? undefined }, date: r.review_date ?? undefined, rating: r.rating ?? undefined, excerpt: r.excerpt ?? undefined }));
+                    } case 'relatedAnime': {
+                        return collect(qRelated, (r) => ({ title: r.title, image: r.image_url ?? undefined, externalUrl: r.external_url ?? undefined, relation: r.relation ?? undefined, year: r.year ?? undefined, type: r.type ?? undefined }));
+                    } default: {
+                        return null;
+                    }
+                }
+            };
+
+            const all = rows.map((r) => toAnimeFromDb(r, bySlug));
+            return all.map((anime) => ({ params: { slug: anime.slug }, props: { anime } }));
+        }
+    }
+
+    // Fallback: iterate per‑show JSON under AnimeCards/processed_json_output/all
+    const allDir = path.resolve(process.cwd(), 'Anime-Dimension-Database-Orchestrator', 'scraper', 'data', 'main', 'Source', 'AnimePlanet', 'AnimeCards', 'processed_json_output', 'all');
+    const fromLinkToSlug = (href?: string) => {
+        if (!href) return;
+        try {
+            const u = new URL(href, 'https://anime-dimension.com');
+            const parts = u.pathname.split('/').filter(Boolean);
+            const idx = parts.indexOf('anime');
+            return idx !== -1 && idx + 1 < parts.length ? parts[idx + 1] : undefined;
+        } catch {
+            return;
+        }
+    };
+    const files = fs.existsSync(allDir) ? fs.readdirSync(allDir).filter((f) => f.endsWith('.json')) : [];
+    const items: Anime[] = files.map((f) => {
+        try {
+            const raw = JSON.parse(fs.readFileSync(path.join(allDir, f), 'utf-8')) as any;
+            const slug = fromLinkToSlug(raw.link);
+            return slug ?
+                ({
+                    slug,
+                    title: raw.title,
+                    summary: raw.synopsis ?? undefined,
+                    description: raw.synopsis ?? undefined,
+                    posterUrl: raw.image_url ?? undefined,
+                    thumbnailUrl: raw.image_url ?? undefined,
+                    tags: Array.isArray(raw.tags) ? raw.tags : undefined,
+                    year: raw.year ?? undefined,
+                    type: raw.type ?? undefined,
+                } as Anime) :
+                null;
+        } catch {
+            return null;
+        }
+    }).filter(Boolean) as Anime[];
+
+    return items.map((anime) => ({ params: { slug: anime.slug }, props: { anime } }));
+}
+
+// Ensure this route is fully prerendered at build time
+export const prerender = true;
+
+const { anime } = Astro.props as { anime: Anime };
+const MainJS = "../../js/main.min.js";
+
+// Replace meta details to match SSR format
+const yearStr = typeof anime.year === "number" ? String(anime.year) : "";
+const type = typeof anime.type === "string" ? anime.type : "";
+const description = (anime.description ?? anime.summary ?? "") as string;
+const metaText = [type, yearStr].filter(Boolean).join(" • ");
+
+const posterSrc: Maybe<string> = normalizePoster(anime);
+const tags: string[] = (anime.genres ?? []).concat(anime.tags ?? []);
+
+// placeholder for user stats, later replaced by build time injection from API when available
+const Public = (
+        Astro as unknown as {
+            globals?: Record<string, unknown>
+        }
+    ).globals?.Public as | { User?: { stats?: { Watched: number; Watching: number; WantToWatch: number; Dropped: number } } } | undefined;
+
+---
+
+<!doctype html>
+<html lang="en" data-bs-theme="dark">
+    <head>
+        <Head title={`Anime • ${anime.title}`} description={description || `Offline page for ${anime.title}`} />
+    </head>
+    <body class="sidebar-collapsed">
+        {/* This is the animated night mode background. */}
+        <div class="sky"></div>
+
+        {
+            /**
+             *  upper banner
+             *  This banner is visible by default and can be toggled via JS or the default button.
+             *  it can be hidden by default by adding the class d-none.
+             *  placing above the app-wrapper allows it to be at the top of the page on all screens.
+             */
+        }
+        <header id="upper-header" class="upper-header p-3 d-table d-none">
+            <UpperHeader />
+        </header>
+
+        {
+            /**
+             *  Main application wrapper
+             *  the app-wrapper class is defined in the main CSS file
+             */
+        }
+        <div id="app-wrapper">
+            {
+                /**
+                 *  Main Navigation Bar
+                 *  it dynamically adjusts based on screen size, becoming a bottom nav on mobile, topnav on desktop, and a collapsible sidebar on tablets.
+                 */
+            }
+            <nav id="main-nav" class="main-nav p-2">
+                <Nav />
+            </nav>
+            <section>
+                {
+                    /**
+                     *  main banner 2
+                     *  This banner is visible by default and can be toggled via JS or the default button.
+                     *  hidden by default, by adding the class d-none.
+                     */
+                }
+                <section id="hero-banner" class="hero-banner sb sb-homepage fullbleed p-3 rounded">
+                    <HeroBanner />
+                </section>
+
+                {
+                    /**
+                     *  Main section
+                     *  This section contains the main content of the page, the footer, and the right sidebar.
+                     *  the classes d-flex and flex-column are from Bootstrap 5 and are used to create a flexible layout.
+                     */
+                }
+                <div id="page-content-wrapper" style="height: 100%;" class="page-content-wrapper d-flex flex-column">
+                    {
+                        /**
+                         *  main banner
+                         *  This banner is visible by default and can be toggled via JS or the default button.
+                         *  hidden by default, by adding the class d-none.
+                         */
+                    }
+                    <section id="content-top-banner" class="content-top-banner p-3 rounded d-none">
+                        <ContentTopBanner />
+                    </section>
+                    <div class="MainSection d-flex flex-column flex-md-row flex-grow-1">
+                        {
+                            /**
+                             * Inner left sidebar
+                             * This sidebar becomes a full-screen overlay on tablet and mobile.
+                             * It is hidden by default via the 'd-none' class, which is toggled by JS.
+                             * on mobile and tablet, it becomes a central overlay element over the entire screen, good for advertisements or important notices.
+                             * It can be toggled on and off via JS or the default button.
+                             * It is d-none by default, but can be made unhidden by default by toggling the 'd-none' class.
+                             */
+                        }
+                        <aside id="left-ad-sidebar" class="left-ad-sidebar-overlay rounded d-none">
+                            <div class="left-ad-sidebar-content">
+                                <button id="close-left-ad-sidebar" type="button" class="btn-close" aria-label="Close"></button>
+                                <LeftAdSidebar />
+                            </div>
+                        </aside>
+                        {
+                            /**
+                             * Main Content Area
+                             * This is where the main content of the page will be displayed.
+                             */
+                        }
+                        <main class="flex-grow-1 p-4">
+                            {
+                                /**
+                                 *  Inner banner
+                                 *  This banner is visible by default and can be toggled via JS or the default button.
+                                 *  it can be hidden by default by adding the class d-none.
+                                 */
+                            }
+                            <section id="inline-banner" class="inline-banner p-3 text-center rounded d-none" >
+                                <InlineBanner />
+                            </section>
+                            <section class="content-area">
+                                <div class="homepage pullup">
+                                    {/** Main content */}
+                                    <div id="page-content-wrapper" class="page-content-wrapper d-flex flex-column">
+                                        <main class="flex-grow-1">
+                                            <div class="container-xxl py-3">
+                                                <div id="anime-ssg" class="anime-page">
+                                                    <!-- Static, prefilled content -->
+                                                    <article id="anime-article" class="row g-3">
+                                                        <div class="col-auto">
+                                                            {posterSrc ?
+                                                                (
+                                                                    <img
+                                                                        id="animePoster"
+                                                                        class="rounded"
+                                                                        alt={`${anime.title} poster`}
+                                                                        src={posterSrc}
+                                                                        width="190"
+                                                                        height="260"
+                                                                        loading="lazy"
+                                                                        decoding="async"
+                                                                    />
+                                                                ) :
+                                                                (
+                                                                    <div
+                                                                        class="rounded bg-secondary"
+                                                                        style="width:190px;height:260px;"
+                                                                        title="No poster available"
+                                                                    ></div>
+                                                                )}
+                                                        </div>
+                                                        <div class="col">
+                                                            <h1 id="animeTitle" class="h3 mb-2">{anime.title}</h1>
+                                                            {metaText && (
+                                                                <div id="animeMeta" class="text-body-secondary small mb-2">{metaText}</div>
+                                                            )}
+                                                            {description && <p id="animeSummary" class="mb-3">{description}</p>}
+                                                            {tags.length > 0 && (
+                                                                <div id="animeTags" class="d-flex flex-wrap gap-1">
+                                                                    {tags.map((t) => (
+                                                                        <span class="badge text-bg-secondary" data-tag={t}>{t}</span>
+                                                                    ))}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <div class="col">
+                                                            <style>
+                                                                .statList li::before {
+                                                                    position: absolute;
+                                                                    left: 0;
+                                                                    bottom: 40%;
+                                                                }
+                                                                .statList {
+                                                                    list-style: none;
+                                                                    margin: 0;
+                                                                    padding: 0;
+                                                                    white-space: nowrap;
+                                                                }
+                                                                .status0:before,
+                                                                .status1:before,
+                                                                .status2:before,
+                                                                .status3:before,
+                                                                .status4:before,
+                                                                .status5:before,
+                                                                .status6:before {
+                                                                content: "";
+                                                                display: inline-block;
+                                                                width: 0.9em;
+                                                                height: 0.9em;
+                                                                border-radius: 50%;
+                                                                }
+                                                                .status0:before {
+                                                                background-color: #666;
+                                                                }
+                                                                .status1:before {
+                                                                background-color: #6f99e4;
+                                                                }
+                                                                .status2:before {
+                                                                background-color: #8DEA43;
+                                                                }
+                                                                .status3:before {
+                                                                background-color: #d93d48;
+                                                                }
+                                                                .status4:before {
+                                                                background-color: #FCFC3C;
+                                                                }
+                                                                .status5:before {
+                                                                background-color: #FC9F3C;
+                                                                }
+                                                                .status6:before {
+                                                                background-color: #9942E9;
+                                                                }
+                                                                .statList {
+                                                                list-style: none;
+                                                                margin: 0;
+                                                                padding: 0;
+                                                                white-space: nowrap;
+                                                                }
+                                                                .statList li {
+                                                                position: relative;
+                                                                padding-bottom: 0.5em;
+                                                                padding-left: 0.9em;
+                                                                }
+                                                                .statList li:before {
+                                                                position: absolute;
+                                                                left: 0;
+                                                                bottom: 40%;
+                                                                }
+                                                                .statList li a {
+                                                                padding-left: 0.3em;
+                                                                }
+                                                                .statList a {
+                                                                display: inline-block;
+                                                                width: 80px;
+                                                                }
+                                                                .statList a:hover .slCount,
+                                                                .statList a:hover .slLabel {
+                                                                color: var(--color-text);
+                                                                }
+                                                                .statList .slCount {
+                                                                display: inline-block;
+                                                                margin-left: 0.7em;
+                                                                width: 3.4em;
+                                                                font-weight: bold;
+                                                                color: var(--color-text);
+                                                                font-size: 17px;
+                                                                }
+                                                                .statList .slLabel {
+                                                                font-weight: normal;
+                                                                }
+                                                                .statList.long .slCount {
+                                                                width: 4em;
+                                                                }
+                                                                .statList li::before {
+                                                                position: absolute;
+                                                                left: 0;
+                                                                bottom: 40%;
+                                                                }
+
+                                                                .statList .slCount {
+                                                                width: 4em;
+                                                                }
+                                                                .statList .slCount {
+                                                                display: inline-block;
+                                                                margin-left: 0.7em;
+                                                                width: 3.4em;
+                                                                font-weight: bold;
+                                                                color: var(--color-text);
+                                                                font-size: 17px;
+                                                                }
+
+                                                                .statList {
+                                                                list-style: none;
+                                                                white-space: nowrap;
+                                                                }
+
+
+                                                            </style>
+
+                                                            { /* User stats section, shown if Public.User and Public.User.stats are available */ }
+                                                            {Public?.User?.stats &&
+                                                                <section class="sidebarStats" id="entryStats">
+                                                                    <h2 class="smSidebar">User Stats</h2>
+
+                                                                    <ul class="statList  ">
+                                                                        <li class="status1">
+                                                                            <span class="slCount">{Public.User.stats.Watched}</span>
+                                                                            <span class="slLabel">watched</span>
+                                                                        </li>
+                                                                        <li class="status2">
+                                                                            <span class="slCount">{Public.User.stats.Watching}</span>
+                                                                            <span class="slLabel">watching</span>
+                                                                        </li>
+                                                                        <li class="status4">
+                                                                            <span class="slCount">{Public.User.stats.WantToWatch}</span>
+                                                                            <span class="slLabel">want to watch</span>
+                                                                        </li>
+                                                                        <li class="status3">
+                                                                            <span class="slCount">{Public.User.stats.Dropped}</span>
+                                                                            <span class="slLabel">dropped</span>
+                                                                        </li>
+                                                                    </ul>
+                                                                </section>
+                                                            }
+                                                        </div>
+                                                    </article>
+
+                                                    {/** New: Recommendations (Anime/Manga) */}
+                                                    {(() => {
+                                                        const recAnime: Recommendation[] = anime.recommendations?.anime ?? [];
+                                                        const recManga: Recommendation[] = anime.recommendations?.manga ?? [];
+                                                        if (recAnime.length === 0 && recManga.length === 0) return null;
+
+                                                        const animeTabActive = recAnime.length > 0;
+                                                        const mangaTabActive = !animeTabActive && recManga.length > 0;
+                                                        const animePaneClasses = `tab-pane fade ${animeTabActive ? "show active" : ""}`;
+                                                        const mangaPaneClasses = `tab-pane fade ${mangaTabActive ? "show active" : ""}`;
+
+                                                        const mangaTabEnabled = recManga.length > 0;
+                                                        const animeTabClass = animeTabActive ? "active" : "disabled";
+                                                        const mangaTabClass = mangaTabActive ? "active" : (mangaTabEnabled ? "" : "disabled");
+
+                                                        return (
+                                                            <section class="mt-4">
+                                                                <h2 class="h5 mb-3">If you like this anime, you might like...</h2>
+                                                                <ul class="nav nav-tabs" id="recTabs" role="tablist">
+                                                                    <li class="nav-item" role="presentation">
+                                                                        <button class={`nav-link ${animeTabClass}`} id="rec-anime-tab" data-bs-toggle="tab" data-bs-target="#rec-anime" type="button" role="tab" aria-controls="rec-anime" aria-selected={animeTabActive}>Anime</button>
+                                                                    </li>
+                                                                    <li class="nav-item" role="presentation">
+                                                                        <button class={`nav-link ${mangaTabClass}`} id="rec-manga-tab" data-bs-toggle="tab" data-bs-target="#rec-manga" type="button" role="tab" aria-controls="rec-manga" aria-selected={mangaTabActive}>Manga</button>
+                                                                    </li>
+                                                                </ul>
+                                                                <div class="tab-content border border-top-0 p-3 rounded-bottom" id="recTabsContent">
+                                                                    <div class={animePaneClasses} id="rec-anime" role="tabpanel" aria-labelledby="rec-anime-tab">
+                                                                        <div class="row row-cols-2 row-cols-sm-3 row-cols-lg-6 g-3">
+                                                                            {recAnime.map((r: Recommendation) => (
+                                                                                <div class="col" data-slug={r.slug}>
+                                                                                    <div class="card h-100">
+                                                                                        {r.thumbnailUrl && <img src={r.thumbnailUrl} class="card-img-top" alt={r.title} loading="lazy" />}
+                                                                                        <div class="card-body p-2">
+                                                                                            <h3 class="h6 card-title mb-1" title={r.title}>{r.title}</h3>
+                                                                                            <div class="text-body-secondary small">{[r.type, r.year].filter(Boolean).join(" • ")}</div>
+                                                                                        </div>
+                                                                                        {r.votes !== undefined && (
+                                                                                            <div class="card-footer small text-body-secondary">{r.votes} votes</div>
+                                                                                        )}
+                                                                                    </div>
+                                                                                </div>
+                                                                            ))}
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class={mangaPaneClasses} id="rec-manga" role="tabpanel" aria-labelledby="rec-manga-tab">
+                                                                        {recManga.length > 0 && (
+                                                                            <div class="row row-cols-2 row-cols-sm-3 row-cols-lg-6 g-3">
+                                                                                {recManga.map((r: Recommendation) => (
+                                                                                    <div class="col" data-slug={r.slug}>
+                                                                                        <div class="card h-100">
+                                                                                            {r.thumbnailUrl && <img src={r.thumbnailUrl} class="card-img-top" alt={r.title} loading="lazy" />}
+                                                                                            <div class="card-body p-2">
+                                                                                                <h3 class="h6 card-title mb-1" title={r.title}>{r.title}</h3>
+                                                                                                <div class="text-body-secondary small">{[r.type, r.year].filter(Boolean).join(" • ")}</div>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                ))}
+                                                                            </div>
+                                                                        )}
+                                                                        {recManga.length === 0 && (
+                                                                            <div class="text-body-secondary">No manga recommendations available.</div>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            </section>
+                                                        );
+                                                    })()}
+
+                                                    {/** New: Reviews */}
+                                                    {Array.isArray(anime.reviews) && anime.reviews.length > 0 && (
+                                                        <section class="mt-4">
+                                                            <h2 class="h5 mb-3">Reviews</h2>
+                                                            <div class="row g-3">
+                                                                {anime.reviews.slice(0, 6).map((r: Review) => (
+                                                                    <div class="col-12 col-md-6 col-lg-4">
+                                                                        <div class="card h-100">
+                                                                            <div class="card-body">
+                                                                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                                                                    <div class="d-flex align-items-center gap-2">
+                                                                                        {r.user?.avatarUrl && (
+                                                                                            <img src={r.user.avatarUrl} class="rounded-circle" width="32" height="32" alt={r.user?.username} loading="lazy" />
+                                                                                        )}
+                                                                                        {!r.user?.avatarUrl && (
+                                                                                            <div class="rounded-circle bg-secondary" style="width:32px;height:32px;"></div>
+                                                                                        )}
+                                                                                        <div>
+                                                                                            <div class="fw-semibold small">{r.user?.username ?? "User"}</div>
+                                                                                            <div class="text-body-secondary small">{r.date}</div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                    <span class="badge text-bg-success">{r.rating}</span>
+                                                                                </div>
+                                                                                <p class="mb-0 text-truncate" style="-webkit-line-clamp: 4; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden;">{r.excerpt}</p>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </section>
+                                                    )}
+
+                                                    {/** New: Related anime */}
+                                                    {Array.isArray(anime.relatedAnime) && anime.relatedAnime.length > 0 && (
+                                                        <section class="mt-4">
+                                                            <h2 class="h5 mb-3">Related anime</h2>
+                                                            <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-6 g-3">
+                                                                {anime.relatedAnime.map((ra: Related) => (
+                                                                    <div class="col">
+                                                                        <div class="card h-100">
+                                                                            {ra.image && <img src={ra.image} class="card-img-top" alt={ra.title} loading="lazy" />}
+                                                                            <div class="card-body">
+                                                                                <h3 class="h6 card-title mb-1">{ra.title}</h3>
+                                                                                <div class="text-body-secondary small mb-2">{ra.relation}</div>
+                                                                                <ul class="list-unstyled small mb-0">
+                                                                                    <li>{ra.year}</li>
+                                                                                    <li>{ra.type}</li>
+                                                                                </ul>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </section>
+                                                    )}
+
+                                                    {/** New: Related manga */}
+                                                    {Array.isArray(anime.relatedManga) && anime.relatedManga.length > 0 && (
+                                                        <section class="mt-4">
+                                                            <h2 class="h5 mb-3">Related manga</h2>
+                                                            <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-6 g-3">
+                                                                {anime.relatedManga.map((rm: Related) => (
+                                                                    <div class="col">
+                                                                        <div class="card h-100">
+                                                                            {rm.image && <img src={rm.image} class="card-img-top" alt={rm.title} loading="lazy" />}
+                                                                            <div class="card-body">
+                                                                                <h3 class="h6 card-title mb-1">{rm.title}</h3>
+                                                                                <div class="text-body-secondary small mb-2">{rm.relation}</div>
+                                                                                <ul class="list-unstyled small mb-0">
+                                                                                    <li>{rm.year}</li>
+                                                                                    <li>{rm.type}</li>
+                                                                                </ul>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </section>
+                                                    )}
+
+                                                    {/* Styles for Character and Staff cards */}
+                                                    <style>
+                                                        .CharacterCard {
+                                                            display: flex;
+                                                            flex-direction: row;
+                                                        }
+                                                        .CharacterCardRow {
+                                                            display: flex;
+                                                            flex-direction: row;
+                                                            width: 25%;
+                                                        }
+                                                        .CharacterCard .card-img-top,
+                                                        .CharacterCard img {
+                                                            height: 131px;
+                                                            width: auto;
+                                                            object-fit: cover;
+                                                            flex: 0 0 auto;
+                                                        }
+                                                        .CharacterCard .card-body {
+                                                            display: flex;
+                                                            flex-direction: column;
+                                                            justify-content: center;
+                                                        }
+                                                    </style>
+
+                                                    {/** New: Characters */}
+                                                    {Array.isArray(anime.characters) && anime.characters.length > 0 && (
+                                                        <section class="mt-4">
+                                                            <h2 class="h5 mb-3">Characters</h2>
+                                                            <div class="row row-cols-2 row-cols-sm-3 row-cols-lg-6 g-3">
+                                                                {anime.characters.map((c: Character) => (
+                                                                    <div class="col">
+                                                                        <div class="card h-100 CharacterCard">
+                                                                            <div class="row">
+                                                                                {c.image && <img src={c.image} class="card-img-top" alt={c.name} loading="lazy" />}
+                                                                            </div>
+                                                                            <div class="row card-body p-2">
+                                                                                <div class="fw-semibold small" title={c.name}>{c.name}</div>
+                                                                                {c.voice && <div class="text-body-secondary small">{c.voice}</div>}
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </section>
+                                                    )}
+
+                                                    {/** New: Staff */}
+                                                    {Array.isArray(anime.staff) && anime.staff.length > 0 && (
+                                                        <section class="mt-4">
+                                                            <h2 class="h5 mb-3">Staff</h2>
+                                                            <div class="row row-cols-2 row-cols-sm-3 row-cols-lg-6 g-3">
+                                                                {anime.staff.map((s: Staff) => (
+                                                                    <div class="col">
+                                                                        <div class="card h-100 CharacterCard">
+                                                                            {s.image && <img src={s.image} class="card-img-top" alt={s.name} loading="lazy" />}
+                                                                            <div class="card-body p-2">
+                                                                                <div class="fw-semibold small" title={s.name}>{s.name}</div>
+                                                                                {s.role && <div class="text-body-secondary small">{s.role}</div>}
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </section>
+                                                    )}
+
+                                                    {/** New: Discussions */}
+                                                    {Array.isArray(anime.discussions) && anime.discussions.length > 0 && (
+                                                        <section class="mt-4">
+                                                            <h2 class="h5 mb-3">Discussions</h2>
+                                                            <div class="list-group">
+                                                                {anime.discussions.map((d: Discussion) => (
+                                                                    <a href={d.url || "#"} class="list-group-item list-group-item-action d-flex gap-3 align-items-start">
+                                                                        {d.avatarUrl && (
+                                                                            <img src={d.avatarUrl} class="rounded-circle flex-shrink-0" width="40" height="40" alt={d.user} loading="lazy" />
+                                                                        )}
+                                                                        {!d.avatarUrl && (
+                                                                            <div class="rounded-circle bg-secondary flex-shrink-0" style="width:40px;height:40px;"></div>
+                                                                        )}
+                                                                        <div class="w-100">
+                                                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                                                <strong>{d.user}</strong>
+                                                                                <span class="text-body-secondary small">{d.date}</span>
+                                                                            </div>
+                                                                            <div class="fw-semibold">{d.title}</div>
+                                                                            <div class="text-body-secondary small text-truncate">{d.excerpt}</div>
+                                                                        </div>
+                                                                    </a>
+                                                                ))}
+                                                            </div>
+                                                        </section>
+                                                    )}
+
+                                                    {/** New: Custom lists */}
+                                                    {Array.isArray(anime.customLists) && anime.customLists.length > 0 && (
+                                                        <section class="mt-4">
+                                                            <h2 class="h5 mb-3">Custom lists</h2>
+                                                            <div class="row g-3">
+                                                                {anime.customLists.map((cl: CustomList) => (
+                                                                    <div class="col-12 col-lg-6">
+                                                                        <a class="card h-100 text-decoration-none" href={cl.url || "#"}>
+                                                                            <div class="card-body">
+                                                                                <div class="d-flex align-items-start gap-3">
+                                                                                    <div class="d-flex">
+                                                                                        {(cl.images || []).slice(0, 2).map((img: string) => (
+                                                                                            <img src={img} alt="" class="rounded" width="56" height="84" loading="lazy" style="object-fit:cover;margin-right:0.5rem;" />
+                                                                                        ))}
+                                                                                    </div>
+                                                                                    <div class="flex-grow-1">
+                                                                                        <div class="fw-semibold">{cl.title}</div>
+                                                                                        <div class="text-body-secondary small mb-2">by {cl.user}</div>
+                                                                                        <div class="d-flex gap-3 text-body-secondary small">
+                                                                                            <span><i class="bi bi-chat"></i> {cl.comments}</span>
+                                                                                            <span><i class="bi bi-heart"></i> {cl.likes}</span>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </a>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </section>
+                                                    )}
+
+                                                </div>
+                                            </div>
+                                        </main>
+                                    </div>
+                                </div>
+                            </section>
+                        </main>
+                        {
+                            /**
+                             *  Right Sidebar
+                             */
+                        }
+                        <aside id="right-sidebar" class="right-sidebar rounded d-none">
+                            <RightSidebar />
+                        </aside>
+                    </div>
+                </div>
+            </section>
+            {
+                /**
+                 *  Footer
+                 *  This footer is visible on larger screens and hidden on mobile and tablet.
+                 */
+            }
+            <footer class="main-footer p-3 mt-auto d-none d-lg-block">
+                <Footer />
+            </footer>
+        </div>
+
+        {/* keep main js include as is */}
+        <script is:inline src={MainJS}></script>
+        {/* Bootstrap JS should already be part of main bundle; if not, ensure it's included globally */}
+    </body>
+</html>

@@ -79,6 +79,7 @@ Anime-dimension-api/**
 .wlampctl-project.conf
 
 subModules/db/
+subModules/newdb/
 subModules/publish/
 
 

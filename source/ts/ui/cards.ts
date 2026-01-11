@@ -1,11 +1,11 @@
 // /source/ts/ui/cards.ts
 
-type Dict = Record<string, unknown>;
+import type { AnimeItemRaw, Dict } from '../anime-types';
 
 // Small utilities for safe rendering and flexible API shapes
 const getString = (o: Dict, key: string): string | undefined => (typeof o[key] === 'string' ? (o[key]) : undefined);
 
-export const getTitle = (item: Dict): string => {
+export const getTitle = (item: AnimeItemRaw): string => {
     return (
         getString(item, 'title') ||
         getString(item, 'name') ||
@@ -16,7 +16,7 @@ export const getTitle = (item: Dict): string => {
     );
 };
 
-export const getImage = (item: Dict): string => {
+export const getImage = (item: AnimeItemRaw): string => {
     const images = (item.images as Dict | undefined) || undefined;
     return (
         getString(item, 'thumbnailUrl') ||
@@ -35,7 +35,7 @@ export const getImage = (item: Dict): string => {
     );
 };
 
-export const getUrl = (item: Dict): string => {
+export const getUrl = (item: AnimeItemRaw): string => {
     const url = getString(item, 'url');
     if (url) return url;
     const slug = getString(item, 'slug');
@@ -50,10 +50,15 @@ export const getUrl = (item: Dict): string => {
 
 import { buildTooltipHtml } from './tooltip-template';
 
-export const renderCards = (grid: HTMLElement, items: unknown[]): void => {
+/**
+ * Render a list of anime items into the provided grid.
+ *
+ * Callers should convert API responses from `unknown` into `AnimeItemRaw[]` first
+ * (see `coerceAnimeItemList()` in `/source/ts/anime-types.ts`).
+ */
+export const renderCards = (grid: HTMLElement, items: AnimeItemRaw[]): void => {
     grid.innerHTML = '';
-    for (const raw of items) {
-        const it = (raw ?? {}) as Dict;
+    for (const it of items) {
         const col = document.createElement('div');
         col.className = 'col';
 

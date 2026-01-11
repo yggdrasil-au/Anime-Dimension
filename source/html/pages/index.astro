@@ -10,12 +10,24 @@ import LeftAdSidebar from "@components/_LeftAdSidebar.astro";
 import InlineBanner from "@components/_InlineBanner.astro";
 import RightSidebar from "@components/_RightSidebar.astro";
 
+
+// get global build data/config/methods from shared build config js
+import * as buildconf from "@BuildConfigs/main.js";
+
 const MainJS = "./js/main.min.js"
-const description = "Anime Dimension is a multi platform anime discovery and tracking web app, built with modern web technologies and designed to work on all devices, including mobile, tablet and desktop. It features a responsive design, dark mode, and a variety of other features to enhance your anime experience.";
+const description = buildconf.page.description.index;
+const title = buildconf.page.title.index || "Anime Dimension";
+
+
+//
+// Determine current anime season based on date
+//
 
 let today = new Date();
 let year = today.getFullYear();
-let season = "";
+const ThisYear = year;
+let Northseason = "";
+let Southseason = "";
 
 // Define approximate season start dates (Northern Hemisphere, US seasons)
 let spring = new Date(year, 2, 20);  // March 20
@@ -24,17 +36,28 @@ let fall   = new Date(year, 8, 22);  // Sept 22
 let winter = new Date(year, 11, 21); // Dec 21
 
 if (today >= spring && today < summer) {
-    season = "Spring";
+    Northseason = "Spring";
 } else if (today >= summer && today < fall) {
-    season = "Summer";
+    Northseason = "Summer";
 } else if (today >= fall && today < winter) {
-    season = "Fall";
+    Northseason = "Fall";
 } else {
-    season = "Winter";
+    Northseason = "Winter";
 }
 
-const ThisSeason = season;
-const ThisYear = new Date().getFullYear();
+const ThisSeason = Northseason;
+
+// define appropriate southern hemisphere season, AU seasons
+if (today >= spring && today < summer) {
+    Southseason = "Fall";
+} else if (today >= summer && today < fall) {
+    Southseason = "Winter";
+} else if (today >= fall && today < winter) {
+    Southseason = "Spring";
+} else {
+    Southseason = "Summer";
+}
+
 ---
 
 <!doctype html>
@@ -43,7 +66,7 @@ const ThisYear = new Date().getFullYear();
 {/* data-bs-theme defines the default bootstrap colour theme, class= night-mode sets the night mode styles as default, changing this is un-necessary as its controlled via the JS/TS theme Controller */}
 <html lang="en" data-bs-theme="dark">
     <head>
-        <Head title="Multi Platform Bootstrap CSS Template" description={description} />
+        <Head title={title} description={description} />
         <style>
             .MainSection {
                 margin-top: 5rem;

@@ -116,7 +116,7 @@ import * as buildconf from "@BuildConfigs/main.js";
                         (async () => {
                             let isLoggedIn = false;
                             try {
-                                const res = await fetch(`${window.getApiBase()}/api/login/validateState`, {
+                                const res = await fetch(`${window.getApiBase()}/api/login/validateState?caller=api_nav`, {
                                     method: 'PUT',
                                     credentials: 'include',
                                 });
