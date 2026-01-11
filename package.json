@@ -2,7 +2,7 @@
     "name": "anime-dimension",
     "description": "a public database for western and eastern animated works including TV shows and movies, with user reviews, ratings, and recommendations, directly based on the anime-planet.com website",
 
-    "version": "0.10.0",
+    "version": "0.9.2",
 
     "type": "module",
     "private": true,

@@ -81,5 +81,6 @@ Anime-dimension-api/**
 subModules/db/
 subModules/newdb/
 subModules/publish/
-
+subModules/old-Anime-Dimension-Database-Orchestrator
+subModules/Database-Orchestrator
 
