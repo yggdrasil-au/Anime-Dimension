@@ -112,13 +112,13 @@ section.fullbleed {
 }
 .sb-homepage {
     position: relative;
-    background: transparent url("https://anime-dimension.com/assets/inc/img/banners/homepage/space-mobile-min.svg");
+    background: transparent url("https://anime-dimension.com/images/prod/assets/inc/img/banners/homepage/space-mobile-min.svg");
     background-size: cover;
 }
 @media (min-width: 768px) {
     .sb-homepage {
         text-align: center;
-        background-image: url("https://anime-dimension.com/assets/inc/img/banners/homepage/space-min.svg");
+        background-image: url("https://anime-dimension.com/images/prod/assets/inc/img/banners/homepage/space-min.svg");
     }
 }
 @media (min-width: 768px) {
@@ -140,7 +140,7 @@ section.fullbleed {
     right: -7vw;
     bottom: -12vw;
     z-index: -1;
-    background: url("https://anime-dimension.com/assets/inc/img/logos/planet-min.svg") no-repeat 50% 50%;
+    background: url("https://anime-dimension.com/images/prod/assets/inc/img/logos/planet-min.svg") no-repeat 50% 50%;
     background-size: contain;
 }
 @media (max-width: 767px) {

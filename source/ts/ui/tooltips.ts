@@ -223,17 +223,45 @@ export const initAuto = (): void => {
         try {
             const mo = new MutationObserver((mutList) => {
                 for (const m of mutList) {
-                    if (m.type === 'childList' && (m.addedNodes?.length || 0) > 0) {
-                        scheduleScan();
-                        break;
+                    // Ignore modifications originating from tooltip/popover content updates
+                    // Note: Bootstrap usually adds tooltips as direct children of <body>, so 'subtree:true' catches them.
+                    const t = m.target as HTMLElement;
+                    if (t && (
+                        t.closest('.tooltip') || t.closest('.popover') || 
+                        t.classList?.contains('tooltip') || t.classList?.contains('popover')
+                    )) {
+                        continue;
                     }
-                    if (m.type === 'attributes' && m.attributeName === 'data-bs-toggle') {
+
+                    if (m.type === 'childList' && (m.addedNodes?.length || 0) > 0) {
+                        let relevant = false;
+                        for (let i = 0; i < m.addedNodes.length; i++) {
+                            const node = m.addedNodes[i];
+                            if (node instanceof Element) {
+                                // Ignore insertion of standard Bootstrap tooltips/popovers
+                                if (node.classList.contains('tooltip') || node.classList.contains('popover')) continue;
+                                // Ignore our own container/scripts if any
+                                if (node.tagName === 'SCRIPT' && node.hasAttribute('data-tooltip-html')) continue;
+                                relevant = true;
+                                break;
+                            }
+                            // Text bindings etc are relevant
+                            relevant = true;
+                            break;
+                        }
+                        
+                        if (relevant) {
+                            scheduleScan();
+                            break;
+                        }
+                    }
+                    if (m.type === 'attributes' && (m.attributeName === 'data-bs-toggle' || m.attributeName === 'data-tooltip-html')) {
                         scheduleScan();
                         break;
                     }
                 }
             });
-            mo.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-bs-toggle'] });
+            mo.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-bs-toggle', 'data-tooltip-html'] });
 
             console.debug('[AD::tooltips.ts::initAuto()] MutationObserver attached for auto-detection.');
         } catch {

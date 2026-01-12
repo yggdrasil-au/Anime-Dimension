@@ -19,6 +19,7 @@ const OFFLINE_URL = '/offline.html';
 const CORE_ASSETS = [
     OFFLINE_URL,
     '/css/main.min.css',
+    '/data/anime-lite.json',
 ];
 
 sw.addEventListener('install', (event: ExtendableEvent) => {
@@ -102,7 +103,7 @@ sw.addEventListener('fetch', (event: FetchEvent) => {
     }
 
     // Static assets by path
-    if (url.pathname.startsWith('/css/') || url.pathname.startsWith('/js/') || url.pathname.startsWith('/assets/')) {
+    if (url.pathname.startsWith('/css/') || url.pathname.startsWith('/js/') || url.pathname.startsWith('/assets/') || url.pathname.startsWith('/data/')) {
         event.respondWith(cacheFirst(req));
     }
 });

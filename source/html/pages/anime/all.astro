@@ -14,70 +14,12 @@ import ContentTopBanner from "@components/_ContentTopBanner.astro";
 import LeftAdSidebar from "@components/_LeftAdSidebar.astro";
 import InlineBanner from "@components/_InlineBanner.astro";
 import RightSidebar from "@components/_RightSidebar.astro";
-// Prefer SQLite at build time
-const path = await import('node:path');
-const fs = await import('node:fs');
-
-type AnimeLite = {
-    slug: string;
-    title: string;
-    thumbnailUrl?: string;
-    year?: number | string;
-    type?: string;
-    tags?: string[];
-    summary?: string;
-};
-
-// Prefer SQLite at build time
-// Use the new central Anime‑Dimension linker DB populated from Anime‑Planet
-const dbPath = path.resolve(process.cwd(), 'subModules', 'db', 'anime-dimension.sqlite3');
-
-let items: AnimeLite[] = [];
-
-if (fs.existsSync(dbPath)) {
-    // Use WASM SQLite (sql.js) to avoid native dependency in the build
-    const SQLMod: any = await import('sql.js').catch(() => null);
-    if (SQLMod) {
-        const initSqlJs = (SQLMod.default ?? SQLMod) as any;
-        const wasmPath = path.resolve(process.cwd(), 'node_modules/sql.js/dist/sql-wasm.wasm');
-        const SQL = await initSqlJs({ wasmBinary: fs.readFileSync(wasmPath) });
-        const buf = fs.readFileSync(dbPath);
-        const db = new SQL.Database(new Uint8Array(buf));
-        const qAll = db.prepare('SELECT slug, title, thumbnail_url, "year" AS year, "type" AS type, synopsis, id FROM anime WHERE slug IS NOT NULL ORDER BY title');
-        const rows: any[] = [];
-        while (qAll.step()) rows.push(qAll.getAsObject());
-        qAll.free();
-        const qTags = db.prepare('SELECT t.name FROM tag t JOIN anime_tag at ON at.tag_id = t.id WHERE at.anime_id = ? ORDER BY t.name');
-        items = rows.map((r) => {
-            const tags: string[] = (() => {
-                const out: string[] = [];
-                qTags.bind([r.id]);
-                while (qTags.step()) out.push(qTags.getAsObject().name);
-                qTags.reset();
-                return out;
-            })();
-            return {
-                slug: r.slug,
-                title: r.title,
-                thumbnailUrl: r.thumbnail_url ?? undefined,
-                year: r.year ?? undefined,
-                type: r.type ?? undefined,
-                tags,
-                summary: r.synopsis ?? undefined,
-            } as AnimeLite;
-        });
-    }
-}
-
-
-// Stable sort for deterministic build output
-items.sort((a, b) => a.title.localeCompare(b.title));
 
 // include root JS file dont use relative path
 const MainJS = "/js/main.min.js";
 
 // Fully prerender at build time
-export const prerender = true;
+//export const prerender = true;
 
 ---
 
@@ -128,7 +70,7 @@ export const prerender = true;
                             <section class="content-area">
                                 <div class="container-xxl py-3">
                                     <header class="mb-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
-                                        <h1 class="h4 mb-0">All Anime (Offline)</h1>
+                                        <h1 class="h4 mb-0">All Anime</h1>
                                         <div class="results-meta text-body-secondary small" id="resultsMeta" aria-live="polite"></div>
                                     </header>
 
@@ -156,21 +98,37 @@ export const prerender = true;
                 </div>
             </section>
 
-            
+
             <footer class="main-footer p-3 mt-auto d-none d-lg-block">
                 <Footer />
             </footer>
         </div>
 
-        <!-- Build-time dataset embedded for light, offline client search -->
-        <script is:inline type="application/json" id="offline-data" set:html={JSON.stringify(items)}></script>
+        <!-- Lite dataset loaded dynamically -->
+        <!-- <script is:inline type="application/json" id="offline-data" set:html={JSON.stringify(items)}></script> -->
 
         <script is:inline>
-            (function() {
+            (async function() {
                 const byId = (id) => document.getElementById(id);
-                const dataEl = byId('offline-data');
-                /** @type {Array<{slug:string,title:string,thumbnailUrl?:string,year?:string|number,type?:string,tags?:string[],summary?:string}>} */
-                const DATA = dataEl ? JSON.parse(dataEl.textContent || '[]') : [];
+
+                // Fetch Lite Data
+                let DATA = [];
+                try {
+                    const res = await fetch('/data/anime-lite.json');
+                    if (res.ok) {
+                        const raw = await res.json();
+                        // Transform array [slug, title, year, type, thumb] -> Object
+                        DATA = raw.map(r => ({
+                            slug: r[0],
+                            title: r[1],
+                            year: r[2],
+                            type: r[3],
+                            thumbnailUrl: r[4]
+                        }));
+                    }
+                } catch (e) {
+                    console.error('Failed to load anime data', e);
+                }
 
                 const grid = byId('resultsGrid');
                 const pager = byId('pager');
@@ -193,55 +151,119 @@ export const prerender = true;
                     const nq = norm(q);
                     if (norm(item.title).includes(nq)) return true;
                     if (norm(item.slug).includes(nq)) return true;
-                    if (item.summary && norm(item.summary).includes(nq)) return true;
-                    if (Array.isArray(item.tags) && item.tags.some(t => norm(t).includes(nq))) return true;
+                    // Lite data doesn't have summary or tags, so search is limited to title/slug/year/type
+                    // If we want detailed search, we would need to load index, but for lite offline search this is acceptable.
+                    if (item.year && String(item.year).includes(nq)) return true;
+                    if (item.type && norm(item.type).includes(nq)) return true;
                     return false;
                 };
 
                 const toText = (v) => (v == null ? '' : String(v));
 
-                // Build safe tooltip HTML from a dataset item
+                // --- Tooltip Loading Logic ---
+                const tooltipCache = new Map();
+
+                async function loadTooltip(slug) {
+                    if (tooltipCache.has(slug)) return tooltipCache.get(slug);
+
+                    // Fetch individual tooltip file
+                    try {
+                        const res = await fetch(`/data/tooltips/${slug}.json`);
+                        if (res.ok) {
+                            const data = await res.json();
+                            tooltipCache.set(slug, data);
+                            return data;
+                        }
+                    } catch (e) {
+                         // silent fail
+                    }
+                    return null;
+                }
+
                 const buildTooltipHtml = (it) => {
+                    if (!it) return '';
+                    const titleVal = it.t || it.title;
+                    const typeVal = it.ty;
+                    const yearVal = it.y;
+                    const summaryVal = it.d;
+                    const tagsVal = it.g;
+                    const altTitle = it.at;
+                    const studio = it.st;
+                    const rating = it.r;
+                    const notes = it.n;
+
                     const root = document.createElement('div');
 
                     const title = document.createElement('h5');
                     title.className = 'theme-font';
-                    title.textContent = toText(it.title || 'Untitled');
+                    title.textContent = toText(titleVal || 'Untitled');
                     root.append(title);
 
-                    const hasEntry = it.type || it.year;
+                    if (altTitle) {
+                        const h6 = document.createElement('h6');
+                        h6.className = 'theme-font tooltip-alt';
+                        h6.textContent = `Alt title: ${altTitle}`;
+                        root.append(h6);
+                    }
+
+                    const hasEntry = typeVal || yearVal || studio || rating;
                     if (hasEntry) {
                         const ul = document.createElement('ul');
                         ul.className = 'entryBar';
-                        if (it.type) {
+                        if (typeVal) {
                             const li = document.createElement('li');
                             li.className = 'type';
-                            li.textContent = toText(it.type);
+                            li.textContent = toText(typeVal);
                             ul.append(li);
                         }
-                        if (it.year) {
+                        if (studio) {
+                            const li = document.createElement('li');
+                            li.textContent = toText(studio);
+                            ul.append(li);
+                        }
+                        if (yearVal) {
                             const li = document.createElement('li');
                             li.className = 'iconYear';
-                            li.textContent = toText(it.year);
+                            li.textContent = toText(yearVal);
+                            ul.append(li);
+                        }
+                        if (rating) {
+                            const li = document.createElement('li');
+                            const div = document.createElement('div');
+                            div.className = 'ttRating';
+                            div.textContent = toText(rating);
+                            li.append(div);
                             ul.append(li);
                         }
                         root.append(ul);
                     }
 
-                    if (it.summary) {
+                    if (summaryVal) {
                         const p = document.createElement('p');
-                        p.textContent = toText(it.summary);
+                        p.innerHTML = summaryVal;
                         root.append(p);
                     }
 
-                    if (Array.isArray(it.tags) && it.tags.length) {
+                    if (notes) {
+                        const notesDiv = document.createElement('div');
+                        notesDiv.className = 'tooltip notes';
+                        const list = Array.isArray(notes) ? notes : [notes];
+                        list.forEach(n => {
+                            const p = document.createElement('p');
+                            p.textContent = n;
+                            notesDiv.append(p);
+                        });
+                        root.append(notesDiv);
+                    }
+
+                    if (Array.isArray(tagsVal) && tagsVal.length) {
                         const tagsDiv = document.createElement('div');
                         tagsDiv.className = 'tags';
                         const h4 = document.createElement('h4');
                         h4.textContent = 'Tags';
                         tagsDiv.append(h4);
                         const ul = document.createElement('ul');
-                        for (const t of it.tags) {
+                        for (const t of tagsVal) {
                             if (!t) continue;
                             const li = document.createElement('li');
                             li.textContent = String(t);
@@ -254,16 +276,61 @@ export const prerender = true;
                     return root.innerHTML;
                 };
 
-                // Tooltips auto-init now handled by /js/ui/tooltips.min.js
+
+                // Event Delegation for lazy loading
+                document.body.addEventListener('mouseover', async (e) => {
+                    const card = e.target.closest('[data-slug]');
+                    if (!card) return;
+
+                    if (card.hasAttribute('data-tooltip-loaded')) return;
+
+                    const slug = card.getAttribute('data-slug');
+                    if (!slug) return;
+
+                    // Mark as requested to avoid stampede
+                    card.setAttribute('data-tooltip-loaded', 'true');
+
+                    const data = await loadTooltip(slug);
+                    if (data) {
+                        const html = buildTooltipHtml(data);
+                        card.setAttribute('data-tooltip-html', html);
+
+                        // Allow tooltips.ts MutationObserver to detect the new attribute and init the tooltip
+                        setTimeout(() => {
+                             if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+                                const instance = bootstrap.Tooltip.getInstance(card);
+                                if (instance) {
+                                    // Make sure it uses the new HTML
+                                    if (instance._config) instance._config.title = html;
+                                    instance.setContent({ '.tooltip-inner': html });
+                                    
+                                    // If user is still hovering, convince it to show
+                                    if (card.matches(':hover')) {
+                                        instance.show();
+                                    }
+                                }
+                             }
+                        }, 50);
+                    }
+                });
 
                 const renderGrid = (list) => {
                     grid.innerHTML = '';
+
+                    // Optimization: simple batching could be added here, but sticking to existing structure first.
+
                     for (const it of list) {
                         const col = document.createElement('div');
                         //col.className = 'col';
 
                         const card = document.createElement('div');
                         card.className = 'card h-100 anim-card';
+
+                        // Set tracking hooks
+                        card.setAttribute('data-slug', it.slug);
+                        card.setAttribute('data-bs-toggle', 'tooltip');
+                        card.setAttribute('data-bs-placement', 'auto');
+                        card.setAttribute('data-bs-custom-class', 'anim-tooltip');
 
                         const img = document.createElement('img');
                         img.className = 'card-img-top';
@@ -283,17 +350,6 @@ export const prerender = true;
                         link.href = `/anime/${encodeURIComponent(it.slug)}.html`;
                         link.className = 'stretched-link';
                         link.setAttribute('aria-label', it.title);
-
-                        // Tooltip attributes and content
-                        try {
-                            const tooltipHtml = buildTooltipHtml(it);
-                            if (tooltipHtml && tooltipHtml.trim() !== '') {
-                                card.setAttribute('data-bs-toggle', 'tooltip');
-                                card.setAttribute('data-bs-placement', 'auto');
-                                card.setAttribute('data-bs-custom-class', 'anim-tooltip');
-                                card.setAttribute('data-tooltip-html', tooltipHtml);
-                            }
-                        } catch { /* ignore */ }
 
                         body.append(title);
                         card.append(img, body, link);

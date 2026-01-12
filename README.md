@@ -37,18 +37,21 @@ The backend API is a separate ASP.NET Core application (located in `subModules/A
 ## Project Structure
 
 ```
-Anime-Dimension/
-├── buildConfig/        # Configuration for Astro, PostCSS, etc.
-├── source/             # Application source code
-│   ├── assets/         # Static assets (images, icons)
-│   ├── html/           # Astro pages and components
-│   ├── scss/           # Global SCSS and Bootstrap overrides
-│   ├── ts/             # TypeScript application logic
-│   └── web/            # Web-specific resources (manifests)
-├── subModules/         # Sub-repositories (API, Database Orchestrator)
-├── www/                # Build output directory
-├── capacitor.config.ts # Capacitor configuration
-└── package.json        # Project dependencies and scripts
+Sites/
+    main/Anime-Dimension/
+    ├── buildConfig/        # Configuration for Astro, PostCSS, etc.
+    ├── source/             # Application source code
+    │   ├── assets/         # Static assets (images, icons)
+    │   ├── html/           # Astro pages and components
+    │   ├── scss/           # Global SCSS and Bootstrap overrides
+    │   ├── ts/             # TypeScript application logic
+    │   └── web/            # Web-specific resources (manifests)
+    ├── subModules/         # Sub-repositories (API, Database Orchestrator)
+    ├── www/                # Build output directory
+    ├── capacitor.config.ts # Capacitor configuration
+    └── package.json        # Project dependencies and scripts
+Tools/
+    ...WebDev Tools           # Shared development tools and scripts
 ```
 
 ## Getting Started
@@ -56,12 +59,12 @@ Anime-Dimension/
 ### Prerequisites
 - Node.js (Latest LTS recommended)
 - pnpm (Package Manager)
-- .NET SDK (for backend development)
+- .NET SDK 10 LTS (for backend development)
 - [Dev Tools](https://github.com/yggdrasil-au/WebDev-Tools)
 
 ### Installation
 
-1.  Clone the repository (ensure submodules are initialized if working on the full stack).
+1.  Clone the repository.
 2.  Install dependencies:
     ```bash
     pnpm install

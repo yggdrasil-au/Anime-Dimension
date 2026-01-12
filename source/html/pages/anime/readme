@@ -1,14 +1,14 @@
 # Anime Pages Architecture
 
-This directory contains different architectural approaches for rendering the Anime "All" (Search/Listing) page and the "Slug" (Detail) page. Each version serves a specific purpose regarding performance, data freshness, and offline capability. The **static/offline** pages in the root of this directory are the **primary production** implementation; the non-static variants have been moved under `admin/` and are kept as development tools and reference implementations.
+This directory contains different architectural approaches for rendering the Anime "All" (Search/Listing) page and the "Slug" (Detail) page. Each version serves a specific purpose regarding performance, data freshness, and offline capability. The **static/offline** pages in the root of this directory are the **primary production** implementation; the non-static variants have been moved under `dev/` and are kept as development tools and reference implementations.
 
 ## Quick Comparison
 
 | Type | Directory | Rendering Strategy | Data Source | offline Capable |
 |------|-----------|--------------------|-------------|-----------------|
 | **Static (Primary)** | Root (`./`) | **SG** (Static Generation) | Build-time Embedded JSON / SQLite | **Yes** (Fully) |
-| **SSG (Dev / Ref)** | `admin/ssg-csr/` | **Shell** (Static) + **Content** (Client) | Runtime API / Fetch | Shell only |
-| **CSR (Dev / Ref)** | `admin/csr/` | **CSR** (Client Side Rendering) | Runtime API / Fetch | No |
+| **SSG (Dev / Ref)** | `dev/ssg-csr/` | **Shell** (Static) + **Content** (Client) | Runtime API / Fetch | Shell only |
+| **CSR (Dev / Ref)** | `dev/csr/` | **CSR** (Client Side Rendering) | Runtime API / Fetch | No |
 
 ---
 
