@@ -1,0 +1,245 @@
+##
+# Scripts Configuration File
+#
+# all scripts normally found in package.json scripts section
+#
+# main scripts are:
+#   - build: build simply produces the website in www/
+#   - production: builds the website with optimization, linting, etc.
+#   - dev: builds the website and starts a local apache server with watch mode
+#   - dev-prod: same as dev but uses production build
+#   - dotnet:build-release-linux: builds the .NET API for Linux deployment
+#   - dotnet:build-release-win: builds the .NET API for Windows deployment
+#   - deploy-prod: builds the prod site and dotnet api and deploys to the server
+#   - ww-d: builds and deploys only the website to the server
+#   - api-d: builds and deploys only the .NET API to the server
+#   - update-api-www-no-build and update-api-www: updates website embedded in the dotnet api from the astro build, one builds astro first, the other does not,
+#     the dotnet:build-release-linux runs no build making it rely on existing astro build
+#
+#   - Most Other scripts are sub-scripts used by the main scripts, but most can be run directly when testing or debugging specific parts of the build process
+##
+
+#
+# command line example:
+#   in webdev root:
+#       pnpm --filter anime-dimension yaml-run -- dev
+#   in anime-dimension main dir:
+#       pnpm yaml-run -- dev
+#
+
+
+scripts:
+    # --- Utilities ---
+    #echo: "echo $(pkg.buildConfig.banner)"
+
+    clean:
+        - "rimraf $(paths.www)/"
+
+    watch: "node scripts/watch-updates.mjs"
+
+    lint:
+        parallel:
+            - js-lint
+            - css-lint
+            - docs-lint
+
+    # --- Icons & Assets ---
+    copy-icons:bi: |
+        shx mkdir -p $(paths.bi_dist) &&
+        shx cp -r $(paths.bi_src)/* $(paths.bi_dist)/
+
+    copy-icons:fa: |
+        shx mkdir -p $(paths.bi_dist)/fontawesome &&
+        shx cp -r $(paths.fa_src) $(paths.fa_dist)/
+
+    copy-icons:www:
+        series:
+            - copy-icons:bi
+            - copy-icons:fa
+
+    assets:icons: "yaml-run copy-icons:www"
+
+    webp: |
+        shx mkdir -p ./$(paths.img_dist) &&
+        ygg-webp --inputDir ./$(paths.img_src) --outputDir ./$(paths.img_dist) --configPath ./$(paths.webp_conf)
+
+    assets:handle:  "node scripts/asset-handler.mjs --split"
+    assets:prod:    "node scripts/asset-handler.mjs --production"
+    assets:dev:     "node scripts/asset-handler.mjs --dev"
+    assets:prepare: "node scripts/asset-handler.mjs --prepare"
+
+    appAssetsGen: >
+        capacitor-assets generate --android --pwa
+        --pwaOutRoot $(paths.pwa_out)
+        --pwaIconsPath $(paths.pwa_icons)
+        --pwaManifestPath $(paths.pwa_manifest)
+        --assetPath $(paths.pwa_assets)
+
+    # --- CSS ---
+    css:
+        series:
+            - css-compile
+            - css-prefix
+            - css-rtl
+            - css-minify
+
+    css-compile: >
+        sass --style expanded --load-path="node_modules"
+        --source-map --embed-sources --no-error-css --quiet
+        $(paths.scss)/:$(paths.css_dist)/
+
+    css-rtl: >
+        cross-env NODE_ENV=RTL postcss --config $(configs.postcss)
+        --dir "$(paths.css_dist)" --ext ".rtl.css"
+        "$(paths.css_dist)/*.css" "!$(paths.css_dist)/*.min.css" "!$(paths.css_dist)/*.rtl.css"
+
+    css-lint: 'stylelint "$(paths.scss)/**/*.scss" --cache --cache-location .cache/.stylelintcache --rd'
+
+    css-prefix: 'postcss --config $(configs.postcss) --replace "$(paths.css_dist)/*.css" "!$(paths.css_dist)/*.rtl*.css" "!$(paths.css_dist)/*.min.css"'
+
+    css-minify:
+        parallel:
+            - css-minify-main
+            - css-minify-rtl
+
+    css-minify-main: >
+        cleancss -O1 --format breakWith=lf --with-rebase --source-map --source-map-inline-sources
+        --output $(paths.css_dist)/ --batch --batch-suffix ".min"
+        "$(paths.css_dist)/*.css" "!$(paths.css_dist)/*.min.css" "!$(paths.css_dist)/*rtl*.css"
+
+    css-minify-rtl: >
+        cleancss -O1 --format breakWith=lf --with-rebase --source-map --source-map-inline-sources
+        --output $(paths.css_dist)/ --batch --batch-suffix ".min"
+        "$(paths.css_dist)/*rtl.css" "!$(paths.css_dist)/*.min.css"
+
+    # --- JS ---
+    js:
+        series:
+            - js-compile
+            - js-min
+
+    js-compile: "ts-builder"
+    js-lint: "eslint --format=stylish ."
+    js-min: "js-minify --inputDir $(paths.web_root) --inputDir $(paths.web_dist) --inputDir $(paths.cap_sync)"
+
+    # --- HTML / Docs ---
+    htm-minify: "htm-minify --inputDir $(paths.web_root) --inputDir $(paths.web_dist) --inputDir $(paths.cap_sync)"
+
+    docs-compile: "astro --config $(configs.astro) build"
+    docs-lint: "astro --config $(configs.astro) check"
+    docs-format: 'prettier --write "$(paths.web_dist)/**/*.html"'
+    docs-serve-ssr: "astro --config $(configs.astro_ssr) dev --port 3001"
+
+    move-astro-output-to-dist: "shx cp -r $(paths.web_dist)/astrobuild/* $(paths.web_dist)/ && shx rm -rf $(paths.web_dist)/astrobuild"
+
+    # --- Build Pipelines ---
+    generate-data: "node scripts/generate-offline-data.mjs"
+
+    comp2:
+        series:
+            - assets:prepare
+            - assets:icons
+            - docs-compile
+
+    compile-parallel:
+        parallel:
+            - css
+            - js
+            - webp
+
+    compile:
+        series:
+            - compile-parallel
+            - comp2
+            - docs-format
+            - move-astro-output-to-dist
+            - generate-data
+            - assets:handle
+
+    build:
+        series:
+            - clean
+            - compile
+
+    prod-comp:
+        series:
+            - clean
+            - appAssetsGen
+            - compile
+            - htm-minify
+
+    production:
+        series:
+            - assets:prod
+            - clean
+            - appAssetsGen
+            - lint
+            - compile
+            - htm-minify
+            - capSync
+
+    capSync: "pnpm exec cap sync"
+
+    # --- Dev / Watch ---
+    dev-apache-server: "wlampctl-cli apache start --output --DocumentRoot ./$(paths.web_root) --port 8080"
+
+    dev-apache-watch:
+        parallel:
+            - watch
+            - dev-apache-server
+
+    dev:
+        series:
+            - assets:dev
+            - build
+            - dev-apache-watch
+
+    dev-prod:
+        series:
+            - assets:prod
+            - production
+            - dev-apache-watch
+
+    # --- PHP & API ---
+    build:php: "build-php full"
+    php:prebuild: "build-php pre"
+    php:postbuild: "build-php post"
+
+    update-api-www-no-build: "node scripts/asset-handler.mjs --update-api"
+    update-api-www:
+        series:
+            - compile
+            - update-api-www-no-build
+
+    dotnet:run: "cd $(paths.api_dir) && dotnet run -c Debug --project ./$(paths.api_proj) --framework net10.0"
+
+    dotnet:build-release-linux: >
+        yaml-run update-api-www-no-build && cd $(paths.api_dir) && rimraf $(paths.api_pub_linux) &&
+        dotnet publish ./$(paths.api_proj) -c Release -f net10.0 -r linux-x64 --self-contained true
+        -p:PublishSingleFile=true -p:PublishTrimmed=true -p:IncludeAllContentForSelfExtract=true -o $(paths.api_pub_linux)
+
+    dotnet:build-release-win: >
+        yaml-run update-api-www && cd $(paths.api_dir) && rimraf $(paths.api_pub_win) &&
+        dotnet publish ./$(paths.api_proj) -c Release -f net10.0 -r win-x64 --self-contained true
+        -p:PublishSingleFile=true -p:PublishTrimmed=true -p:IncludeAllContentForSelfExtract=true -o $(paths.api_pub_win)
+
+    # --- Deployment ---
+    deploy:check: "deploy --check"
+    deploy:sftp: "deploy"
+    deploy:www: "deploy --www"
+    deploy:cs: "deploy --cs"
+
+    ww-d:
+        series:
+            - production
+            - deploy:www
+
+    api-d:
+        series:
+            - dotnet:build-release-linux
+            - deploy:cs
+
+    deploy-prod:
+        series:
+            - ww-d
+            - api-d

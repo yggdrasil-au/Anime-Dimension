@@ -2,7 +2,7 @@
     "name": "anime-dimension",
     "description": "a public database for western and eastern animated works including TV shows and movies, with user reviews, ratings, and recommendations, directly based on the anime-planet.com website",
 
-    "version": "0.9.4",
+    "version": "0.9.5",
 
     "type": "module",
     "private": true,
@@ -47,97 +47,7 @@
     },
 
     "scripts": {
-        "r": "echo \"Hello World!\"",
-
-        "echo": "pwsh -NoProfile -Command \"(Get-Content -Raw package.json | ConvertFrom-Json).buildConfig.banner\"",
-        "echo2": "node -p \"require('./package.json').buildConfig.banner\"",
-        "echo3": "node -p \"require('./cfg').banner\"",
-
-        "copy-icons:www": "npm-run-all copy-icons:bi copy-icons:fa",
-        "copy-icons:bi": "shx mkdir -p www/dist/css/assets/icons && shx cp -r node_modules/bootstrap-icons/* www/dist/css/assets/icons/",
-        "copy-icons:fa": "shx mkdir -p www/dist/css/assets/icons/fontawesome && shx cp -r node_modules/@fortawesome/fontawesome-free/webfonts www/dist/webfonts/",
-        "copy-bootstrap-icons": "npm run copy-icons:www",
-        "assets:icons": "npm run copy-bootstrap-icons",
-
-        "webp": "shx mkdir -p ./www/dist/data/images/prod && ygg-webp --inputDir ./source/images/Source --outputDir ./www/dist/data/images/prod --configPath ./source/images/webp.json",
-
-        "appAssetsGen1": "node ../../../Tools/capacitor-assets/bin/capacitor-assets generate --android --pwa --pwaOutRoot source/web/ --pwaIconsPath manifest/icons --pwaManifestPath source/web/site.webmanifest --assetPath resources/pwa-capacitor",
-        "appAssetsGen": "capacitor-assets generate --android --pwa --pwaOutRoot source/web/ --pwaIconsPath manifest/icons --pwaManifestPath source/web/site.webmanifest --assetPath resources/pwa-capacitor",
-
-
-        "dev-prod1": "npm-run-all prod-comp dev-apache-watch",
-        "dev-prod": "npm-run-all assets:prod production dev-apache-watch",
-        "dev": "npm-run-all assets:dev build dev-apache-watch",
-            "dev-apache-watch": "npm-run-all --parallel watch dev-apache-server",
-            "dev-apache-server1": "pwsh -NoProfile -Command ../../../Tools/WLAP-Server-CLI/Main/source/xampp-build/Built/installed-xampp/wlampctl.exe apache start --output --DocumentRoot ./www/website --port 8080",
-            "dev-apache-server": "wlampctl-cli apache start --output --DocumentRoot ./www/website --port 8080",
-            "dev-apache-server-status1": "pwsh -NoProfile -Command ../../../Tools/WLAP-Server-CLI/Main/source/xampp-build/Built/installed-xampp/wlampctl.exe apache status",
-            "dev-apache-server-status": "wlampctl-cli apache status",
-
-        "capSync": "pnpm exec cap sync",
-
-        "build:php": "build-php full",
-            "php:prebuild": "build-php pre",
-            "php:postbuild": "build-php post",
-
-        "prod-comp": "npm-run-all clean appAssetsGen compile htm-minify",
-        "production": "npm-run-all assets:prod clean appAssetsGen lint compile htm-minify capSync",
-        "build": "npm-run-all clean compile",
-            "generate-data": "node scripts/generate-offline-data.mjs",
-            "compile": "npm-run-all compile-parallel comp2 docs-format move-astro-output-to-dist generate-data assets:handle",
-                "compile-parallel": "npm-run-all --parallel css js webp",
-                "comp2": "npm-run-all assets:prepare assets:icons docs-compile",
-
-            "css": "npm-run-all css-compile css-prefix css-rtl css-minify",
-                "css-compile": "sass --style expanded --load-path=\"node_modules\" --source-map --embed-sources --no-error-css --quiet source/scss/:www/dist/css/",
-                "css-rtl": "cross-env NODE_ENV=RTL postcss --config buildConfig/postcss.config.mjs --dir \"www/dist/css\" --ext \".rtl.css\" \"www/dist/css/*.css\" \"!www/dist/css/*.min.css\" \"!www/dist/css/*.rtl.css\"",
-                "css-lint": "stylelint \"source/scss/**/*.scss\" --cache --cache-location .cache/.stylelintcache --rd",
-                "css-minify": "npm-run-all --aggregate-output --parallel css-minify-*",
-                "css-minify-main": "cleancss -O1 --format breakWith=lf --with-rebase --source-map --source-map-inline-sources --output www/dist/css/ --batch --batch-suffix \".min\" \"www/dist/css/*.css\" \"!www/dist/css/*.min.css\" \"!www/dist/css/*rtl*.css\"",
-                "css-minify-rtl": "cleancss -O1 --format breakWith=lf --with-rebase --source-map --source-map-inline-sources --output www/dist/css/ --batch --batch-suffix \".min\" \"www/dist/css/*rtl.css\" \"!www/dist/css/*.min.css\"",
-                "css-prefix": "postcss --config buildConfig/postcss.config.mjs --replace \"www/dist/css/*.css\" \"!www/dist/css/*.rtl*.css\" \"!www/dist/css/*.min.css\"",
-            "js": "npm-run-all js-compile js-min",
-                "js-compile": "ts-builder",
-                "js-lint": "eslint --format=stylish .",
-                "js-min": "js-minify --inputDir www/website --inputDir www/dist --inputDir www/capacitorsync",
-            "htm-minify": "htm-minify --inputDir www/website --inputDir www/dist --inputDir www/capacitorsync",
-            "docs-compile": "astro --config buildConfig/astro.config.mjs build",
-                "docs-lint": "astro --config buildConfig/astro.config.mjs check",
-                "docs-format": "prettier --write \"www/dist/**/*.html\"",
-
-        "clean": "rimraf www/",
-            "clean-www-dist-html": "rimraf \"www/dist/**/*.html\"",
-            "clean-www-website-html": "rimraf www/website/**/*.html",
-
-        "docs-serve-ssr": "astro --config buildConfig/astro.ssr.hybrid.config.mjs dev --port 3001",
-
-        "move-astro-output-to-dist": "shx cp -r www/dist/astrobuild/* www/dist/ && shx rm -rf www/dist/astrobuild",
-        "lint": "npm-run-all --aggregate-output --continue-on-error --parallel js-lint css-lint docs-lint",
-
-        "watch": "node scripts/watch-updates.mjs",
-
-        "deploy:check": "deploy --check",
-        "deploy-prod": "pnpm run ww-d && pnpm run api-d",
-            "deploy:sftp": "deploy",
-            "ww-d": "npm-run-all production deploy:www",
-            "deploy:www": "deploy --www",
-            "api-d": "npm-run-all dotnet:build-release-linux deploy:cs",
-            "deploy:cs": "deploy --cs",
-
-
-        "assets:handle": "node scripts/asset-handler.mjs --split",
-        "assets:prod": "node scripts/asset-handler.mjs --production",
-        "assets:dev": "node scripts/asset-handler.mjs --dev",
-        "assets:prepare": "node scripts/asset-handler.mjs --prepare",
-
-        "update-api-www-no-build": "node scripts/asset-handler.mjs --update-api",
-        "update-api-www": "pnpm run compile && pnpm run update-api-www-no-build",
-
-        "dotnet:run": "cd subModules/Anime-Dimension-api && dotnet run -c Debug --project ./ASP.NETCoreWebApi.csproj --framework net10.0",
-        "dotnet:build-release-linux": "pnpm run update-api-www-no-build && cd subModules/Anime-Dimension-api && rimraf ../publish/linux-x64 && dotnet publish ./ASP.NETCoreWebApi.csproj -c Release -f net10.0 -r linux-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=true -p:IncludeAllContentForSelfExtract=true -o ../publish/linux-x64",
-        "dotnet:build-release-win": "pnpm run update-api-www && cd subModules/Anime-Dimension-api && rimraf ../publish/win-x64 && dotnet publish ./ASP.NETCoreWebApi.csproj -c Release -f net10.0 -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=true -p:IncludeAllContentForSelfExtract=true -o ../publish/win-x64",
-        "dotnet:build-debug-all": "pnpm run update-api-www && cd subModules/Anime-Dimension-api && rimraf ../publish/debug && dotnet publish ./ASP.NETCoreWebApi.csproj -c Debug -f net10.0 -o ../publish/debug"
-
+        "yaml-run": "yaml-run"
     },
 
     "dependencies": {
@@ -201,7 +111,7 @@
         "@yggdrasil-au/ts-builder": "workspace:1.0.0",
         "@yggdrasil-au/ygg-webp": "workspace:0.1.4",
         "@yggdrasil-au/wlampctl-cli": "workspace:0.1.3",
-        "@yggdrasil-au/yaml-run": "workspace:0.1.0",
+        "@yggdrasil-au/yaml-run": "workspace:0.1.1",
 
         "astro": "5.16.9",
         "autoprefixer": "10.4.23",
