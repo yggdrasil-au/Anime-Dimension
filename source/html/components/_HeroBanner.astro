@@ -5,6 +5,34 @@ import * as buildconf from "@BuildConfigs/main.js";
 
 
 <div class="fullbleedContent">
+    <svg class="banner-overlay" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 158">
+        <defs>
+            <path id="starShape" d="M299 16a2.84 2.84 0 0 1 2.64 2.56 2.85 2.85 0 0 1 2.62-2.56 2.85 2.85 0 0 1-2.65-2.55A2.83 2.83 0 0 1 299 16"/>
+            <filter id="blur">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="1"/>
+            </filter>
+        </defs>
+
+        <g class="twinkle-group">
+            <use href="#starShape" class="star" transform="translate(-226 18)" style="animation-delay:.5s"/>
+            <use href="#starShape" class="star" style="animation-duration:2s"/>
+            <use href="#starShape" class="star" transform="matrix(2.2 0 0 2.2 -345 20)" style="animation-delay:.5s"/>
+            <use href="#starShape" class="star" transform="translate(247 118)" style="animation-duration:2s"/>
+            <use href="#starShape" class="star" transform="translate(391 4)"/>
+            <use href="#starShape" class="star" transform="translate(393 120)" style="animation-duration:3s"/>
+            <use href="#starShape" class="star" transform="matrix(2.2 0 0 2.2 158 27)" style="animation-delay:.9s"/>
+            <use href="#starShape" class="star" transform="translate(765 94)" style="animation-delay:4s"/>
+            <use href="#starShape" class="star" transform="translate(850 92)" style="animation-duration:2s"/>
+            <circle cx="301.5" cy="16" r="3" filter="url(#blur)" class="star-blur" style="fill:#b90000; opacity:.2"/>
+        </g>
+
+        <g id="clouds">
+            <path class="cloud-shape" d="M427.59 130.74h-58c-3.41 0-6.19-2.27-6.19-5s2.78-5 6.19-5h21.94c3.4 0 6.19-2.27 6.19-5s-2.79-5-6.19-5h-58c-3.41 0-6.2-2.26-6.2-5s2.79-5 6.2-5H353c3.41 0 6.2-2.27 6.2-5s-2.79-5-6.2-5h-75.68c-3.4 0-6.19 2.27-6.19 5s2.79 5 6.19 5h4c3.41 0 6.2 2.26 6.2 5s-2.79 5-6.2 5h-31.86c-3.41 0-6.19 2.27-6.19 5s2.78 5 6.19 5h67.93c3.41 0 6.2 2.26 6.2 5s-2.79 5-6.2 5h-31.83c-3.41 0-6.19 2.27-6.19 5s2.78 5 6.19 5h142c3.4 0 6.19-2.27 6.19-5s-2.75-5-6.16-5"/>
+            <path class="cloud-shape cloud-slow" d="M900.12 18.22H838a5.41 5.41 0 0 1 0-10.81h27.15a5.42 5.42 0 0 0 5.4-5.41 5.42 5.42 0 0 0-5.41-5.4h-121.3a5.42 5.42 0 0 0-5.41 5.4 5.43 5.43 0 0 0 5.41 5.41h72.55a5.4 5.4 0 0 1 0 10.79h-12.08a5.41 5.41 0 0 0 0 10.81h95.81a5.41 5.41 0 1 0 0-10.81Z"/>
+        </g>
+
+        <path class="shooting-star" d="M161 106.89c16.43-1.89 43.57-5.65 43.57-5.65s-27.68 4.8-43.19 8c-6.7 1.39-16.11 1.83-16.21 1.17s7.19-2.52 15.83-3.52"/>
+    </svg>
     <h1>Welcome to {buildconf.data_json.siteName1}</h1>
     <p>
         <span>Discover anime, </span>

@@ -127,17 +127,17 @@ const ThisJS = "../js/main.min.js"
                                         <div>
                                             <div class="">
                                                 <div class="modal-dialog">
-                                                    <div class="modal-header">
+                                                    <!-- <div class="modal-header">
                                                         <sub></sub>
                                                         <button class="modal-close">
                                                             <i class="fas fa-times"></i>
                                                         </button>
-                                                    </div>
+                                                    </div> -->
                                                     <div class="modal-body">
                                                         <div class="modal-content">
                                                             <div class="SignUp">
                                                                 <div class="SignUpHeader">
-                                                                    <img src="/assets/inc/img/logos/dimension-kun.svg" alt="Anime-Dimension logo">
+                                                                    <img src="/data/images/prod/assets/inc/img/logos/dimension-kun.svg" alt="Anime-Dimension logo">
                                                                     <h1>Sign up for Anime-Dimension</h1>
                                                                     <p> Discover anime and manga, track your progress, get recommendations, and watch legal anime. For free! </p>
                                                                 </div>
@@ -263,6 +263,11 @@ const ThisJS = "../js/main.min.js"
                         show(errEl, 'Please fill in username, email, and password.');
                         return;
                     }
+                    {/* require full valid email */}
+                    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                        show(errEl, 'Please enter a valid email address (e.g. user@example.com).');
+                        return;
+                    }
                     if (!tosAgree) {
                         show(errEl, 'You must agree to the Terms and Privacy Policy.');
                         return;
@@ -302,8 +307,31 @@ const ThisJS = "../js/main.min.js"
                             show(errEl, msg);
                             return;
                         }
-                        show(okEl, 'Account created! Redirecting to login…');
-                        setTimeout(() => { window.location.href = '/auth'; }, 800);
+                        show(okEl, 'Account created! Logging in...');
+
+                        try {
+                            const loginRes = await fetch(`${apiBase}/api/login`, {
+                                method: 'PUT',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-Platform': 'web',
+                                },
+                                body: JSON.stringify({ _username: username, _password: password, _remember_me: true }),
+                                credentials: 'include',
+                            });
+                            const loginData = await loginRes.json().catch(() => ({}));
+                            const loginStatus = (loginData && loginData.status) || (loginRes.ok ? 'ok' : 'err');
+
+                            if (loginStatus === 'ok') {
+                                show(okEl, 'Account created! Logged in! Redirecting...');
+                                setTimeout(() => { window.location.href = '/'; }, 600);
+                            } else {
+                                throw new Error('Auto-login failed');
+                            }
+                        } catch (e) {
+                            show(okEl, 'Account created! Redirecting to login...');
+                            setTimeout(() => { window.location.href = '/auth'; }, 800);
+                        }
                     } catch (error) {
                         show(errEl, error instanceof Error ? error.message : 'Network error.');
                     }

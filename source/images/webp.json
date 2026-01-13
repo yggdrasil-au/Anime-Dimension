@@ -1,0 +1,37 @@
+[
+    {
+        "source": "assets/inc/img/banners/homepage/banner-bg.svg",
+        "output": "svg",
+        "original": true
+    },
+    {
+        "source": "assets/inc/img/banners/homepage/planet-bits.png",
+        "sizes": [0],
+        "output": "webp"
+    },
+    {
+        "source": "assets/inc/img/banners/homepage/space-min.svg",
+        "output": "svg",
+        "original": true
+    },
+    {
+        "source": "assets/inc/img/banners/homepage/space-mobile-min.svg",
+        "output": "svg",
+        "original": true
+    },
+    {
+        "source": "assets/inc/img/logos/dimension-kun.svg",
+        "output": "svg",
+        "original": true
+    },
+    {
+        "source": "assets/inc/img/logos/planet-min.svg",
+        "output": "svg",
+        "original": true
+    },
+    {
+        "source": "assets/favicon.png",
+        "sizes": [0],
+        "output": "webp"
+    }
+]

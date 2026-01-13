@@ -112,12 +112,6 @@
                         window.Logout = doLogout;
 
                         (async () => {
-                            if (document.cookie.indexOf('session_token=') === -1) {
-                                // No session cookie; skip the API call
-                                if (authLoading) authLoading.classList.add('d-none');
-                                if (authBtns) authBtns.classList.remove('d-none');
-                                return;
-                            }
                             let isLoggedIn = false;
                             try {
                                 const res = await fetch(`${getApiBase()}/api/login/validateState?caller=nav`, {
@@ -134,10 +128,12 @@
                                     const profileUrl = `/users/user.html?username=${encodeURIComponent(userName)}`;
                                     const avatarUrl = `/images/users/avatars/${encodeURIComponent(userId || 'default')}.webp`;
 
+                                    // todo, issue, if the /data/images/prod/assets/inc/img/logos/dimension-kun.svg file is not found the page will retry to load it forever
+
                                     const html = `
                                         <div class="loggedIn">
                                             <a class="user-avatar-link" href="${profileUrl}" title="${userName}">
-                                                <img class="avatar user-avatar" alt="${userName}'s avatar" src="${avatarUrl}" onerror="this.src='/assets/inc/img/logos/dimension-kun.svg'">
+                                                <img class="avatar user-avatar" alt="${userName}'s avatar" src="${avatarUrl}" onerror="this.src='/data/images/prod/assets/inc/img/logos/dimension-kun.svg'">
                                             </a>
                                             <ul class="loggedInOptions">
                                                 <li><a href="${profileUrl}">Profile</a></li>

@@ -1,8 +1,6 @@
-<svg class="banner" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1200 158"
-    width="1200" height="158">
+<svg class="banner" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1200 158" width="1200" height="158">
     <defs>
-        <pattern id="planet1Texture" width="72" height="72" patternTransform="matrix(.22 0 0 .22 -45.72 49.24)"
-            patternUnits="userSpaceOnUse" viewBox="0 0 72 72">
+        <pattern id="planet1Texture" width="72" height="72" patternTransform="matrix(.22 0 0 .22 -45.72 49.24)" patternUnits="userSpaceOnUse" viewBox="0 0 72 72">
             <g style="fill:#303">
                 <circle cx="36" cy="25.16" r="14.31" />
                 <circle cx="36" cy="48.77" r="14.31" />
@@ -11,149 +9,53 @@
             </g>
             <path d="M45.47 28.22 26.59 48.15m-.03-19.93 18.88 19.93" style="fill:none;stroke:#606;stroke-width:3px" />
         </pattern>
-        <pattern id="planet2Texture" width="26.54" height="23.33" xmlns="http://www.w3.org/2000/svg"
-            patternUnits="userSpaceOnUse" viewBox="0 0 26.54 23.33">
+        <pattern id="planet2Texture" width="26.54" height="23.33" xmlns="http://www.w3.org/2000/svg" patternUnits="userSpaceOnUse" viewBox="0 0 26.54 23.33">
             <path style="fill:#308" d="M0 0h26.54v23.33H0z" />
             <g style="fill:none;stroke:#333">
                 <path class="cls-1" d="M4.37 22.98c0-3.65 4.05-6.6 9.05-6.6s9.06 2.95 9.06 6.6" />
                 <path class="cls-1" d="M.65 22.84c0-6 5.72-10.83 12.77-10.83S26.2 16.86 26.2 22.84" />
-                <path class="cls-1"
-                    d="M9.27 22.91a5.29 5.29 0 0 1 4.17-1.89 5.28 5.28 0 0 1 4.18 1.9M.35 5c5 0 9.05 3 9.05 6.6" />
-                <path class="cls-1"
-                    d="M.35.63c7.05 0 12.77 4.85 12.77 10.83M.35 9.65c2.76 0 5 1.9 5 4.25m11.79-2.3c0-3.64 4.06-6.6 9.06-6.6" />
+                <path class="cls-1" d="M9.27 22.91a5.29 5.29 0 0 1 4.17-1.89 5.28 5.28 0 0 1 4.18 1.9M.35 5c5 0 9.05 3 9.05 6.6" />
+                <path class="cls-1" d="M.35.63c7.05 0 12.77 4.85 12.77 10.83M.35 9.65c2.76 0 5 1.9 5 4.25m11.79-2.3c0-3.64 4.06-6.6 9.06-6.6" />
                 <path class="cls-1" d="M13.42 11.46c0-6 5.72-10.83 12.78-10.83M21.19 13.9c0-2.35 2.24-4.25 5-4.25" />
-                <path class="cls-1"
-                    d="M22.45.34a5 5 0 0 1 0 .53M4.37.87a5 5 0 0 1 0-.52m12.9.04a3.86 3.86 0 0 1 1.22 2.77m-10.08 0A3.9 3.9 0 0 1 9.64.38" />
+                <path class="cls-1" d="M22.45.34a5 5 0 0 1 0 .53M4.37.87a5 5 0 0 1 0-.52m12.9.04a3.86 3.86 0 0 1 1.22 2.77m-10.08 0A3.9 3.9 0 0 1 9.64.38" />
             </g>
         </pattern>
-        <pattern id="planet3Texture" width="13.41" height="22.5" patternTransform="scale(.8)"
-            patternUnits="userSpaceOnUse" viewBox="0 0 13.41 17.89">
-            <path
-                d="m7.41.69 1.44 1.44m2.43 2.44 1.44 1.44m-5.31 0 1.44-1.44m2.43-2.44L12.72.69M.69 11.88l1.44 1.45m2.44 2.43 1.44 1.44m-5.32 0 1.44-1.44m2.44-2.43 1.44-1.45"
-                style="fill:#fff;stroke:#000;stroke-width:2px" />
+        <pattern id="planet3Texture" width="13.41" height="22.5" patternTransform="scale(.8)" patternUnits="userSpaceOnUse" viewBox="0 0 13.41 17.89">
+            <path d="m7.41.69 1.44 1.44m2.43 2.44 1.44 1.44m-5.31 0 1.44-1.44m2.43-2.44L12.72.69M.69 11.88l1.44 1.45m2.44 2.43 1.44 1.44m-5.32 0 1.44-1.44m2.44-2.43 1.44-1.45" style="fill:#fff;stroke:#000;stroke-width:2px" />
         </pattern>
         <pattern id="planet4Texture" width="33.3" height="27" patternUnits="userSpaceOnUse" viewBox="0 0 100 81">
             <image xlink:href="data:image/png;base64,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" />
         </pattern>
-        <g id="star">
-            <circle cx="301.5" cy="16" r="3" filter="url(#blur)" style="fill:#b90000;opacity:.2" />
-            <use class="star" xlink:href="#starShape" />
-        </g>
         <g id="flower">
-            <path
-                d="M19.91 15.83a2 2 0 0 0 .58-3.25c-1.55-1.57-3.33.08-3.33.08a2.33 2.33 0 0 0-3.16-1.8c-2.17.94-1.11 3.6-1.11 3.6a2 2 0 0 0-1.95 3c1 3 2.75 1.42 2.75 1.42s-.22 2.92 2 2.92c0 0 2.4-.31 1.73-2.3a2.56 2.56 0 0 0 3.42.17c2.08-1.33 0-3.5-.42-3.65Z"
-                transform="translate(-10.7 -10.7)" style="fill:#b0b" />
+            <path d="M19.91 15.83a2 2 0 0 0 .58-3.25c-1.55-1.57-3.33.08-3.33.08a2.33 2.33 0 0 0-3.16-1.8c-2.17.94-1.11 3.6-1.11 3.6a2 2 0 0 0-1.95 3c1 3 2.75 1.42 2.75 1.42s-.22 2.92 2 2.92c0 0 2.4-.31 1.73-2.3a2.56 2.56 0 0 0 3.42.17c2.08-1.33 0-3.5-.42-3.65Z" transform="translate(-10.7 -10.7)" style="fill:#b0b" />
             <circle class="flowerTexture-stroke" cx="5.49" cy="5.38" r="1.24" />
-            <path
-                d="m4.78 4.37-.89-1.88m1.6 1.65-.5-2.13m1.35 2.47 1.6-1.73M6.67 4.99l2.01-.97M6.67 5.78l2.43.85M6.42 6.2l1.76 1.49M4.99 6.63l-.65 2.15m1.15-2.15.18 2.15m-1.42-3.4-2.1-.39m2.1.93-2.1.71"
-                class="flowerTexture-stroke" />
+            <path d="m4.78 4.37-.89-1.88m1.6 1.65-.5-2.13m1.35 2.47 1.6-1.73M6.67 4.99l2.01-.97M6.67 5.78l2.43.85M6.42 6.2l1.76 1.49M4.99 6.63l-.65 2.15m1.15-2.15.18 2.15m-1.42-3.4-2.1-.39m2.1.93-2.1.71" class="flowerTexture-stroke" />
         </g>
-        <linearGradient id="bgGradient" x1="690.47" y1="829.54" x2="690.47" y2="641.54"
-            gradientTransform="translate(-89.47 -654.54)" gradientUnits="userSpaceOnUse">
+        <linearGradient id="bgGradient" x1="690.47" y1="829.54" x2="690.47" y2="641.54" gradientTransform="translate(-89.47 -654.54)" gradientUnits="userSpaceOnUse">
             <stop offset="0" stop-color="#303" />
             <stop offset="1" />
         </linearGradient>
-        <filter id="blur">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="1" />
-        </filter>
         <style>
-            @keyframes twinkle {
-                0% {
-                    opacity: .5
-                }
-                30%,
-                60%,
-                to {
-                    opacity: 1
-                }
-                80% {
-                    opacity: .7
-                }
-            }
-            @keyframes cloud {
-                0% {
-                    transform: translateX(1000px)
-                }
-                to {
-                    transform: translateX(-1000px)
-                }
-            }
-            @keyframes shoot1 {
-                0% {
-                    transform: translate(900px, -50px);
-                    opacity: 0
-                }
-                to {
-                    transform: translate(-300px, 50px);
-                    opacity: 1
-                }
-            }
-            @keyframes shoot2 {
-                70% {
-                    transform: translate(600px, 90px);
-                    opacity: 0
-                }
-                to {
-                    transform: translate(-400px, -40px);
-                    opacity: 1
-                }
-            }
-            .softBlue {
-                fill: #309;
-                opacity: .6
-            }
-            .star {
-                fill: #b0f
-            }
-            .twinkle use {
-                animation: twinkle 1s infinite alternate
-            }
-            .cloud {
-                animation: infinite 160s cloud linear;
-                animation-delay: -80s
-            }
-            .flowerTexture-stroke {
-                fill: none;
-                stroke: #15274c;
-                stroke-width: .7px;
-                opacity: .7
-            }
+            .softBlue { fill: #309; opacity: .6 }
+            .flowerTexture-stroke { fill: none; stroke: #15274c; stroke-width: .7px; opacity: .7 }
         </style>
-        <path id="starShape" class="star"
-            d="M299 16a2.84 2.84 0 0 1 2.64 2.56 2.85 2.85 0 0 1 2.62-2.56 2.85 2.85 0 0 1-2.65-2.55A2.83 2.83 0 0 1 299 16" />
     </defs>
+
     <path style="fill:url(#bgGradient)" d="M-13.5-13h1229v188h-1229z" />
-    <g class="twinkle">
-        <use xlink:href="#star" style="animation-delay:.5s" transform="translate(-226 18)" />
-        <use xlink:href="#star" style="animation-duration:2s" />
-        <use xlink:href="#star" style="animation-delay:.5s" transform="matrix(2.2 0 0 2.2 -345 20)" />
-        <use xlink:href="#star" style="animation-duration:2s" transform="translate(247 118)" />
-        <use xlink:href="#star" transform="translate(391 4)" />
-        <use xlink:href="#star" style="animation-duration:3s" transform="translate(393 120)" />
-        <use xlink:href="#star" style="animation-delay:.9s" transform="matrix(2.2 0 0 2.2 158 27)" />
-        <use xlink:href="#star" style="animation-delay:4s" transform="translate(765 94)" />
-        <use xlink:href="#star" style="animation-duration:2s" transform="translate(850 92)" />
-    </g>
+
     <g id="flowers">
         <use xlink:href="#flower" transform="translate(240 70)" />
         <use xlink:href="#flower" transform="translate(420 60)" />
         <use xlink:href="#flower" transform="translate(790 110)" />
         <use xlink:href="#flower" transform="translate(1000 70)" />
     </g>
-    <g id="clouds">
-        <path class="softBlue cloud"
-            d="M427.59 130.74h-58c-3.41 0-6.19-2.27-6.19-5s2.78-5 6.19-5h21.94c3.4 0 6.19-2.27 6.19-5s-2.79-5-6.19-5h-58c-3.41 0-6.2-2.26-6.2-5s2.79-5 6.2-5H353c3.41 0 6.2-2.27 6.2-5s-2.79-5-6.2-5h-75.68c-3.4 0-6.19 2.27-6.19 5s2.79 5 6.19 5h4c3.41 0 6.2 2.26 6.2 5s-2.79 5-6.2 5h-31.86c-3.41 0-6.19 2.27-6.19 5s2.78 5 6.19 5h67.93c3.41 0 6.2 2.26 6.2 5s-2.79 5-6.2 5h-31.83c-3.41 0-6.19 2.27-6.19 5s2.78 5 6.19 5h142c3.4 0 6.19-2.27 6.19-5s-2.75-5-6.16-5" />
-        <path class="softBlue cloud" style="animation-duration:400s;animation-delay:-200s"
-            d="M900.12 18.22H838a5.41 5.41 0 0 1 0-10.81h27.15a5.42 5.42 0 0 0 5.4-5.41 5.42 5.42 0 0 0-5.41-5.4h-121.3a5.42 5.42 0 0 0-5.41 5.4 5.43 5.43 0 0 0 5.41 5.41h72.55a5.4 5.4 0 0 1 0 10.79h-12.08a5.41 5.41 0 0 0 0 10.81h95.81a5.41 5.41 0 1 0 0-10.81Z" />
-    </g>
+
     <circle cx="110.1" cy="168.04" r="104.54" style="fill:url(#planet1Texture)" />
     <circle cx="223.96" cy="7.34" r="50.77" style="fill:url(#planet2Texture)" />
     <circle cx="454.46" cy="3.97" r="36.49" style="fill:#308" />
     <circle cx="454.46" cy="3.97" r="36.49" style="fill:url(#planet3Texture)" />
     <circle cx="1091.05" cy="20.1" r="60.77" style="fill:url(#planet4Texture)" />
-    <path class="softBlue"
-        d="M1027.64 15.12c-18 .51-34.71 2.79-36.8 7-4.26 8.65 34.23 21.07 86.59 28.37s100.73 7.26 105-1.39c2.06-4.19-10.56-10.4-25.42-15.48l-.01 2.48c6.89 3 10.08 6.41 8.9 8.81-3.31 6.71-40.8 7.21-84.65 1.1S1005 29.51 1008.3 22.8c1.22-2.48 7.92-4.54 17.15-5.3Z" />
-    <path
-        d="M161 106.89c16.43-1.89 43.57-5.65 43.57-5.65s-27.68 4.8-43.19 8c-6.7 1.39-16.11 1.83-16.21 1.17s7.19-2.52 15.83-3.52"
-        style="fill:#609;opacity:.45;animation:shoot1 8s infinite linear" id="shooting" />
+    
+    <path class="softBlue" d="M1027.64 15.12c-18 .51-34.71 2.79-36.8 7-4.26 8.65 34.23 21.07 86.59 28.37s100.73 7.26 105-1.39c2.06-4.19-10.56-10.4-25.42-15.48l-.01 2.48c6.89 3 10.08 6.41 8.9 8.81-3.31 6.71-40.8 7.21-84.65 1.1S1005 29.51 1008.3 22.8c1.22-2.48 7.92-4.54 17.15-5.3Z" />
+
 </svg>

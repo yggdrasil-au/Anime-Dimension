@@ -91,7 +91,6 @@ import * as buildconf from "@BuildConfigs/main.js";
                             return (base || 'https://api.anime-dimension.com').replace(/\/$/, '');
                         };
 
-                        
                         const siteUser = document.getElementById('siteUser');
                         const authBtns = document.querySelector('.auth-buttons');
                         const authLoading = document.querySelector('.auth-loading');
@@ -133,7 +132,7 @@ import * as buildconf from "@BuildConfigs/main.js";
                                     const html = `
                                         <div class="loggedIn">
                                             <a class="user-avatar-link" href="${profileUrl}" title="${userName}">
-                                                <img class="avatar user-avatar" alt="${userName}'s avatar" src="${avatarUrl}" onerror="this.src='/assets/inc/img/logos/dimension-kun.svg'">
+                                                <img class="avatar user-avatar" alt="${userName}'s avatar" src="${avatarUrl}" onerror="this.src='/data/images/prod/assets/inc/img/logos/dimension-kun.svg'">
                                             </a>
                                             <ul class="loggedInOptions">
                                                 <li><a href="${profileUrl}">Profile</a></li>
