@@ -69,7 +69,7 @@ ios/
 # Local environment files
 .env*
 !.env.deploy.example
-deploy.config.json
+deploy.config.yaml
 
 Apache24/
 capacitor-assets/

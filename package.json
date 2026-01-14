@@ -1,8 +1,8 @@
 {
     "name": "anime-dimension",
-    "description": "a public database for western and eastern animated works including TV shows and movies, with user reviews, ratings, and recommendations, directly based on the anime-planet.com website",
+    "description": "a public database for western and eastern animated works including TV shows and movies, with user reviews, ratings, and recommendations.",
 
-    "version": "0.9.5",
+    "version": "0.10.0",
 
     "type": "module",
     "private": true,
@@ -91,6 +91,7 @@
         "ssh2": "1.17.0"
     },
     "devDependencies": {
+        "cross-env": "10.1.0",
         "@astrojs/check": "0.9.6",
         "@astrojs/mdx": "4.3.13",
         "@capacitor/cli": "8.0.1",
@@ -104,23 +105,20 @@
 
         "@yggdrasil-au/build-core": "workspace:0.1.0",
         "@yggdrasil-au/capacitor-assets": "workspace:3.0.6",
-        "@yggdrasil-au/deploy": "workspace:0.1.0",
+        "@yggdrasil-au/deploy": "workspace:0.2.0",
         "@yggdrasil-au/htm-minify": "workspace:0.1.0",
-        "@yggdrasil-au/js-minify": "workspace:0.1.0",
+        "@yggdrasil-au/js-minify": "workspace:0.2.0",
         "@yggdrasil-au/php-handler": "workspace:0.1.0",
-        "@yggdrasil-au/ts-builder": "workspace:1.0.0",
+        "@yggdrasil-au/ts-builder": "workspace:1.1.0",
         "@yggdrasil-au/ygg-webp": "workspace:0.1.4",
         "@yggdrasil-au/wlampctl-cli": "workspace:0.1.3",
-        "@yggdrasil-au/yaml-run": "workspace:0.1.1",
+        "@yggdrasil-au/yaml-run": "workspace:0.1.3",
 
         "astro": "5.16.9",
         "autoprefixer": "10.4.23",
         "bootstrap": "5.3.8",
         "bootstrap-icons": "1.13.1",
         "clean-css-cli": "5.6.3",
-        "concurrently": "9.2.1",
-        "cross-env": "10.1.0",
-        "dotenv": "17.2.3",
         "eslint": "9.39.2",
         "eslint-config-xo": "0.49.0",
         "eslint-config-xo-typescript": "9.0.0",
@@ -130,9 +128,6 @@
         "fast-glob": "3.3.3",
         "fs-extra": "11.3.3",
         "globals": "17.0.0",
-        "lockfile-lint": "4.14.1",
-        "nodemon": "3.1.11",
-        "npm-run-all": "4.1.5",
         "postcss": "8.5.6",
         "postcss-cli": "11.0.1",
         "prettier": "3.7.4",

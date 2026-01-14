@@ -6,7 +6,7 @@
 ##
 
 sources:
-    # Read package.json as pkg (e.g., $(pkg.version), $(pkg.buildConfig.banner))
+    # Read package.json as pkg (e.g., {{pkg.version}}, {{pkg.buildConfig.banner}})
     pkg: "./package.json"
 
 vars:
@@ -15,36 +15,36 @@ vars:
         root: "."
         src: "source"
         www: "www"
+        # wdist, the temp build output dir before splitting into website and capacitor/mobile
+        wdist: "{{www}}/dist"
 
         # CSS / SCSS
-        scss: "source/scss"
-        css_dist: "www/dist/css"
-
+        scss: "{{src}}/scss"
+        css_dist: "{{wdist}}/css"
         # Images
-        img_src: "source/images/Source"
-        img_dist: "www/dist/data/images/prod"
-        webp_conf: "source/images/webp.json"
+        img_src: "{{src}}/images/Source"
+        img_dist: "{{wdist}}/data/images/prod"
+        webp_conf: "{{src}}/images/webp.json"
 
         # Web / PWA
-        web_root: "www/website"
-        web_dist: "www/dist"
-        cap_sync: "www/capacitorsync"
+        web_root: "{{www}}/website"
+        web_dist: "{{wdist}}"
+        cap_sync: "{{www}}/capacitorsync"
 
         # PWA Assets Generation
-        pwa_out: "source/web/"
+        pwa_out: "{{src}}/web/"
         pwa_icons: "manifest/icons"
-        pwa_manifest: "source/web/site.webmanifest"
+        pwa_manifest: "{{src}}/web/site.webmanifest"
         pwa_assets: "resources/pwa-capacitor"
 
         # Icons (Source)
         bi_src: "node_modules/bootstrap-icons"
         fa_src: "node_modules/@fortawesome/fontawesome-free/webfonts"
-
         # Icons (Dest)
-        bi_dist: "www/dist/css/assets/icons"
-        fa_dist: "www/dist/webfonts"
+        bi_dist: "{{wdist}}/css/assets/icons"
+        fa_dist: "{{wdist}}/webfonts"
 
-        # API
+        # Dotnet API
         api_dir: "subModules/Anime-Dimension-api"
         api_proj: "ASP.NETCoreWebApi.csproj"
         api_pub_linux: "../publish/linux-x64"
@@ -54,6 +54,6 @@ vars:
     # --- Config Files ---
     configs:
         astro: "buildConfig/astro.config.mjs"
-        astro_ssr: "buildConfig/astro.ssr.hybrid.config.mjs"
+        astro_ssr: "buildConfig/astro.ssr.hybrid.config.mjs" ## old test for hybrid ssr build
         postcss: "buildConfig/postcss.config.mjs"
 

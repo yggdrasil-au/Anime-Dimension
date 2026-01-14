@@ -71,22 +71,23 @@ export const packageAuthorName = package_json.author.name || "[JS-ERROR]";
 export const currentYear = new Date().getFullYear(); // year at build time
 export const startYear = data.copyRightStartYear || "2025"; // start year for copyright, defaults to 2025 if missing
 
-
 /// Footer CopyRight text
 export const footerCopyRightText = {
-    "Version": `${packageVersion}`,
-    "App Name": `${packageName}`,
-    "Description": `${package_json.description}`,
-    "&copy;": `${startYear}-${currentYear}`,
-    "Author": `${packageAuthorName}. All Rights Reserved.`,
+    main: `
+        Version: ${packageVersion}
+        App Name: ${packageName}
+        Description: ${package_json.description}
+        &copy;: ${startYear}-${currentYear}
+        Author: ${packageAuthorName}. All Rights Reserved.
+    `,
     // api www footer copyright text
-    api: {
-        "Version": `${packageVersion}`,
-        "App Name": `${packageName}`,
-        "Description": `${data_json.api.footerdescription2}`,
-        "&copy;": `${startYear}-${currentYear}`,
-        "Author": `${packageAuthorName}. All Rights Reserved.`
-    }
+    api: `
+        Version: ${packageVersion},
+        App Name: ${packageName},
+        Description: ${data_json.api.footerdescription2},
+        &copy;: ${startYear}-${currentYear},
+        Author: ${packageAuthorName}. All Rights Reserved.
+    `
 };
 
 /// url used for queries to the api from frontend client side
