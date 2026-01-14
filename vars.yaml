@@ -48,6 +48,7 @@ vars:
         api_dir: "subModules/Anime-Dimension-api"
         api_proj: "ASP.NETCoreWebApi.csproj"
         api_pub_linux: "../publish/linux-x64"
+        api_pub_linux_arm: "../publish/linux-arm64"
         api_pub_win: "../publish/win-x64"
         api_pub_debug: "../publish/debug"
 
