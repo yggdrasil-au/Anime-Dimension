@@ -1,12 +1,9 @@
 {
     "name": "anime-dimension",
     "description": "a public database for western and eastern animated works including TV shows and movies, with user reviews, ratings, and recommendations.",
-
-    "version": "0.10.1",
-
+    "version": "0.10.2",
     "type": "module",
     "private": true,
-
     "license": "Apache-2.0",
     "author": {
         "name": "Yggdrasil-au",
@@ -14,14 +11,12 @@
         "url": "https://github.com/yggdrasil-au/Anime-Dimension"
     },
     "homepage": "https://anime-dimension.com",
-
     "style": "www/dist/css/main.css",
     "sass": "source/scss/main.scss",
     "main": "www/dist/js/main.js",
-    "keywords":[],
-    "files":[],
-    "exports":null,
-
+    "keywords": [],
+    "files": [],
+    "exports": null,
     "repository": {
         "type": "git",
         "url": "git+https://github.com/yggdrasil-au/Anime-Dimension.git"
@@ -31,28 +26,21 @@
         "repo": "Anime-Dimension",
         "url": "https://github.com/yggdrasil-au/Anime-Dimension"
     },
-
     "bugs": {
         "url": "https://github.com/yggdrasil-au/Anime-Dimension/issues",
         "email": ""
     },
-
     "funding": {
         "type": "",
         "url": ""
     },
-
     "buildConfig": {
         "banner": "/*!\n * Anime-Dimension v${version} (${homepage})\n * Copyright 2025-${year} ${author.name}\n * Licensed under ${license} (${github.url}/blob/main/LICENSE)\n */"
     },
-
     "scripts": {
         "yaml-run": "yaml-run"
     },
-
     "dependencies": {
-        "@astrojs/node": "9.5.1",
-        "@aws-sdk/client-s3": "^3.967.0",
         "@capacitor-community/sqlite": "7.0.3",
         "@capacitor/action-sheet": "8.0.0",
         "@capacitor/android": "8.0.1",
@@ -66,7 +54,7 @@
         "@capacitor/core": "8.0.1",
         "@capacitor/device": "8.0.0",
         "@capacitor/dialog": "8.0.0",
-        "@capacitor/file-transfer": "2.0.2",
+        "@capacitor/file-transfer": "2.0.3",
         "@capacitor/file-viewer": "2.0.0",
         "@capacitor/filesystem": "8.0.0",
         "@capacitor/geolocation": "8.0.0",
@@ -87,11 +75,11 @@
         "@capacitor/toast": "8.0.0",
         "@ionic/pwa-elements": "3.3.0",
         "@sqlite.org/sqlite-wasm": "3.50.4-build1",
-        "jeep-sqlite": "2.8.0",
-        "ssh2": "1.17.0"
+        "jeep-sqlite": "2.8.0"
+
     },
     "devDependencies": {
-        "cross-env": "10.1.0",
+        "@aws-sdk/client-s3": "^3.967.0",
         "@astrojs/check": "0.9.6",
         "@astrojs/mdx": "4.3.13",
         "@capacitor/cli": "8.0.1",
@@ -102,7 +90,6 @@
         "@types/sql.js": "1.4.9",
         "@typescript-eslint/eslint-plugin": "8.53.0",
         "@typescript-eslint/parser": "8.53.0",
-
         "@yggdrasil-au/build-core": "workspace:0.1.0",
         "@yggdrasil-au/capacitor-assets": "workspace:3.0.6",
         "@yggdrasil-au/deploy": "workspace:0.2.0",
@@ -110,15 +97,16 @@
         "@yggdrasil-au/js-minify": "workspace:0.2.0",
         "@yggdrasil-au/php-handler": "workspace:0.1.0",
         "@yggdrasil-au/ts-builder": "workspace:1.1.0",
-        "@yggdrasil-au/ygg-webp": "workspace:0.1.4",
         "@yggdrasil-au/wlampctl-cli": "workspace:0.1.3",
         "@yggdrasil-au/yaml-run": "workspace:0.1.3",
-
+        "@yggdrasil-au/ygg-webp": "workspace:0.1.4",
+        "ssh2": "1.17.0",
         "astro": "5.16.9",
         "autoprefixer": "10.4.23",
         "bootstrap": "5.3.8",
         "bootstrap-icons": "1.13.1",
         "clean-css-cli": "5.6.3",
+        "cross-env": "10.1.0",
         "eslint": "9.39.2",
         "eslint-config-xo": "0.49.0",
         "eslint-config-xo-typescript": "9.0.0",
@@ -134,6 +122,7 @@
         "prettier-plugin-astro": "0.14.1",
         "rimraf": "6.1.2",
         "rollup": "4.55.1",
+        "rsync": "^0.6.1",
         "rtlcss": "4.3.0",
         "sass": "1.97.2",
         "shx": "0.4.0",
