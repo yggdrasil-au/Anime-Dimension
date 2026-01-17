@@ -1,7 +1,7 @@
 {
     "name": "anime-dimension",
     "description": "a public database for western and eastern animated works including TV shows and movies, with user reviews, ratings, and recommendations.",
-    "version": "0.10.2",
+    "version": "0.10.3",
     "type": "module",
     "private": true,
     "license": "Apache-2.0",
@@ -93,6 +93,7 @@
         "@yggdrasil-au/build-core": "workspace:0.1.0",
         "@yggdrasil-au/capacitor-assets": "workspace:3.0.6",
         "@yggdrasil-au/deploy": "workspace:0.2.0",
+        "@yggdrasil-au/netdeploy": "workspace:0.3.2",
         "@yggdrasil-au/htm-minify": "workspace:0.1.0",
         "@yggdrasil-au/js-minify": "workspace:0.2.0",
         "@yggdrasil-au/php-handler": "workspace:0.1.0",

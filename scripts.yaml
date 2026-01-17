@@ -237,7 +237,9 @@ scripts:
     php:prebuild: "build-php pre"
     php:postbuild: "build-php post"
 
+    ##
     # --- .NET API ---
+    ##
 
     update-api-www-no-build: "node scripts/asset-handler.mjs --update-api"
     update-api-www:
@@ -266,33 +268,53 @@ scripts:
         -p:PublishSingleFile=true -p:PublishTrimmed=true -p:IncludeAllContentForSelfExtract=true -o {{paths.api_pub_win}}
 
     # --- Deployment ---
-    deploy:check: "deploy --check"
-    deploy:sftp: "deploy"
+    #deploy:check: "deploy --check"
+    #deploy:sftp: "deploy"
     # Static frontend website deployment, us and eu servers
-    deploy:www: "deploy --www-us"
-    deploy:www-eu: "deploy --www-eu"
+    netdeploy:www-us: "netdeploy --www-us"
+    netdeploy:www-eu: "netdeploy --www-eu"
+    #deploy:www: "deploy --www-us"
+    #deploy:www-eu: "deploy --www-eu"
     # C# API backend deployment, us and eu-arm servers
-    deploy:cs: "deploy --cs-us"
-    deploy:cs-eu-arm: "deploy --cs-eu-arm"
+    netdeploy:cs-us: "netdeploy --cs-us"
+    netdeploy:cs-eu-arm: "netdeploy --cs-eu-arm"
+    #deploy:cs: "deploy --cs-us"
+    #deploy:cs-eu-arm: "deploy --cs-eu-arm"
 
     ww-d:
         series:
             - production
-            - deploy:www
-            - deploy:www-eu
+            - netdeploy:www-us
+            - netdeploy:www-eu
 
+    # build website as prod, then build the us api then upload www only to us server
+    ww-d-us:
+        series:
+            - production
+            - dotnet:build-release-linux
+            - netdeploy:www-us
+
+    # build and deploy only US C# API backend
     api-d:
         series:
             - dotnet:build-release-linux
-            - deploy:cs
+            - netdeploy:cs-us
 
+    # build and deploy only EU ARM C# API backend
     api-d-arm:
         series:
             - dotnet:build-release-linux-arm
-            - deploy:cs-eu-arm
+            - netdeploy:cs-eu-arm
 
+    # deploy all api and www to production servers
     deploy-prod:
         series:
             - ww-d
+            - api-d
+            - api-d-arm
+
+    # deploy only API to production servers
+    deploy-api-only:
+        series:
             - api-d
             - api-d-arm
