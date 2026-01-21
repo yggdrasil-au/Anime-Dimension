@@ -27,8 +27,10 @@ const thisCanon = "https://anime-dimension.com/" + pathname;
 
 <link rel="canonical" href={thisCanon} />
 
-
-
+{/*  this must be manually added here, unline the base site, as cloudflare analytics is not automatically injected for subdomains independently */}
+<!-- Cloudflare Web Analytics -->
+<script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "84bbef2f0c8b45fe833d462cf81db775"}'></script>
+<!-- End Cloudflare Web Analytics -->
 
 
 

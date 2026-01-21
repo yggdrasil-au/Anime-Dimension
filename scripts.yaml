@@ -25,9 +25,9 @@
 #
 # command line example:
 #   in webdev root:
-#       pnpm --filter anime-dimension yaml-run -- dev
+#       pnpm --filter anime-dimension yaml-run dev
 #   in anime-dimension main dir:
-#       pnpm yaml-run -- dev
+#       pnpm yaml-run dev
 #
 
 
@@ -37,6 +37,11 @@ scripts:
 
     clean:
         - "rimraf {{paths.www}}/"
+    clean-www-website-html:
+        - "rimraf {{paths.web_root}}/**/*.html"
+    clean-www-dist-html:
+        - "rimraf {{paths.web_dist}}/**/*.html"
+
 
     watch: "node scripts/watch-updates.mjs"
 

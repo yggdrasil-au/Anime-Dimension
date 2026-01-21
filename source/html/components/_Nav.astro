@@ -60,15 +60,18 @@
                         <i class="bi bi-list fs-4"></i>
                     </button>
                 </div>
-                <!-- Auth area: loader by default, then JS swaps to user or buttons -->
-                <div class="auth-loading" aria-live="polite" aria-busy="true" title="Loading">
+
+                <div class="auth-loading" aria-live="polite" aria-busy="true" title="Loading authentication status">
                     <i class="bi bi-arrow-repeat ad-spin" aria-hidden="true"></i>
                 </div>
+
                 <div class="auth-buttons d-none" aria-label="Authentication actions">
                     <a href="/auth/index.html" class="btn btn-outline-secondary btn-sm">Login</a>
                     <a href="/auth/register.html" class="btn btn-primary btn-sm">Register</a>
                 </div>
+
                 <div id="siteUser" class="d-none"></div>
+
                 <ul id="nav-list" class="nav-list nav w-100">
                     <li class="nav-item">
                         <a class="nav-link d-flex align-items-center" href="/index.html">
@@ -84,6 +87,9 @@
 
                 <script is:inline>
                     (() => {
+                        // Configuration
+                        const FALLBACK_AVATAR = '/data/images/prod/assets/inc/img/logos/dimension-kun.svg';
+
                         const getApiBase = () => {
                             const probe = document.querySelector('[data-api-base]');
                             const base = probe && probe.getAttribute('data-api-base');
@@ -94,22 +100,32 @@
                         const authBtns = document.querySelector('.auth-buttons');
                         const authLoading = document.querySelector('.auth-loading');
 
-                        // Expose a global Logout() for compatibility with existing markup
-                        // and also bind click handler on the generated logout link.
+                        // Logout Logic
                         const doLogout = async () => {
                             try {
                                 await fetch(`${getApiBase()}/api/logout`, {
                                     method: 'POST',
                                     credentials: 'include',
                                 });
-                            } catch {
-                                // ignore
+                            } catch (err) {
+                                console.warn('Logout request failed', err);
                             }
-                            // Hard reload to clear any UI state
-                            window.location.href = '/';
+                            // Hard reload is safer to clear cached user states in Capacitor
+                            window.location.href = '/index.html';
                         };
 
+                        // Expose globally for legacy scripts
                         window.Logout = doLogout;
+
+                        // Escape HTML to prevent XSS
+                        const escapeHtml = (unsafe) => {
+                            return (unsafe || "")
+                                .replace(/&/g, "&amp;")
+                                .replace(/</g, "&lt;")
+                                .replace(/>/g, "&gt;")
+                                .replace(/"/g, "&quot;")
+                                .replace(/'/g, "&#039;");
+                        };
 
                         (async () => {
                             let isLoggedIn = false;
@@ -118,50 +134,68 @@
                                     method: 'PUT',
                                     credentials: 'include',
                                 });
+
                                 const data = await res.json().catch(() => ({}));
+
                                 if (data && data.status === 'ok' && data.data) {
                                     isLoggedIn = true;
 
-                                    const userName = data.data.user_name || undefined;
-                                    const userId = data.data.user_id || undefined;
+                                    const userName = data.data.user_name || 'User';
+                                    const userId = data.data.user_id || 'default';
 
-                                    const profileUrl = `/users/user.html?username=${encodeURIComponent(userName)}`;
-                                    const avatarUrl = `/images/users/avatars/${encodeURIComponent(userId || 'default')}.webp`;
+                                    // Prepare URLs (Keeping .html extensions)
+                                    const safeUser = encodeURIComponent(userName);
+                                    const safeId = encodeURIComponent(userId);
 
-                                    // todo, issue, if the /data/images/prod/assets/inc/img/logos/dimension-kun.svg file is not found the page will retry to load it forever
+                                    const profileUrl = `/users/user.html?username=${safeUser}`;
+                                    const avatarUrl = `/images/users/avatars/${safeId}.webp`;
+                                    const animeListUrl = `https://anime-dimension.com/users/list/user_anime?status=watched&username=${safeUser}`;
 
+                                    // Safe rendering
                                     const html = `
                                         <div class="loggedIn">
-                                            <a class="user-avatar-link" href="${profileUrl}" title="${userName}">
-                                                <img class="avatar user-avatar" alt="${userName}'s avatar" src="${avatarUrl}" onerror="this.src='/data/images/prod/assets/inc/img/logos/dimension-kun.svg'">
+                                            <a class="user-avatar-link" href="${profileUrl}" title="${escapeHtml(userName)}">
+                                                <img class="avatar user-avatar"
+                                                    alt="${escapeHtml(userName)}'s avatar"
+                                                    src="${avatarUrl}"
+                                                    onerror="this.onerror=null; this.src='${FALLBACK_AVATAR}'">
                                             </a>
                                             <ul class="loggedInOptions">
                                                 <li><a href="${profileUrl}">Profile</a></li>
-                                                <li><a href="https://anime-dimension.com/users/list/user_anime?status=watched&username=${encodeURIComponent(userName)}">My anime</a></li>
-                                                <!--<li><a href="${profileUrl}/manga/reading.html">My manga</a></li>
-                                                <li><a href="${profileUrl}/lists.html">Custom lists</a></li>
-                                                <li><a href="${profileUrl}/challenges.html">Challenges</a></li>-->
+                                                <li><a href="${animeListUrl}">My anime</a></li>
                                                 <hr>
-                                                <li class="navMenuIcon"><a href="/users/profile_edit_profile.html"><span class="editProfileIcon"></span>Settings</a></li>
-                                                <li class="navMenuIcon signOut"><a href="#" class="logout-link"><span class="signOutIcon"></span>Logout</a></li>
+                                                <li class="navMenuIcon">
+                                                    <a href="/users/profile_edit_profile.html"><span class="editProfileIcon"></span>Settings</a>
+                                                </li>
+                                                <li class="navMenuIcon signOut">
+                                                    <a href="#" class="logout-link"><span class="signOutIcon"></span>Logout</a>
+                                                </li>
                                             </ul>
                                         </div>`;
 
                                     if (siteUser) {
                                         siteUser.innerHTML = html;
                                         siteUser.classList.remove('d-none');
-                                    }
 
-                                    const logoutLink = siteUser?.querySelector('.logout-link');
-                                    logoutLink?.addEventListener('click', (e) => { e.preventDefault(); doLogout(); });
+                                        // Bind logout event locally
+                                        const logoutLink = siteUser.querySelector('.logout-link');
+                                        if (logoutLink) {
+                                            logoutLink.addEventListener('click', (e) => {
+                                                e.preventDefault();
+                                                doLogout();
+                                            });
+                                        }
+                                    }
                                 }
-                            } catch {
-                                // ignore network/parse errors; fall back to auth buttons
+                            } catch (error) {
+                                console.debug('Auth check failed:', error);
                             } finally {
-                                // Hide loader and show the appropriate UI
+                                // UI State Swap
                                 if (authLoading) authLoading.classList.add('d-none');
-                                if (isLoggedIn == false) {
+
+                                if (!isLoggedIn) {
                                     if (authBtns) authBtns.classList.remove('d-none');
+                                    if (siteUser) siteUser.classList.add('d-none'); // Ensure hidden
                                 } else {
                                     if (authBtns) authBtns.classList.add('d-none');
                                 }

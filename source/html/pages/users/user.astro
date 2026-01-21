@@ -5,7 +5,7 @@ import Nav from "@components/_Nav.astro";
 import Footer from "@components/_Footer.astro";
 import UpperHeader from "@components/_UpperHeader.astro";
 import HeroBanner from "@components/_HeroBanner.astro";
-import ContentTopBanner from "@components/_ContentTopBanner.astro";
+//import ContentTopBanner from "@components/_ContentTopBanner.astro";
 import LeftAdSidebar from "@components/_LeftAdSidebar.astro";
 import InlineBanner from "@components/_InlineBanner.astro";
 import RightSidebar from "@components/_RightSidebar.astro";
@@ -41,7 +41,10 @@ const description = "Anime Dimension is a multi platform anime discovery and tra
                         });
                         const data = await res.json().catch(() => ({}));
                         if (!data || data.status !== 'ok' || !data.data) {
+                            console.debug('User not authenticated, redirecting to login.');
                             window.location.replace('/auth/index.html');
+                        } else {
+                            console.debug('User authenticated.');
                         }
                     } catch {
                         // On error, assume not logged in

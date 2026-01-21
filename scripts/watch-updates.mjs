@@ -24,15 +24,16 @@ const sourceDir = path.join(root, 'source');
 const DEBOUNCE_MS = 200;
 
 const isWin = process.platform === 'win32';
-const npmCmd = isWin ? 'npm.cmd' : 'npm';
+const pnpmCmd = isWin ? 'pnpm.cmd' : 'pnpm';
 
-/** Run an npm script by name and prefix output lines for visibility. */
-function runNpm(scriptName) {
+/** Run a yaml-run script via pnpm by name and prefix output lines for visibility. */
+function runPnpm(scriptName) {
     return new Promise((resolve, reject) => {
         // On Windows some environments can raise EINVAL when spawning .cmd directly.
         // Route through the shell for reliability across PowerShell/CMD.
         // Using a single command string keeps quoting simple for typical script names.
-        const command = `${npmCmd} run ${scriptName}`;
+        // Use `pnpm exec yaml-run <script>` so the YAML-defined scripts are executed.
+        const command = `${pnpmCmd} exec yaml-run ${scriptName}`;
         const child = spawn(command, {
             shell: true,
             stdio: ['ignore', 'pipe', 'pipe'],
@@ -167,10 +168,10 @@ async function runTasks(changeTypes) {
     console.log(`[watch] Running: ${taskPlan.join(' -> ')}`);
 
     for (const task of taskPlan) {
-        const label = `npm run ${task}`;
+        const label = `${pnpmCmd} exec yaml-run ${task}`;
         console.log(`[watch] ${label}`);
         try {
-            await runNpm(task);
+            await runPnpm(task);
         } catch (error) {
             console.error(`[watch] Task failed: ${task} —`, error?.message ?? error);
             // Continue to next task to avoid getting stuck.

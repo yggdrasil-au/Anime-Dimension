@@ -1,7 +1,7 @@
 ---
 // /source/html/pages/auth/index.astro
 
-// this is the login page
+// this is the register page for anime-dimension.com
 
 import Head from "@components/_Head.astro"
 import Nav from "@components/_Nav.astro";
@@ -22,7 +22,7 @@ const ThisJS = "../js/main.min.js"
 {/* data-bs-theme defines the default bootstrap colour theme, class= night-mode sets the night mode styles as default, changing this is unessasary as its controled via the JS/TS theme Controller */}
 <html lang="en" data-bs-theme="dark">
     <head>
-        <Head title="Anime Dimension" />
+        <Head title="Register - Anime Dimension" />
     </head>
     <body class="sidebar-collapsed">
         {/* This is the animated night mode background. */}
@@ -146,21 +146,21 @@ const ThisJS = "../js/main.min.js"
                                                                     <!-- -->
                                                                     <div  class="SignUpInputs">
                                                                         <div  class="pure-control-group">
-                                                                            <input  type="text" name="username" class="required" autofocus placeholder="Username" autocomplete="username">
+                                                                            <input  type="text" name="username" class="required" autofocus placeholder="Username" autocomplete="username" aria-label="Username">
                                                                             <!-- -->
                                                                         </div>
                                                                         <div  class="pure-control-group">
-                                                                            <input  type="email" name="email" class="required" placeholder="Email" autocomplete="email">
+                                                                            <input  type="email" name="email" class="required" placeholder="Email" autocomplete="email" aria-label="Email address">
                                                                             <!-- -->
                                                                         </div>
                                                                         <div  class="pure-control-group">
-                                                                            <input  type="password" name="password" class="required" placeholder="Password" minlength="8" autocomplete="new-password">
+                                                                            <input  type="password" name="password" class="required" placeholder="Password" minlength="3" autocomplete="new-password" aria-label="Password">
                                                                             <!-- -->
                                                                         </div>
                                                                     </div>
                                                                     <div  class="SignUpNotices">
                                                                         <div  class="pure-control-group">
-                                                                            <input  type="checkbox" name="agrees_to_tos_and_pp" required="">
+                                                                            <input  type="checkbox" name="agrees_to_tos_and_pp" required="" aria-label="Agree to Terms of Use and Privacy Policy">
                                                                             <p>&nbsp;I agree to the <a  href="/termsofuse" target="_blank">Terms of Use</a> and <a  href="/privacypolicy" target="_blank">Privacy Policy</a>
                                                                             </p>
                                                                         </div>
@@ -263,6 +263,26 @@ const ThisJS = "../js/main.min.js"
                         show(errEl, 'Please fill in username, email, and password.');
                         return;
                     }
+                    // validate username does not contain invalid chars
+                    if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) {
+                        show(errEl, 'Username must be 3-20 characters and contain only letters, numbers, and underscores, cannot contain spaces or special characters such as @, #, $, etc.');
+                        return;
+                    }
+
+                    if (password.length < 3) {
+                        show(errEl, 'Password must be at least 3 characters long.');
+                        return;
+                    }
+                    if (password.length > 128) {
+                        show(errEl, 'Password cannot exceed 128 characters.');
+                        return;
+                    }
+                    // ensure password has at least one letter and one number
+                    if (!/(?=.*[A-Za-z])(?=.*\d)/.test(password)) {
+                        show(errEl, 'Password must contain at least one letter and one number.');
+                        return;
+                    }
+
                     {/* require full valid email */}
                     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
                         show(errEl, 'Please enter a valid email address (e.g. user@example.com).');
@@ -271,6 +291,13 @@ const ThisJS = "../js/main.min.js"
                     if (!tosAgree) {
                         show(errEl, 'You must agree to the Terms and Privacy Policy.');
                         return;
+                    }
+
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    const originalBtnText = submitBtn ? submitBtn.textContent : '';
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.textContent = 'Loading...';
                     }
 
                     const apiBase = getApiBase();
@@ -284,6 +311,7 @@ const ThisJS = "../js/main.min.js"
                             const first = Array.isArray(items) ? items[0] : undefined;
                             apfToken = first && first.token ? String(first.token) : undefined;
                         } catch {
+                            console.debug('Failed to fetch signup token');
                             // ignore
                         }
 
@@ -334,6 +362,11 @@ const ThisJS = "../js/main.min.js"
                         }
                     } catch (error) {
                         show(errEl, error instanceof Error ? error.message : 'Network error.');
+                    } finally {
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.textContent = originalBtnText;
+                        }
                     }
                 });
             })();

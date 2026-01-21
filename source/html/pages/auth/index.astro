@@ -22,7 +22,7 @@ const ThisJS = "../js/main.min.js"
 {/* data-bs-theme defines the default bootstrap colour theme, class= night-mode sets the night mode styles as default, changing this is unessasary as its controled via the JS/TS theme Controller */}
 <html lang="en" data-bs-theme="dark">
     <head>
-        <Head title="Anime Dimension" />
+        <Head title="Log In - Anime Dimension" />
     </head>
     <body class="sidebar-collapsed">
         {/* This is the animated night mode background. */}
@@ -137,7 +137,7 @@ const ThisJS = "../js/main.min.js"
                                                         <div class="modal-content">
                                                             <div class="Login">
                                                                 <div class="LoginHeader">
-                                                                    <img src="/data/images/prod/assets/inc/img/logos/dimension-kun.svg">
+                                                                    <img src="/data/images/prod/assets/inc/img/logos/dimension-kun.svg" alt="Anime Dimension Logo" width="80" height="80">
                                                                     <h1> Log in to Anime-Dimension </h1>
                                                                     <p> Need an account? <a href="/auth/register.html">Sign up now</a>
                                                                     </p>
@@ -147,18 +147,21 @@ const ThisJS = "../js/main.min.js"
                                                                     <!-- -->
                                                                     <div class="LoginInputs">
                                                                         <div class="pure-control-group">
-                                                                            <input type="text" name="username" class="required" autofocus placeholder="Username or email address" autocomplete="username">
+                                                                            <label for="inp-username" class="visually-hidden">Username or Email</label>
+                                                                            <input id="inp-username" type="text" name="username" class="required" autofocus placeholder="Username or email address" autocomplete="username" aria-label="Username or Email">
                                                                         </div>
                                                                         <div class="pure-control-group">
-                                                                            <input type="password" name="password" class="required" placeholder="Password" autocomplete="current-password">
+                                                                            <label for="inp-password" class="visually-hidden">Password</label>
+                                                                            <input id="inp-password" type="password" name="password" class="required" placeholder="Password" autocomplete="current-password" aria-label="Password">
                                                                         </div>
                                                                     </div>
                                                                     <div class="LoginActions pure-controls">
-                                                                        <button class="button cta" type="submit"> Log in </button>
+                                                                        <button id="btn-submit" class="button cta" type="submit"> Log in </button>
                                                                     </div>
                                                                     <div id="login-error" class="text-danger mt-2" role="alert" style="display:none"></div>
-                                                                    <div id="login-success" class="text-success mt-2" style="display:none"></div>
+                                                                    <div id="login-success" class="text-success mt-2" role="alert" style="display:none"></div>
                                                                 </form>
+
                                                                 <div class="LoginFooter">
                                                                     <p>
                                                                         <a href="/forgot.html">Forgot your password?</a>
@@ -175,100 +178,125 @@ const ThisJS = "../js/main.min.js"
                             </section>
                         </main>
 
-                        {
-                            /**
-                             *  Right Sidebar
-                             *  This sidebar can be toggled on and off via JS or the default button.
-                             *  It is visible by default, but can be made hidden by default by adding the class d-none, this ensures the gap is maintained but the sidebar is not visible to avoid using the right side of the screen space on large screens.
-                             *  on mobile and tablet, it becomes a central element below the main content area.
-                             */
-                        }
                         <aside id="right-sidebar" class="right-sidebar rounded d-none">
                             <RightSidebar />
                         </aside>
                     </div>
                 </div>
             </section>
-            {
-                /**
-                 *  Footer
-                 *  This footer is visible on larger screens and hidden on mobile and tablet.
-                 */
-            }
             <footer class="main-footer p-3 mt-auto d-none d-lg-block">
                 <Footer />
             </footer>
         </div>
 
-        {
-            /**
-             *  This is the main JavaScript file.
-             *  It contains the theme switcher and sidebar toggle logic.
-             *  It is required for the theme switcher and right sidebar toggle.
-             */
-        }
         <script is:inline src={ThisJS}></script>
         <script is:inline>
             (() => {
-                // If already logged in, bounce to home
+                const CONFIG = {
+                    fallbackApi: 'https://api.anime-dimension.com'
+                };
+
+                // --- Helpers ---
                 const getApiBase = () => {
                     const probe = document.querySelector('[data-api-base]');
                     const base = probe && probe.getAttribute('data-api-base');
-                    return (base || 'https://api.anime-dimension.com').replace(/\/$/, '');
+                    return (base || CONFIG.fallbackApi).replace(/\/$/, '');
                 };
+
+                const show = (el, msg) => {
+                    if (!el) return;
+                    el.textContent = String(msg || '');
+                    el.style.display = msg ? 'block' : 'none';
+                };
+
+                const clear = (errEl, okEl) => {
+                    show(errEl, '');
+                    show(okEl, '');
+                };
+
+                // --- Init ---
+                const form = document.getElementById('login-form');
+                if (!form) return;
+
+                const submitBtn = document.getElementById('btn-submit');
+                const errEl = document.getElementById('login-error');
+                const okEl = document.getElementById('login-success');
+
+                // Check login state immediately
                 (async () => {
                     try {
                         const res = await fetch(`${getApiBase()}/api/login/validateState?caller=auth_index`, { method: 'PUT', credentials: 'include' });
                         const data = await res.json().catch(() => ({}));
                         if (data && data.status === 'ok') {
                             window.location.replace('/');
-                            return;
                         }
-                    } catch {
-                        //
-                    }
+                    } catch { /* Silent fail */ }
                 })();
-                const form = document.getElementById('login-form');
-                if (!form) return;
-                const errEl = document.getElementById('login-error');
-                const okEl = document.getElementById('login-success');
 
-                const show = (el, msg) => { if (!el) return; el.textContent = String(msg || ''); el.style.display = msg ? 'block' : 'none'; };
-                const clear = () => { show(errEl, ''); show(okEl, ''); };
-
+                // --- Submit Handler ---
                 form.addEventListener('submit', async (ev) => {
                     ev.preventDefault();
-                    clear();
+                    clear(errEl, okEl);
 
                     const fd = new FormData(form);
                     const username = (fd.get('username') || '').toString().trim();
                     const password = (fd.get('password') || '').toString();
+
                     if (!username || !password) {
                         show(errEl, 'Please enter your username and password.');
                         return;
                     }
-                    const apiBase = getApiBase();
+
+                    // UI Loading State
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.textContent = "Logging in...";
+                        submitBtn.style.opacity = "0.7";
+                    }
+
                     try {
+                        const apiBase = getApiBase();
                         const res = await fetch(`${apiBase}/api/login`, {
                             method: 'PUT',
                             headers: {
                                 'Content-Type': 'application/json',
                                 'X-Platform': 'web',
                             },
-                            body: JSON.stringify({ _username: username, _password: password, _remember_me: true }),
+                            body: JSON.stringify({
+                                _username: username,
+                                _password: password,
+                                _remember_me: true
+                            }),
                             credentials: 'include',
                         });
+
                         const data = await res.json().catch(() => ({}));
-                        const status = (data && data.status) || (res.ok ? 'ok' : 'err');
-                        if (status !== 'ok') {
-                            const msg = (data && data.msg) || 'Login failed. Check your details and try again.';
+
+                        // Check for successful response
+                        if (!res.ok && res.status !== 200) throw new Error('Network response was not ok');
+
+                        const status = (data && data.status) || 'err';
+
+                        if (status === 'ok') {
+                            show(okEl, 'Logged in! Redirecting…');
+                            setTimeout(() => { window.location.href = '/'; }, 600);
+                        } else {
+                            const msg = (data && data.msg) || 'Login failed. Check your details.';
                             show(errEl, msg);
-                            return;
+                            // Reset button
+                            if (submitBtn) {
+                                submitBtn.disabled = false;
+                                submitBtn.textContent = "Log in";
+                                submitBtn.style.opacity = "1";
+                            }
                         }
-                        show(okEl, 'Logged in! Redirecting…');
-                        setTimeout(() => { window.location.href = '/'; }, 600);
                     } catch (error) {
-                        show(errEl, error instanceof Error ? error.message : 'Network error.');
+                        show(errEl, 'Network error. Please try again later.');
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.textContent = "Log in";
+                            submitBtn.style.opacity = "1";
+                        }
                     }
                 });
             })();
