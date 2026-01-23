@@ -1,7 +1,7 @@
 {
     "name": "anime-dimension",
     "description": "a public database for western and eastern animated works including TV shows and movies, with user reviews, ratings, and recommendations.",
-    "version": "0.10.4",
+    "version": "0.10.5",
     "type": "module",
     "private": true,
     "license": "Apache-2.0",
@@ -41,7 +41,7 @@
         "yaml-run": "yaml-run"
     },
     "dependencies": {
-        "@capacitor-community/sqlite": "7.0.3",
+        "@capacitor-community/sqlite": "8.0.0",
         "@capacitor/action-sheet": "8.0.0",
         "@capacitor/android": "8.0.1",
         "@capacitor/app": "8.0.0",
@@ -74,7 +74,7 @@
         "@capacitor/status-bar": "8.0.0",
         "@capacitor/toast": "8.0.0",
         "@ionic/pwa-elements": "3.3.0",
-        "@sqlite.org/sqlite-wasm": "3.50.4-build1",
+        "@sqlite.org/sqlite-wasm": "3.51.2-build4",
         "jeep-sqlite": "2.8.0"
 
     },
@@ -92,13 +92,12 @@
         "@typescript-eslint/parser": "8.53.1",
         "@yggdrasil-au/build-core": "workspace:0.1.0",
         "@yggdrasil-au/capacitor-assets": "workspace:3.0.6",
-        "@yggdrasil-au/deploy": "workspace:0.2.0",
-        "@yggdrasil-au/netdeploy": "workspace:0.3.2",
+        "@yggdrasil-au/netdeploy": "workspace:*",
         "@yggdrasil-au/htm-minify": "workspace:0.1.0",
         "@yggdrasil-au/js-minify": "workspace:0.2.0",
         "@yggdrasil-au/php-handler": "workspace:0.1.0",
         "@yggdrasil-au/ts-builder": "workspace:1.1.0",
-        "@yggdrasil-au/wlampctl-cli": "workspace:0.1.3",
+        "@yggdrasil-au/wlampctl-cli": "workspace:*",
         "@yggdrasil-au/yaml-run": "workspace:0.1.3",
         "@yggdrasil-au/ygg-webp": "workspace:0.1.4",
         "ssh2": "1.17.0",
