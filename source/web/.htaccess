@@ -1,0 +1,10 @@
+# Enable Rewrite Engine
+# This activates mod_rewrite for URL rewriting.
+RewriteEngine On
+
+# Add Access-Control-Allow-Origin headers
+<IfModule mod_headers.c>
+    # allow main domain and subdomains and api
+    Header set Access-Control-Allow-Origin "https://anime-dimension.com https://*.anime-dimension.com https://api.anime-dimension.com"
+    Header set Cache-Control "max-age=604800, public"
+</IfModule>
