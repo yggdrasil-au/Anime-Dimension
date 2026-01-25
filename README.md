@@ -23,8 +23,8 @@ The backend API is a separate ASP.NET Core application (located in `subModules/A
 - **Framework**: [Astro](https://astro.build/)
 - **Language**: [TypeScript](https://www.typescriptlang.org/)
 - **Styling**: [Bootstrap 5](https://getbootstrap.com/), SCSS
-- **Icons**: Bootstrap Icons
-- **Build Tools**: Vite, PostCSS
+- **Icons**: Bootstrap Icons and FontAwesome
+- **Build Tools**: Internal WebDev Tools in Tools/ folder
 
 ### Mobile / Cross-Platform
 - **Runtime**: [Capacitor](https://capacitorjs.com/)

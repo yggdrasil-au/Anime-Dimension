@@ -237,10 +237,13 @@ scripts:
             - production
             - dev-apache-watch
 
-    # --- unused ---
-    build:php: "build-php full"
-    php:prebuild: "build-php pre"
-    php:postbuild: "build-php post"
+    # --- PHP Build ---
+    # these three allow for php <?php ?> tags to be inside .astro files by commenting them out before astrobuild and restoring them in source and output after
+    # this is currently unused and would require re-adding php execution to the watch-updates.mjs script to function in dev mode
+    #build:php: "build-php full"
+    #php:prebuild: "build-php pre"   ## run anytime before astro build to prepare .astro files with php tags
+    #php:postbuild: "build-php post" ## run only after all html related build steps are done to restore php tags in source and html output
+    # to use pure .php files simply place them in source/web these files are always in www/dist and www/website as-is not included in www/capacitorsync and is not processed by any tools
 
     ##
     # --- .NET API ---

@@ -1,9 +1,12 @@
 {
     "name": "anime-dimension",
     "description": "a public database for western and eastern animated works including TV shows and movies, with user reviews, ratings, and recommendations.",
-    "version": "0.10.6",
+
+    "version": "0.10.7",
+
     "type": "module",
     "private": true,
+
     "license": "Apache-2.0",
     "author": {
         "name": "Yggdrasil-au",
@@ -11,12 +14,14 @@
         "url": "https://github.com/yggdrasil-au/Anime-Dimension"
     },
     "homepage": "https://anime-dimension.com",
+
     "style": "www/dist/css/main.css",
     "sass": "source/scss/main.scss",
     "main": "www/dist/js/main.js",
     "keywords": [],
     "files": [],
     "exports": null,
+
     "repository": {
         "type": "git",
         "url": "git+https://github.com/yggdrasil-au/Anime-Dimension.git"
@@ -26,17 +31,21 @@
         "repo": "Anime-Dimension",
         "url": "https://github.com/yggdrasil-au/Anime-Dimension"
     },
+
     "bugs": {
         "url": "https://github.com/yggdrasil-au/Anime-Dimension/issues",
         "email": ""
     },
+
     "funding": {
         "type": "",
         "url": ""
     },
+
     "buildConfig": {
         "banner": "/*!\n * Anime-Dimension v${version} (${homepage})\n * Copyright 2025-${year} ${author.name}\n * Licensed under ${license} (${github.url}/blob/main/LICENSE)\n */"
     },
+
     "scripts": {
         "yaml-run": "yaml-run"
     },
