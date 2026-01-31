@@ -1,32 +1,5 @@
 /*
 |--------------------------------------------------------------------------
-| NAVIGATION CONFIGURATION
-|--------------------------------------------------------------------------
-| Options: 'mobile', 'tablet', 'desktop', or null (default/responsive)
-*/
-$nav-mode: null !default;
-
-@mixin nav-state($target) {
-    // 1. Force Mode: If global toggle matches target, output CSS without media query
-    @if $nav-mode == $target {
-        @content;
-    }
-    // 2. Responsive Mode: If no toggle is set, use original media queries
-    @else if $nav-mode == null {
-        @if $target == 'mobile' {
-            @media (max-width: 767.98px) { @content; }
-        }
-        @else if $target == 'tablet' {
-            @media (min-width: 768px) and (max-width: 992px) { @content; }
-        }
-        @else if $target == 'desktop' {
-            @media (min-width: 992px) { @content; }
-        }
-    }
-}
-
-/*
-|--------------------------------------------------------------------------
 | MAIN NAVIGATION (.main-nav)
 |--------------------------------------------------------------------------
 */
