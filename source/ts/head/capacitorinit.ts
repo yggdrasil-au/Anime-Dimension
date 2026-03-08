@@ -97,39 +97,6 @@ globalThis.EventBus = {
     },
 };
 
-// It initializes Capacitor and its plugins for mobile platforms.
-/*
-    @capacitor-community/sqlite@7.0.1
-    @capacitor/action-sheet@7.0.1
-    @capacitor/app@7.0.1
-    @capacitor/app-launcher@7.0.1
-    @capacitor/background-runner@2.1.0
-    @capacitor/barcode-scanner@2.0.3
-    @capacitor/browser@7.0.1
-    @capacitor/camera@7.0.1
-    @capacitor/clipboard@7.0.1
-    @capacitor/device@7.0.1
-    @capacitor/dialog@7.0.1
-    @capacitor/file-transfer@1.0.1
-    @capacitor/file-viewer@1.0.2
-    @capacitor/filesystem@7.1.1
-    @capacitor/geolocation@7.1.2
-    @capacitor/haptics@7.0.1
-    @capacitor/inappbrowser@2.1.1
-    @capacitor/keyboard@7.0.1
-    @capacitor/local-notifications@7.0.1
-    @capacitor/network@7.0.1
-    @capacitor/preferences@7.0.1
-    @capacitor/privacy-screen@1.1.0
-    @capacitor/push-notifications@7.0.1
-    @capacitor/screen-orientation@7.0.1
-    @capacitor/screen-reader@7.0.1
-    @capacitor/share@7.0.1
-    @capacitor/splash-screen@7.0.1
-    @capacitor/status-bar@7.0.1
-    @capacitor/toast@7.0.1
-*/
-
 import { defineCustomElements as jeepSqlite } from 'jeep-sqlite/loader';
 jeepSqlite(window);
 

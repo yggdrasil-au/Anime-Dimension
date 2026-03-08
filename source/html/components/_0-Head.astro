@@ -1,0 +1,86 @@
+---
+// /source/html/components/_Head.astro
+
+// get page specific values from caller page
+const { title, description, _metakeywords } = Astro.props
+
+// get global build data/config/methods from shared build config js
+import * as buildconf from "@BuildConfigs/main.js";
+var { deploymentPath, thisCanon } = buildconf.resolvedepPath(Astro.url.pathname);
+
+var metakeywords = _metakeywords;
+
+if (!metakeywords) {
+    metakeywords = "anime, manga, watch anime, read manga, free anime, free manga, streaming anime, download anime, HD anime, subbed anime, dubbed anime, latest anime, popular anime";
+}
+
+---
+
+<meta charset="utf8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>{title}</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<link rel="canonical" href={thisCanon} />
+<link rel="deploymentPath" href={deploymentPath} />
+
+<link rel="icon" href="/data/images/prod/assets/favicon--x48.webp" />
+
+<link rel="manifest" href="/site.webmanifest" />
+<script is:inline src="/js/head/register-service-worker.min.js" type="module"></script>
+
+<!-- Expose API base as meta tag, global window variable, and CSS variable -->
+<meta data-api-base={buildconf.apiBase} />
+<script is:inline define:vars={{ apiBase: buildconf.apiBase }}>
+    // Function to get API base URL
+    window.AD_API_BASE = apiBase;
+    // Also set as CSS variable for use in css if needed
+    document.documentElement.style.setProperty('--ad-api-base', apiBase);
+    console.debug('[AD] API base:', apiBase);
+</script>
+
+<script is:inline>
+    // prevent FOUC by applying the saved theme before the page renders
+    // this is not the main theme switcher script, just a pre-loader to set the 'Base' theme early
+    // ensuring if dark/night mode is selected it applies before content is shown to prevent flashes of incorrect theme
+    // while allowing the main theme switcher script to handle dynamic changes like switching from pre-dark mode into full night
+    (function() {
+        const savedTheme = localStorage.getItem('theme') || 'auto';
+        let themeToApply = savedTheme;
+
+        if (savedTheme === 'auto') {
+            themeToApply = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        } else if (savedTheme === 'night') {
+            themeToApply = 'dark'; // Apply dark mode immediately; TS will add stars later
+        }
+
+        if (themeToApply === 'dark') {
+            // Pre-set night-mode class to prevent background color jumps from dark-mode to night-purple
+            if (savedTheme === 'night') {
+                document.documentElement.classList.add('night-mode');
+            }
+            document.documentElement.setAttribute('data-bs-theme', themeToApply);
+            console.debug('[AD:Head] Pre-applied theme:', themeToApply);
+        }
+
+    })();
+</script>
+
+<script is:inline src="/js/head/capacitorinit.min.js"></script>
+<script is:inline src="/js/head/ionic.min.js"></script>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+<meta name="color-scheme" content="light dark" />
+<meta name="theme-color" content="#007bff" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="#1a1a1a" media="(prefers-color-scheme: dark)" />
+
+<meta name="title" content={title} />
+<!-- <meta name="author" content="yggdrasil-au" /> -->
+<meta name="description" content={description} />
+<meta name="keywords" content={metakeywords} />
+
+<meta name="supported-color-schemes" content="light dark" />
+
+<link rel="preload" href={deploymentPath + "css/main.min.css"} as="style" />
+<link rel="stylesheet" href={deploymentPath + "css/main.min.css"} />
