@@ -77,7 +77,7 @@ export const footerCopyRightText = {
         Version: ${packageVersion}
         App Name: ${packageName}
         Description: ${package_json.description}
-        &copy;: ${startYear}-${currentYear}
+        ©: ${startYear}-${currentYear}
         Author: ${packageAuthorName}. All Rights Reserved.
     `,
     // api www footer copyright text
@@ -85,7 +85,7 @@ export const footerCopyRightText = {
         Version: ${packageVersion},
         App Name: ${packageName},
         Description: ${data_json.api.footerdescription2},
-        &copy;: ${startYear}-${currentYear},
+        ©: ${startYear}-${currentYear},
         Author: ${packageAuthorName}. All Rights Reserved.
     `
 };
