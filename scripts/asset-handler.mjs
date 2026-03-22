@@ -141,6 +141,19 @@ async function performSplit() {
 
     await assets.stageWebOnlyTopLevelIntoDist()
     await assets.split({ cleanupCapSync: true, cleanupWebsite: false })
+
+    // Remove api folder from website and capacitorsync as it is extracted to subModule
+    const apiRel = 'api'
+    const websiteApi = path.resolve(assets.paths.website, apiRel)
+    const capSyncApi = path.resolve(assets.paths.capSync, apiRel)
+
+    if (dryRun) {
+        log('[dry-run] remove', websiteApi)
+        log('[dry-run] remove', capSyncApi)
+    } else {
+        await removePath(websiteApi)
+        await removePath(capSyncApi)
+    }
 }
 
 // --- Main Execution ---
