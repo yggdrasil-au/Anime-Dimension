@@ -1,0 +1,18 @@
+{
+    auto_https off
+}
+
+:{$PORT}
+root * {$DOCUMENT_ROOT}
+
+encode zstd gzip
+
+@asset path /dist/* /data/* /manifest/* /site.webmanifest /favicon* /robots.txt
+header @asset Cache-Control "public, max-age=31536000, immutable"
+
+@spa {
+    not file
+}
+rewrite @spa /index.html
+
+file_server

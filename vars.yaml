@@ -57,4 +57,5 @@ vars:
         astro: "buildConfig/astro.config.mjs"
         astro_ssr: "buildConfig/astro.ssr.hybrid.config.mjs" ## old test for hybrid ssr build
         postcss: "buildConfig/postcss.config.mjs"
+        caddy: "buildConfig/Caddyfile"
 

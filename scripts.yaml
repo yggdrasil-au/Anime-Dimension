@@ -217,25 +217,31 @@ scripts:
 
     # --- Dev / Watch ---
     dev-apache-server: "wlampctl-cli apache start --output --DocumentRoot ./{{paths.web_root}} --port 8080"
+    dev-caddy-server: "caddy-cli start --output --ConfigFile ./{{configs.caddy}} --DocumentRoot ./{{paths.web_root}} --port 8080"
 
     dev-apache-watch:
         parallel:
             - watch
             - dev-apache-server
 
+    dev-caddy-watch:
+        parallel:
+            - watch
+            - dev-caddy-server
+
     # main
     dev:
         series:
             - assets:dev
             - build
-            - dev-apache-watch
+            - dev-caddy-watch
 
     # main
     dev-prod:
         series:
             - assets:prod
             - production
-            - dev-apache-watch
+            - dev-caddy-watch
 
     # --- PHP Build ---
     # these three allow for php <?php ?> tags to be inside .astro files by commenting them out before astrobuild and restoring them in source and output after
