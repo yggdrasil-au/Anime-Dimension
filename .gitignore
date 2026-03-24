@@ -88,7 +88,5 @@ subModules/Database-Orchestrator/
 *.sqlite
 *.sqlite3
 
-source/web/
-source/web/**
 
 **/old.ignore/

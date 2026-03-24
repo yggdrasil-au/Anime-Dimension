@@ -1,0 +1,135 @@
+# Public template only.
+# Copy this file to deploy.config.yaml and replace placeholders with real values.
+vars:
+    primary_host: app-primary.example.com
+    secondary_host: app-secondary.example.com
+    relay_host: relay.example.com
+
+    primary_key: '~/.ssh/id_ed25519_primary'
+    secondary_key: '~/.ssh/id_ed25519_secondary'
+    relay_key: '~/.ssh/id_ed25519_relay'
+
+    # when your private key requires a passphrase.
+    key_passphrase: 'CHANGE_ME'
+
+    # Base directory on remote server(s).
+    remote_base: /var/www/my-app
+
+# Global defaults for all deployments, can be overridden per-deployment.
+defaults:
+    username: root
+    archiveExisting: true
+    minRemoteDepth: 3 # require at least 3 path segments in remoteDir to prevent catastrophic deletes
+    host: "{{primary_host}}"
+    privateKeyPath: "{{primary_key}}"
+    port: 22
+
+deployments:
+    # Website deployment to primary host.
+    www-us:
+        strategy: symlink
+
+        transfer: tar
+        batchSizeMB: 500
+        concurrency: 2
+        keepReleases: 3
+
+        localDir: www/website
+        remoteDir: "{{remote_base}}/html"
+        archiveDir: "{{remote_base}}/archive"
+        preserveDir: "{{remote_base}}/preserve"
+
+        postCommands:
+            - systemctl reload apache2
+
+    # API deployment to primary host.
+    cs-us:
+        preCommands:
+            - systemctl stop my-app-api.service
+
+        strategy: symlink
+
+        transfer: tar
+        batchSizeMB: 500
+        concurrency: 2
+        keepReleases: 3
+
+        localDir: 'subModules/publish/linux-x64'
+        remoteDir: "{{remote_base}}/csharp/api"
+        archiveDir: "{{remote_base}}/csharp/archive"
+        preserveDir: "{{remote_base}}/csharp/preserve"
+
+        # Preserve runtime-created SQLite files between releases.
+        preserveFiles:
+            - app.db
+            - app.db-wal
+            - app.db-shm
+
+        postCommands:
+            - chown -R appuser:www-data {{remote_base}}/csharp/api/
+            - find {{remote_base}}/csharp/api/ -type d -exec chmod 2775 {} \;
+            - find {{remote_base}}/csharp/api/ -type f -exec chmod 0664 {} \;
+            - chmod 0755 {{remote_base}}/csharp/api/MyApiBinary
+            - systemctl restart my-app-api.service
+            - systemctl status --no-pager --full my-app-api.service
+
+    # Website deployment to secondary host through relay.
+    www-eu:
+        host: "{{secondary_host}}"
+        port: 22
+        privateKeyPath: "{{secondary_key}}"
+        #passphrase: "{{key_passphrase}}"
+        strategy: symlink
+
+        transfer: relay
+        relayHost: "{{relay_host}}"
+        relayUsername: root
+        relayPrivateKeyPath: "{{relay_key}}"
+
+        batchSizeMB: 500
+        keepReleases: 3
+
+        localDir: www/website
+        remoteDir: "{{remote_base}}/html"
+        archiveDir: "{{remote_base}}/archive"
+        preserveDir: "{{remote_base}}/preserve"
+
+        postCommands:
+            - systemctl reload apache2
+
+    # API deployment to secondary host through relay.
+    cs-eu-arm:
+        host: "{{secondary_host}}"
+        port: 22
+        privateKeyPath: "{{secondary_key}}"
+        #passphrase: "{{key_passphrase}}"
+        preCommands:
+            - systemctl stop my-app-api.service
+
+        strategy: symlink
+        transfer: relay
+        relayHost: "{{relay_host}}"
+        relayUsername: root
+        relayPrivateKeyPath: "{{relay_key}}"
+
+        batchSizeMB: 500
+        keepReleases: 3
+
+        localDir: 'subModules/publish/linux-arm64'
+        remoteDir: "{{remote_base}}/csharp/api"
+        archiveDir: "{{remote_base}}/csharp/archive"
+        preserveDir: "{{remote_base}}/csharp/preserve"
+
+        preserveFiles:
+            - app.db
+            - app.db-wal
+            - app.db-shm
+
+        postCommands:
+            - chown -R appuser:www-data {{remote_base}}/csharp/api/
+            - find {{remote_base}}/csharp/api/ -type d -exec chmod 2775 {} \;
+            - find {{remote_base}}/csharp/api/ -type f -exec chmod 0664 {} \;
+            - chmod 0755 {{remote_base}}/csharp/api/MyApiBinary
+            - systemctl restart my-app-api.service
+            - systemctl status --no-pager --full my-app-api.service
+
