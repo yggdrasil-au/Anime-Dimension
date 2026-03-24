@@ -107,7 +107,6 @@
         "@yggdrasil-au/js-minify": "workspace:0.2.0",
         "@yggdrasil-au/php-handler": "workspace:0.1.0",
         "@yggdrasil-au/ts-builder": "workspace:1.1.0",
-        "@yggdrasil-au/wlampctl-cli": "workspace:*",
         "@yggdrasil-au/yaml-run": "workspace:0.1.3",
         "@yggdrasil-au/ygg-webp": "workspace:0.1.4",
         "ssh2": "1.17.0",
