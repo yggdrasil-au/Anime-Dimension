@@ -93,4 +93,4 @@ subModules/Database-Orchestrator/
 
 source/web/manifest/icons
 source/web/manifest/icons/**
-
+source/web/sitemap.xml

@@ -1,0 +1,20 @@
+
+##
+
+
+User-agent: *
+Disallow: /admin/
+Disallow: /Error/
+Disallow: /capError/
+Disallow: /webfonts/
+Disallow: /users/
+Disallow: /manifest/
+Disallow: /js/
+Disallow: /data/
+Disallow: /css/
+Disallow: /*.js$
+
+Sitemap: https://anime-dimension.com/sitemap.xml
+
+
+##

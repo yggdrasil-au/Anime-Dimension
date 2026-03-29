@@ -189,12 +189,12 @@ scripts:
             - generate-data
             - assets:handle
 
-
     # main
     build:
         series:
             - clean
             - compile
+            - generate-sitemap
 
     prod-comp:
         series:
@@ -212,7 +212,10 @@ scripts:
             - lint
             - compile:prod
             - htm-minify
+            - generate-sitemap
             - capSync
+
+    generate-sitemap: "node scripts/generate-sitemap.mjs"
 
     capSync: "pnpm exec cap sync"
 
@@ -350,6 +353,11 @@ scripts:
             - ww-d
             - api-d
             - api-d-arm
+
+    # deploy website only
+    deploy-www-only:
+        series:
+            - ww-d
 
     # deploy only API to production servers
     deploy-api-only:
