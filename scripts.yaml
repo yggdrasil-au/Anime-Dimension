@@ -13,6 +13,7 @@
 #   - dotnet:build-release-linux: builds the .NET API for Linux deployment
 #   - dotnet:build-release-win: builds the .NET API for Windows deployment
 #
+#   - deploy-all-prod: builds and deploys everything to production servers, website, API, and prod config files
 #   - deploy-prod: builds the prod site and dotnet api and deploys to the server
 #   - ww-d: builds and deploys only the website to the server
 #   - api-d: builds and deploys only the .NET API to the server
@@ -217,7 +218,7 @@ scripts:
 
     # --- Dev / Watch ---
     dev-apache-server: "wlampctl-cli apache start --output --DocumentRoot ./{{paths.web_root}} --port 8080"
-    dev-caddy-server: "caddy-cli start --output --ConfigFile ./{{configs.caddy}} --DocumentRoot ./{{paths.web_root}} --port 8080"
+    dev-caddy-server: "caddy-cli start --output --ConfigFile ./{{configs.caddy}} --DocumentRoot ./{{paths.web_root}}"
 
     dev-apache-watch:
         parallel:
@@ -282,45 +283,62 @@ scripts:
         -p:PublishSingleFile=true -p:PublishTrimmed=true -p:IncludeAllContentForSelfExtract=true -o {{paths.api_pub_win}}
 
     # --- Deployment ---
-    #deploy:check: "deploy --check"
-    #deploy:sftp: "deploy"
-    # Static frontend website deployment, us and eu servers
-    netdeploy:www-us: "netdeploy --www-us"
-    netdeploy:www-eu: "netdeploy --www-eu"
-    #deploy:www: "deploy --www-us"
-    #deploy:www-eu: "deploy --www-eu"
-    # C# API backend deployment, us and eu-arm servers
-    netdeploy:cs-us: "netdeploy --cs-us"
-    netdeploy:cs-eu-arm: "netdeploy --cs-eu-arm"
-    #deploy:cs: "deploy --cs-us"
-    #deploy:cs-eu-arm: "deploy --cs-eu-arm"
+    deploy:www-us: "deploy --www-us"
+    deploy:www-eu: "deploy --www-eu"
+
+    deploy:cs-us: "deploy --cs-us"
+    deploy:cs-eu-arm: "deploy --cs-eu-arm"
+
+    # deploy the 'buildConfig\remote\Caddyfile' to Prod
+    deploy:conf-eu-www: "deploy --configs-eu-caddy"
+    deploy:conf-us-www: "deploy --configs-us-caddy"
+
+    # deploy the 'buildConfig\remote\animedimension.service' to Prod
+    # this is the service for the .NET API
+    deploy:conf-eu-api: "deploy --configs-eu-service"
+    deploy:conf-us-api: "deploy --configs-us-service"
 
     ww-d:
         series:
             - production
-            - netdeploy:www-us
-            - netdeploy:www-eu
+            - deploy:www-us
+            - deploy:www-eu
 
     # build website as prod, then build the us api then upload www only to us server
     ww-d-us:
         series:
             - production
             - dotnet:build-release-linux
-            - netdeploy:www-us
+            - deploy:www-us
 
     # build and deploy only US C# API backend
     api-d:
         series:
             - dotnet:build-release-linux
-            - netdeploy:cs-us
+            - deploy:cs-us
 
     # build and deploy only EU ARM C# API backend
     api-d-arm:
         series:
             - dotnet:build-release-linux-arm
-            - netdeploy:cs-eu-arm
+            - deploy:cs-eu-arm
 
-    # deploy all api and www to production servers
+    # Compile Production astro ts css Build
+    # compile prod C# api build for linux and linux arm
+    # deploy website to both servers
+    # deploy api to both servers
+    # deploy www Caddyfile to both servers
+    # deploy API service file to both servers
+    deploy-all-prod:
+        series:
+            - ww-d
+            - api-d
+            - api-d-arm
+            - deploy:conf-eu-www
+            - deploy:conf-us-www
+            - deploy:conf-eu-api
+            - deploy:conf-us-api
+
     deploy-prod:
         series:
             - ww-d

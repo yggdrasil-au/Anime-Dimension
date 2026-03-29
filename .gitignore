@@ -90,3 +90,7 @@ subModules/Database-Orchestrator/
 
 
 **/old.ignore/
+
+source/web/manifest/icons
+source/web/manifest/icons/**
+

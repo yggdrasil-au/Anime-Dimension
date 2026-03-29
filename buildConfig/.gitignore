@@ -1,0 +1,7 @@
+
+# dont commit Production server config files
+remote/
+remote/animedimension.service
+remote/Caddyfile
+
+

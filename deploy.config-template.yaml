@@ -17,7 +17,7 @@ vars:
 
 # Global defaults for all deployments, can be overridden per-deployment.
 defaults:
-    username: root
+    username: deployUser666
     archiveExisting: true
     minRemoteDepth: 3 # require at least 3 path segments in remoteDir to prevent catastrophic deletes
     host: "{{primary_host}}"
@@ -83,7 +83,7 @@ deployments:
 
         transfer: relay
         relayHost: "{{relay_host}}"
-        relayUsername: root
+        relayUsername: deployUser69
         relayPrivateKeyPath: "{{relay_key}}"
 
         batchSizeMB: 500
@@ -109,7 +109,7 @@ deployments:
         strategy: symlink
         transfer: relay
         relayHost: "{{relay_host}}"
-        relayUsername: root
+        relayUsername: deployUser67
         relayPrivateKeyPath: "{{relay_key}}"
 
         batchSizeMB: 500
