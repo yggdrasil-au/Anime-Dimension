@@ -263,24 +263,30 @@ scripts:
 
     # main
     dotnet:run: "cd {{paths.api_dir}} && dotnet run -c Debug --project ./{{paths.api_proj}} --framework net10.0"
+    # build and run dotnet:build-release-win, this wont work with dev-prod yet as it uses actuall prod servers
+    # this can be used with dev server as it uses localhost
+    # copy dev users.db into exe folder Sites\Anime-Dimension\main\subModules\db\users.db
+    dotnet:run-prod: "yaml-run dotnet:build-release-win && cp ./subModules/db/users.db ./subModules/publish/win-x64/ && ./subModules/publish/win-x64/ASP.NETCoreWebApi.exe"
+
+    ## disabled PublishTimmed to reduce possible issues it could introduce
 
     # main
     dotnet:build-release-linux: >
         yaml-run update-api-www-no-build && cd {{paths.api_dir}} && rimraf {{paths.api_pub_linux}} &&
         dotnet publish ./{{paths.api_proj}} -c Release -f net10.0 -r linux-x64 --self-contained true
-        -p:PublishSingleFile=true -p:PublishTrimmed=true -p:IncludeAllContentForSelfExtract=true -o {{paths.api_pub_linux}}
+        -p:PublishSingleFile=true -p:PublishTrimmed=false -p:IncludeAllContentForSelfExtract=true -o {{paths.api_pub_linux}}
 
     # main
     dotnet:build-release-linux-arm: >
         yaml-run update-api-www-no-build && cd {{paths.api_dir}} && rimraf {{paths.api_pub_linux_arm}} &&
         dotnet publish ./{{paths.api_proj}} -c Release -f net10.0 -r linux-arm64 --self-contained true
-        -p:PublishSingleFile=true -p:PublishTrimmed=true -p:IncludeAllContentForSelfExtract=true -o {{paths.api_pub_linux_arm}}
+        -p:PublishSingleFile=true -p:PublishTrimmed=false -p:IncludeAllContentForSelfExtract=true -o {{paths.api_pub_linux_arm}}
 
     # main
     dotnet:build-release-win: >
         yaml-run update-api-www && cd {{paths.api_dir}} && rimraf {{paths.api_pub_win}} &&
         dotnet publish ./{{paths.api_proj}} -c Release -f net10.0 -r win-x64 --self-contained true
-        -p:PublishSingleFile=true -p:PublishTrimmed=true -p:IncludeAllContentForSelfExtract=true -o {{paths.api_pub_win}}
+        -p:PublishSingleFile=true -p:PublishTrimmed=false -p:IncludeAllContentForSelfExtract=true -o {{paths.api_pub_win}}
 
     # --- Deployment ---
     deploy:www-us: "deploy --www-us"
