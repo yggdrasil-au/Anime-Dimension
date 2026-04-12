@@ -7,7 +7,7 @@
         "noUnusedLocals": false, // Set to false to allow unused variables
         "noImplicitAny": true,
         "module": "esnext",
-        "moduleResolution": "node",
+        //"moduleResolution": "node",
         "resolveJsonModule": true,
         "allowSyntheticDefaultImports": true,
         "alwaysStrict": true,
@@ -16,7 +16,7 @@
         "strictBindCallApply": true,
         "strictFunctionTypes": true,
         "strictPropertyInitialization": true,
-        "baseUrl": ".",
+        //"baseUrl": ".",
         "paths": {
             "@capacitor/*": ["node_modules/@capacitor/*"],
             "@capacitor-community/*": ["node_modules/@capacitor-community/*"],

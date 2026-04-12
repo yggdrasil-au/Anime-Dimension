@@ -1,4 +1,3 @@
-import fs from 'node:fs';
 import path from 'node:path';
 
 // --- CONFIGURATION ---
@@ -30,19 +29,34 @@ const IGNORE_FILES = new Set([
     'service-worker.min.js.map',
 ]);
 
-// Helper to recursively find all files in a directory
-function walkDir(dir, callback) {
-    if (!fs.existsSync(dir)) return;
+async function pathExists(filePath) {
+    try {
+        await Deno.stat(filePath);
+        return true;
+    } catch (error) {
+        if (error instanceof Deno.errors.NotFound) {
+            return false;
+        }
 
-    fs.readdirSync(dir).forEach(f => {
-        let dirPath = path.join(dir, f);
-        let isDirectory = fs.statSync(dirPath).isDirectory();
-        isDirectory ? walkDir(dirPath, callback) : callback(dirPath);
-    });
+        throw error;
+    }
 }
 
-function generateSitemap() {
-    if (!fs.existsSync(INPUT_DIR)) {
+// Helper to recursively find all files in a directory
+async function walkDir(dir, callback) {
+    for await (const entry of Deno.readDir(dir)) {
+        const dirPath = path.join(dir, entry.name);
+
+        if (entry.isDirectory) {
+            await walkDir(dirPath, callback);
+        } else {
+            callback(dirPath);
+        }
+    }
+}
+
+async function generateSitemap() {
+    if (!(await pathExists(INPUT_DIR))) {
         console.error(`❌ Input directory does not exist: ${INPUT_DIR}`);
         console.log('Please ensure your project has been built before running this script.');
         return;
@@ -50,7 +64,7 @@ function generateSitemap() {
 
     const urls = [];
 
-    walkDir(INPUT_DIR, (filePath) => {
+    await walkDir(INPUT_DIR, (filePath) => {
         // Only index HTML files
         if (filePath.endsWith('.html')) {
             let relativePath = path.relative(INPUT_DIR, filePath);
@@ -93,17 +107,15 @@ ${urls.map(url => `  <url>\n    <loc>${url}</loc>\n    <lastmod>${today}</lastmo
 </urlset>`;
 
     // Write to all output locations
-    OUTPUT_PATHS.forEach(outputPath => {
+    for (const outputPath of OUTPUT_PATHS) {
         const outDir = path.dirname(outputPath);
 
         // Ensure the target directory exists
-        if (!fs.existsSync(outDir)) {
-            fs.mkdirSync(outDir, { recursive: true });
-        }
+        await Deno.mkdir(outDir, { recursive: true });
 
-        fs.writeFileSync(outputPath, sitemapXml, 'utf8');
+        await Deno.writeTextFile(outputPath, sitemapXml);
         console.log(`✅ Sitemap successfully generated at: ${outputPath}`);
-    });
+    }
 }
 
-generateSitemap();
+await generateSitemap();

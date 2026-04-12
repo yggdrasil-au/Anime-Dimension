@@ -44,7 +44,7 @@ scripts:
         - "rimraf {{paths.web_dist}}/**/*.html"
 
 
-    watch: "node scripts/watch-updates.mjs"
+    watch: "deno run --allow-read --allow-run scripts/watch-updates.mjs"
 
     lint:
         parallel:
@@ -72,10 +72,10 @@ scripts:
         shx mkdir -p ./{{paths.img_dist}} &&
         ygg-webp --inputDir ./{{paths.img_src}} --outputDir ./{{paths.img_dist}} --configPath ./{{paths.webp_conf}}
 
-    assets:handle:  "node scripts/asset-handler.mjs --split"
-    assets:prod:    "node scripts/asset-handler.mjs --production"
-    assets:dev:     "node scripts/asset-handler.mjs --dev"
-    assets:prepare: "node scripts/asset-handler.mjs --prepare"
+    assets:handle:  "deno run --allow-env --allow-read --allow-run --allow-write scripts/asset-handler.mjs --split"
+    assets:prod:    "deno run --allow-env --allow-read --allow-run --allow-write scripts/asset-handler.mjs --production"
+    assets:dev:     "deno run --allow-env --allow-read --allow-run --allow-write scripts/asset-handler.mjs --dev"
+    assets:prepare: "deno run --allow-env --allow-read --allow-run --allow-write scripts/asset-handler.mjs --prepare"
 
     appAssetsGen: >
         capacitor-assets generate --android --pwa
@@ -132,8 +132,8 @@ scripts:
             - js-compile:prod
             - js-min:prod
 
-    js-compile: "ts-builder"
-    js-compile:prod: "ts-builder --no-source-map"
+    js-compile: "workspace:ts-builder"
+    js-compile:prod: workspace:ts-builder --no-source-map"
     js-lint: "eslint --format=stylish ."
     js-min: "js-minify --inputDir {{paths.web_root}} --inputDir {{paths.web_dist}} --inputDir {{paths.cap_sync}}"
     js-min:prod: "js-minify --inputDir {{paths.web_root}} --inputDir {{paths.web_dist}} --inputDir {{paths.cap_sync}} --no-sourcemap --delete-source"
@@ -150,7 +150,7 @@ scripts:
     move-astro-output-to-dist: "shx cp -r {{paths.web_dist}}/astrobuild/* {{paths.web_dist}}/ && shx rm -rf {{paths.web_dist}}/astrobuild"
 
     # --- Build Pipelines ---
-    generate-data: "node scripts/generate-offline-data.mjs"
+    generate-data: "deno run --allow-read --allow-write scripts/generate-offline-data.mjs"
 
     comp2:
         series:
@@ -215,7 +215,7 @@ scripts:
             - generate-sitemap
             - capSync
 
-    generate-sitemap: "node scripts/generate-sitemap.mjs"
+    generate-sitemap: "deno run --allow-read --allow-write scripts/generate-sitemap.mjs"
 
     capSync: "pnpm exec cap sync"
 
@@ -259,7 +259,7 @@ scripts:
     # --- .NET API ---
     ##
 
-    update-api-www-no-build: "node scripts/asset-handler.mjs --update-api"
+    update-api-www-no-build: "deno run --allow-env --allow-read --allow-run --allow-write scripts/asset-handler.mjs --update-api"
     update-api-www:
         - compile
         - update-api-www-no-build
@@ -269,25 +269,25 @@ scripts:
     # build and run dotnet:build-release-win, this wont work with dev-prod yet as it uses actuall prod servers
     # this can be used with dev server as it uses localhost
     # copy dev users.db into exe folder Sites\Anime-Dimension\main\subModules\db\users.db
-    dotnet:run-prod: "yaml-run dotnet:build-release-win && cp ./subModules/db/users.db ./subModules/publish/win-x64/ && ./subModules/publish/win-x64/ASP.NETCoreWebApi.exe"
+    dotnet:run-prod: "deno run --allow-env --allow-read --allow-run ../../../Tools/TS/yaml-run/main.js dotnet:build-release-win && cp ./subModules/db/users.db ./subModules/publish/win-x64/ && ./subModules/publish/win-x64/ASP.NETCoreWebApi.exe"
 
     ## disabled PublishTimmed to reduce possible issues it could introduce
 
     # main
     dotnet:build-release-linux: >
-        yaml-run update-api-www-no-build && cd {{paths.api_dir}} && rimraf {{paths.api_pub_linux}} &&
+        deno run --allow-env --allow-read --allow-run ../../../Tools/TS/yaml-run/main.js update-api-www-no-build && cd {{paths.api_dir}} && rimraf {{paths.api_pub_linux}} &&
         dotnet publish ./{{paths.api_proj}} -c Release -f net10.0 -r linux-x64 --self-contained true
         -p:PublishSingleFile=true -p:PublishTrimmed=false -p:IncludeAllContentForSelfExtract=true -o {{paths.api_pub_linux}}
 
     # main
     dotnet:build-release-linux-arm: >
-        yaml-run update-api-www-no-build && cd {{paths.api_dir}} && rimraf {{paths.api_pub_linux_arm}} &&
+        deno run --allow-env --allow-read --allow-run ../../../Tools/TS/yaml-run/main.js update-api-www-no-build && cd {{paths.api_dir}} && rimraf {{paths.api_pub_linux_arm}} &&
         dotnet publish ./{{paths.api_proj}} -c Release -f net10.0 -r linux-arm64 --self-contained true
         -p:PublishSingleFile=true -p:PublishTrimmed=false -p:IncludeAllContentForSelfExtract=true -o {{paths.api_pub_linux_arm}}
 
     # main
     dotnet:build-release-win: >
-        yaml-run update-api-www && cd {{paths.api_dir}} && rimraf {{paths.api_pub_win}} &&
+        deno run --allow-env --allow-read --allow-run ../../../Tools/TS/yaml-run/main.js update-api-www && cd {{paths.api_dir}} && rimraf {{paths.api_pub_win}} &&
         dotnet publish ./{{paths.api_proj}} -c Release -f net10.0 -r win-x64 --self-contained true
         -p:PublishSingleFile=true -p:PublishTrimmed=false -p:IncludeAllContentForSelfExtract=true -o {{paths.api_pub_win}}
 

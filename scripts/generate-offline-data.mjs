@@ -1,36 +1,42 @@
-
-import fs from 'node:fs';
 import path from 'node:path';
-import crypto from 'node:crypto';
 
-const root = process.cwd();
+const root = Deno.cwd();
 const dbPath = path.resolve(root, 'subModules/db/anime-dimension.sqlite3');
 const wasmPath = path.resolve(root, 'node_modules/sql.js/dist/sql-wasm.wasm');
 const distDataDir = path.resolve(root, 'www/dist/data');
 const tooltipsDir = path.join(distDataDir, 'tooltips');
 
+async function pathExists(filePath) {
+    try {
+        await Deno.stat(filePath);
+        return true;
+    } catch (error) {
+        if (error instanceof Deno.errors.NotFound) {
+            return false;
+        }
+
+        throw error;
+    }
+}
+
 async function main() {
     console.log('Generating offline data...');
 
-    if (!fs.existsSync(dbPath)) {
+    if (!(await pathExists(dbPath))) {
         console.error(`Database not found at ${dbPath}`);
         // For CI/CD where DB might not exist, we might want to skip or fail.
         // Assuming it exists for now as per context.
-        process.exit(1);
+        Deno.exit(1);
     }
 
-    if (!fs.existsSync(distDataDir)) {
-        fs.mkdirSync(distDataDir, { recursive: true });
-    }
-    if (!fs.existsSync(tooltipsDir)) {
-        fs.mkdirSync(tooltipsDir, { recursive: true });
-    }
+    await Deno.mkdir(distDataDir, { recursive: true });
+    await Deno.mkdir(tooltipsDir, { recursive: true });
 
     // Load SQL.js
     const SQLMod = await import('sql.js');
     const initSqlJs = SQLMod.default || SQLMod;
-    const SQL = await initSqlJs({ wasmBinary: fs.readFileSync(wasmPath) });
-    const filebuffer = fs.readFileSync(dbPath);
+    const SQL = await initSqlJs({ wasmBinary: await Deno.readFile(wasmPath) });
+    const filebuffer = await Deno.readFile(dbPath);
     const db = new SQL.Database(filebuffer);
 
     // Inspect columns
@@ -113,7 +119,7 @@ async function main() {
         // Remove undefined/null
         Object.keys(tooltip).forEach(key => tooltip[key] === undefined && delete tooltip[key]);
         
-        fs.writeFileSync(path.join(tooltipsDir, `${row.slug}.json`), JSON.stringify(tooltip));
+        await Deno.writeTextFile(path.join(tooltipsDir, `${row.slug}.json`), JSON.stringify(tooltip));
         tooltipCount++;
     }
     
@@ -124,13 +130,15 @@ async function main() {
     console.log(`Processed ${animeLite.length} items.`);
 
     // Write anime-lite.json
-    fs.writeFileSync(path.join(distDataDir, 'anime-lite.json'), JSON.stringify(animeLite));
-    console.log(`Written anime-lite.json (${(fs.statSync(path.join(distDataDir, 'anime-lite.json')).size / 1024 / 1024).toFixed(2)} MB)`);
+    const animeLitePath = path.join(distDataDir, 'anime-lite.json');
+    await Deno.writeTextFile(animeLitePath, JSON.stringify(animeLite));
+    const animeLiteSize = (await Deno.stat(animeLitePath)).size / 1024 / 1024;
+    console.log(`Written anime-lite.json (${animeLiteSize.toFixed(2)} MB)`);
 
     console.log(`Written ${tooltipCount} tooltip files.`);
 }
 
 main().catch(e => {
     console.error(e);
-    process.exit(1);
+    Deno.exit(1);
 });

@@ -13,15 +13,15 @@
 import path from 'node:path'
 import fs from 'node:fs'
 
-const buildCore = await import('@yggdrasil-au/build-core').catch(() => import('../../../../Tools/build-core/index.mjs'))
+const buildCore = await import('@yggdrasil-au/build-core')
 
-const root = process.cwd()
+const root = Deno.cwd()
 const distRoot = path.resolve(root, 'www/dist')
 const distHtmlDir = path.resolve(distRoot, 'astrobuild')
 const distHtmlApiDir = path.resolve(distHtmlDir, 'api')
 
 // --- Argument Parsing ---
-const args = new Set(process.argv.slice(2))
+const args = new Set(Deno.args)
 const dryRun = args.has('--dry-run') || args.has('--check')
 const verbose = args.has('--verbose') || args.has('-v')
 
@@ -198,5 +198,5 @@ try {
     await main()
 } catch (error) {
     console.error('[assets] Failed:', error?.message || error)
-    process.exitCode = 1
+    Deno.exit(1)
 }

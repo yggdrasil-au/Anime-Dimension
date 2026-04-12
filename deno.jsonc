@@ -1,0 +1,6 @@
+
+{
+    "tasks": {
+        "yaml-run": "deno run -A @yggdrasil-au/yaml-run"
+    }
+}
