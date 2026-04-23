@@ -4,14 +4,10 @@
 |--------------------------------------------------------------------------
 | Centralized configuration for easy control of UI defaults.
 */
-// Default theme for the application
-const DEFAULT_THEME: 'light' | 'dark' | 'night' | 'auto' = 'night';
-// You can add more default configs here as needed
-// /source/ts/main.ts
 
 // import bootstrap JavaScript components to enable interactive components like dropdowns.
-import '../../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js';
-import { initHomeSections } from './home';
+import 'npm:bootstrap/dist/js/bootstrap.bundle.min.js';
+import { initHomeSections } from './home.ts';
 
 /*
 |--------------------------------------------------------------------------

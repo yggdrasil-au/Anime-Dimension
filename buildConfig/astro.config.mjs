@@ -1,8 +1,8 @@
 // Sites\Anime-Dimension\main\buildConfig\astro.config.mjs
 
-import { defineConfig } from 'astro/config'
-import mdx from '@astrojs/mdx'
-//import node from '@astrojs/node';
+import { defineConfig } from 'npm:astro@6.1.5/config'
+import mdx from 'npm:@astrojs/mdx@5.0.3'
+//import node from 'npm:@astrojs/node';
 
 // https://astro.build/config
 export default defineConfig({

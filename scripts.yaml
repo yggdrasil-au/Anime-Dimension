@@ -1,5 +1,6 @@
 ##
-# Scripts Configuration File
+# Scripts Configuration File, used by yaml-run to run scripts defined here instead of package.json scripts
+# This allows for more complex scripts with series and parallel steps and variables defined in vars.yaml and even import from JS and Json files.
 #
 # all scripts normally found in package.json scripts section
 #
@@ -9,7 +10,7 @@
 #   - dev: builds the website and starts a local apache server with watch mode
 #   - dev-prod: same as dev but uses production build
 #
-#   - dotnet:run: runs the .NET API in debug mode locally, accessable at http://localhost:5000 or api_dev.anime-dimension.com
+#   - dotnet:run: runs the .NET API in debug mode locally, accessible at http://localhost:5000 or beta.platinum-hot-and-cold.com
 #   - dotnet:build-release-linux: builds the .NET API for Linux deployment
 #   - dotnet:build-release-win: builds the .NET API for Windows deployment
 #
@@ -26,25 +27,23 @@
 #
 # command line example:
 #   in webdev root:
-#       pnpm --filter anime-dimension yaml-run dev
+#       deno task --filter anime-dimension yaml-run dev
 #   in anime-dimension main dir:
-#       pnpm yaml-run dev
+#       deno task yaml-run dev
 #
 
 
 scripts:
     # --- Utilities ---
-    #echo: "echo {{pkg.buildConfig.banner}}"
-
     clean:
-        - "rimraf {{paths.www}}/"
+        - "fs: rm \"{{paths.www}}\""
     clean-www-website-html:
-        - "rimraf {{paths.web_root}}/**/*.html"
+        - "fs: rm \"{{paths.web_root}}/**/*.html\""
     clean-www-dist-html:
-        - "rimraf {{paths.web_dist}}/**/*.html"
+        - "fs: rm \"{{paths.web_dist}}/**/*.html\""
 
 
-    watch: "deno run --allow-read --allow-run scripts/watch-updates.mjs"
+    watch: "path: deno run --allow-read --allow-run scripts/watch-updates.mjs"
 
     lint:
         parallel:
@@ -53,13 +52,15 @@ scripts:
             - docs-lint
 
     # --- Icons & Assets ---
-    copy-icons:bi: >
-        shx mkdir -p {{paths.bi_dist}} &&
-        shx cp -r {{paths.bi_src}}/* {{paths.bi_dist}}/
+    copy-icons:bi:
+        series:
+            - "fs: mkdir {{paths.bi_dist}}"
+            - "fs: copy {{paths.bi_src}}/* {{paths.bi_dist}}"
 
-    copy-icons:fa: >
-        shx mkdir -p {{paths.bi_dist}}/fontawesome &&
-        shx cp -r {{paths.fa_src}} {{paths.fa_dist}}/
+    copy-icons:fa:
+        series:
+            - "fs: mkdir {{paths.fa_dist}}"
+            - "fs: copy {{paths.fa_src}} {{paths.fa_dist}}"
 
     copy-icons:www:
         series:
@@ -68,17 +69,18 @@ scripts:
 
     assets:icons: copy-icons:www
 
-    webp: >
-        shx mkdir -p ./{{paths.img_dist}} &&
-        ygg-webp --inputDir ./{{paths.img_src}} --outputDir ./{{paths.img_dist}} --configPath ./{{paths.webp_conf}}
+    webp:
+        series:
+            - "fs: mkdir ./{{paths.img_dist}}"
+            - "workspace: ygg-webp --inputDir ./{{paths.img_src}} --outputDir ./{{paths.img_dist}} --configPath ./{{paths.webp_conf}}"
 
-    assets:handle:  "deno run --allow-env --allow-read --allow-run --allow-write scripts/asset-handler.mjs --split"
-    assets:prod:    "deno run --allow-env --allow-read --allow-run --allow-write scripts/asset-handler.mjs --production"
-    assets:dev:     "deno run --allow-env --allow-read --allow-run --allow-write scripts/asset-handler.mjs --dev"
-    assets:prepare: "deno run --allow-env --allow-read --allow-run --allow-write scripts/asset-handler.mjs --prepare"
+    assets:handle:  "path: deno run --allow-read --allow-run --allow-write scripts/asset-handler.mjs --split"
+    assets:prod:    "path: deno run --allow-read --allow-run --allow-write scripts/asset-handler.mjs --production"
+    assets:dev:     "path: deno run --allow-read --allow-run --allow-write scripts/asset-handler.mjs --dev"
+    assets:prepare: "path: deno run --allow-read --allow-run --allow-write scripts/asset-handler.mjs --prepare"
 
     appAssetsGen: >
-        capacitor-assets generate --android --pwa
+        workspace:capacitor-assets generate --android --pwa
         --pwaOutRoot {{paths.pwa_out}}
         --pwaIconsPath {{paths.pwa_icons}}
         --pwaManifestPath {{paths.pwa_manifest}}
@@ -92,34 +94,22 @@ scripts:
             - css-rtl
             - css-minify
 
+
     css-compile: >
-        sass --style expanded --load-path="node_modules"
+        npm: sass --style expanded --load-path="node_modules" --load-path="../../../node_modules"
         --source-map --embed-sources --no-error-css --quiet
         {{paths.scss}}/:{{paths.css_dist}}/
 
     css-rtl: >
-        cross-env NODE_ENV=RTL postcss --config {{configs.postcss}}
+        npm: cross-env NODE_ENV=RTL postcss --config {{configs.postcss}}
         --dir "{{paths.css_dist}}" --ext ".rtl.css"
         "{{paths.css_dist}}/*.css" "!{{paths.css_dist}}/*.min.css" "!{{paths.css_dist}}/*.rtl.css"
 
-    css-lint: 'stylelint "{{paths.scss}}/**/*.scss" --cache --cache-location .cache/.stylelintcache --rd'
+    css-lint: 'npm: stylelint "{{paths.scss}}/**/*.scss" --cache --cache-location .cache/.stylelintcache --rd'
 
-    css-prefix: 'postcss --config {{configs.postcss}} --replace "{{paths.css_dist}}/*.css" "!{{paths.css_dist}}/*.rtl*.css" "!{{paths.css_dist}}/*.min.css"'
+    css-prefix: 'npm: postcss-cli --config {{configs.postcss}} --replace "{{paths.css_dist}}/*.css" "!{{paths.css_dist}}/*.rtl*.css" "!{{paths.css_dist}}/*.min.css"'
 
-    css-minify:
-        parallel:
-            - css-minify-main
-            - css-minify-rtl
-
-    css-minify-main: >
-        cleancss -O1 --format breakWith=lf --with-rebase --source-map --source-map-inline-sources
-        --output {{paths.css_dist}}/ --batch --batch-suffix ".min"
-        "{{paths.css_dist}}/*.css" "!{{paths.css_dist}}/*.min.css" "!{{paths.css_dist}}/*rtl*.css"
-
-    css-minify-rtl: >
-        cleancss -O1 --format breakWith=lf --with-rebase --source-map --source-map-inline-sources
-        --output {{paths.css_dist}}/ --batch --batch-suffix ".min"
-        "{{paths.css_dist}}/*rtl.css" "!{{paths.css_dist}}/*.min.css"
+    css-minify: "path: deno run --allow-env --allow-read --allow-run --allow-write scripts/asset-handler.mjs --minify-css"
 
     # --- JS ---
     js:
@@ -132,31 +122,42 @@ scripts:
             - js-compile:prod
             - js-min:prod
 
-    js-compile: "workspace:ts-builder"
-    js-compile:prod: workspace:ts-builder --no-source-map"
-    js-lint: "eslint --format=stylish ."
-    js-min: "js-minify --inputDir {{paths.web_root}} --inputDir {{paths.web_dist}} --inputDir {{paths.cap_sync}}"
-    js-min:prod: "js-minify --inputDir {{paths.web_root}} --inputDir {{paths.web_dist}} --inputDir {{paths.cap_sync}} --no-sourcemap --delete-source"
+    js-compile: 'workspace: ts-builder "{{pkg.buildConfig.banner}}" --inputDir {{paths.js_src}} --outputDir {{paths.js_dist}}'
+    js-compile:prod: 'workspace: ts-builder "{{pkg.buildConfig.banner}}" --inputDir {{paths.js_src}} --outputDir {{paths.js_dist}} --no-source-map'
+    js-lint: "npm: eslint --format=stylish ."
+    js-min: "workspace: js-minify --inputDir {{paths.web_root}} --inputDir {{paths.web_dist}} --inputDir {{paths.cap_sync}}"
+    js-min:prod: "workspace: js-minify --inputDir {{paths.web_root}} --inputDir {{paths.web_dist}} --inputDir {{paths.cap_sync}} --no-sourcemap --delete-source"
 
     # --- HTML / Docs ---
-    htm-minify: "htm-minify --inputDir {{paths.web_root}} --inputDir {{paths.web_dist}} --inputDir {{paths.cap_sync}} --parallel cpu"
+    htm-minify: "workspace: htm-minify --inputDir {{paths.web_root}} --inputDir {{paths.web_dist}} --inputDir {{paths.cap_sync}} --parallel cpu"
 
-    docs-compile: "astro --config {{configs.astro}} build"
-    docs-compile-silent: "astro --config {{configs.astro}} build --silent"
-    docs-lint: "astro --config {{configs.astro}} check"
-    docs-format: 'prettier --write "{{paths.web_dist}}/**/*.html"'
-    docs-serve-ssr: "astro --config {{configs.astro_ssr}} dev --port 3001"
+    docs-compile: "npm: astro --config {{configs.astro}} build"
+    docs-compile-silent: "npm: astro --config {{configs.astro}} build --silent"
+    # using tsconfig.astro.json to only check .astro files and not have eslint errors from .ts files in the astro config
+    docs-lint: "npm: astro --config {{configs.astro}} --tsconfig ./tsconfig.astro.json check"
+    docs-format: 'npm: prettier --write "{{paths.web_dist}}/**/*.html"'
+    docs-serve-ssr: "npm: astro --config {{configs.astro_ssr}} dev --port 3001"
 
-    move-astro-output-to-dist: "shx cp -r {{paths.web_dist}}/astrobuild/* {{paths.web_dist}}/ && shx rm -rf {{paths.web_dist}}/astrobuild"
+    move-astro-output-to-dist:
+        series:
+            - "fs: copy {{paths.web_dist}}/astrobuild/* {{paths.web_dist}}"
+            - "fs: rm {{paths.web_dist}}/astrobuild"
 
     # --- Build Pipelines ---
-    generate-data: "deno run --allow-read --allow-write scripts/generate-offline-data.mjs"
+    generate-data: "path: deno run --allow-read --allow-write scripts/generate-offline-data.mjs"
 
-    comp2:
+    comp1:
         series:
             - assets:prepare
             - assets:icons
-            - docs-compile-silent
+            - docs-compile
+            #- docs-compile
+
+    comp1:prod:
+        series:
+            - assets:prepare
+            - assets:icons
+            - docs-compile-silent # use silent to avoid massive console outputs
             #- docs-compile
 
     compile-parallel:
@@ -174,7 +175,7 @@ scripts:
     compile:
         series:
             - compile-parallel
-            - comp2
+            - comp1
             - docs-format
             - move-astro-output-to-dist
             - generate-data
@@ -183,7 +184,7 @@ scripts:
     compile:prod:
         series:
             - compile-parallel:prod
-            - comp2
+            - comp1:prod
             - docs-format
             - move-astro-output-to-dist
             - generate-data
@@ -215,12 +216,14 @@ scripts:
             - generate-sitemap
             - capSync
 
-    generate-sitemap: "deno run --allow-read --allow-write scripts/generate-sitemap.mjs"
+    generate-sitemap: "path: deno run --allow-read --allow-write scripts/generate-sitemap.mjs"
 
-    capSync: "pnpm exec cap sync"
+    capSync: "npm: @capacitor/cli sync"
 
     # --- Dev / Watch ---
-    dev-apache-server: "wlampctl-cli apache start --output --DocumentRoot ./{{paths.web_root}} --port 8080"
+    dev-apache-server:
+        cmd: "workspace: apache-cli start --output --document-root ./{{paths.web_root}} --port 8080"
+        interactive: true
     dev-caddy-server: "caddy-cli start --output --ConfigFile ./{{configs.caddy}} --DocumentRoot ./{{paths.web_root}}"
 
     dev-apache-watch:
@@ -251,15 +254,15 @@ scripts:
     # these three allow for php <?php ?> tags to be inside .astro files by commenting them out before astrobuild and restoring them in source and output after
     # this is currently unused and would require re-adding php execution to the watch-updates.mjs script to function in dev mode
     #build:php: "build-php full"
-    #php:prebuild: "build-php pre"   ## run anytime before astro build to prepare .astro files with php tags
-    #php:postbuild: "build-php post" ## run only after all html related build steps are done to restore php tags in source and html output
+    #php:prebuild: "workspace:build-php pre"   ## run anytime before astro build to prepare .astro files with php tags
+    #php:postbuild: "workspace:build-php post" ## run only after all html related build steps are done to restore php tags in source and html output
     # to use pure .php files simply place them in source/web these files are always in www/dist and www/website as-is not included in www/capacitorsync and is not processed by any tools
 
     ##
     # --- .NET API ---
     ##
 
-    update-api-www-no-build: "deno run --allow-env --allow-read --allow-run --allow-write scripts/asset-handler.mjs --update-api"
+    update-api-www-no-build: "path: deno run --allow-env --allow-read --allow-run --allow-write scripts/asset-handler.mjs --update-api"
     update-api-www:
         - compile
         - update-api-www-no-build
@@ -269,43 +272,58 @@ scripts:
     # build and run dotnet:build-release-win, this wont work with dev-prod yet as it uses actuall prod servers
     # this can be used with dev server as it uses localhost
     # copy dev users.db into exe folder Sites\Anime-Dimension\main\subModules\db\users.db
-    dotnet:run-prod: "deno run --allow-env --allow-read --allow-run ../../../Tools/TS/yaml-run/main.js dotnet:build-release-win && cp ./subModules/db/users.db ./subModules/publish/win-x64/ && ./subModules/publish/win-x64/ASP.NETCoreWebApi.exe"
+    dotnet:run-prod:
+        series:
+            - dotnet:build-release-win
+            - "fs: copy ./subModules/db/users.db ./subModules/publish/win-x64/"
+            - "path: ./subModules/publish/win-x64/ASP.NETCoreWebApi.exe"
 
     ## disabled PublishTimmed to reduce possible issues it could introduce
 
     # main
-    dotnet:build-release-linux: >
-        deno run --allow-env --allow-read --allow-run ../../../Tools/TS/yaml-run/main.js update-api-www-no-build && cd {{paths.api_dir}} && rimraf {{paths.api_pub_linux}} &&
-        dotnet publish ./{{paths.api_proj}} -c Release -f net10.0 -r linux-x64 --self-contained true
-        -p:PublishSingleFile=true -p:PublishTrimmed=false -p:IncludeAllContentForSelfExtract=true -o {{paths.api_pub_linux}}
+    dotnet:build-release-linux:
+        series:
+            - update-api-www-no-build
+            - >
+                cross-shell: cd {{paths.api_dir}} && rimraf {{paths.api_pub_linux}} &&
+                dotnet publish ./{{paths.api_proj}} -c Release -f net10.0 -r linux-x64 --self-contained true
+                -p:PublishSingleFile=true -p:PublishTrimmed=false -p:IncludeAllContentForSelfExtract=true -o {{paths.api_pub_linux}}
 
     # main
-    dotnet:build-release-linux-arm: >
-        deno run --allow-env --allow-read --allow-run ../../../Tools/TS/yaml-run/main.js update-api-www-no-build && cd {{paths.api_dir}} && rimraf {{paths.api_pub_linux_arm}} &&
-        dotnet publish ./{{paths.api_proj}} -c Release -f net10.0 -r linux-arm64 --self-contained true
-        -p:PublishSingleFile=true -p:PublishTrimmed=false -p:IncludeAllContentForSelfExtract=true -o {{paths.api_pub_linux_arm}}
+    dotnet:build-release-linux-arm:
+        series:
+            - update-api-www-no-build
+            - >
+                cross-shell: cd {{paths.api_dir}} && rimraf {{paths.api_pub_linux_arm}} &&
+                dotnet publish ./{{paths.api_proj}} -c Release -f net10.0 -r linux-arm64 --self-contained true
+                -p:PublishSingleFile=true -p:PublishTrimmed=false -p:IncludeAllContentForSelfExtract=true -o {{paths.api_pub_linux_arm}}
 
     # main
-    dotnet:build-release-win: >
-        deno run --allow-env --allow-read --allow-run ../../../Tools/TS/yaml-run/main.js update-api-www && cd {{paths.api_dir}} && rimraf {{paths.api_pub_win}} &&
-        dotnet publish ./{{paths.api_proj}} -c Release -f net10.0 -r win-x64 --self-contained true
-        -p:PublishSingleFile=true -p:PublishTrimmed=false -p:IncludeAllContentForSelfExtract=true -o {{paths.api_pub_win}}
+    dotnet:build-release-win:
+        series:
+            - update-api-www
+            - >
+                cross-shell: cd {{paths.api_dir}} && rimraf {{paths.api_pub_win}} &&
+                dotnet publish ./{{paths.api_proj}} -c Release -f net10.0 -r win-x64 --self-contained true
+                -p:PublishSingleFile=true -p:PublishTrimmed=false -p:IncludeAllContentForSelfExtract=true -o {{paths.api_pub_win}}
 
+    #
     # --- Deployment ---
-    deploy:www-us: "deploy --www-us"
-    deploy:www-eu: "deploy --www-eu"
+    #
+    deploy:www-us: "workspace:deploy --www-us"
+    deploy:www-eu: "workspace:deploy --www-eu"
 
-    deploy:cs-us: "deploy --cs-us"
-    deploy:cs-eu-arm: "deploy --cs-eu-arm"
+    deploy:cs-us: "workspace:deploy --cs-us"
+    deploy:cs-eu-arm: "workspace:deploy --cs-eu-arm"
 
     # deploy the 'buildConfig\remote\Caddyfile' to Prod
-    deploy:conf-eu-www: "deploy --configs-eu-caddy"
-    deploy:conf-us-www: "deploy --configs-us-caddy"
+    deploy:conf-eu-www: "workspace:deploy --configs-eu-caddy"
+    deploy:conf-us-www: "workspace:deploy --configs-us-caddy"
 
     # deploy the 'buildConfig\remote\animedimension.service' to Prod
     # this is the service for the .NET API
-    deploy:conf-eu-api: "deploy --configs-eu-service"
-    deploy:conf-us-api: "deploy --configs-us-service"
+    deploy:conf-eu-api: "workspace:deploy --configs-eu-service"
+    deploy:conf-us-api: "workspace:deploy --configs-us-service"
 
     ww-d:
         series:

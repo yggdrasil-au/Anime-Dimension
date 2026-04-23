@@ -41,7 +41,7 @@ if (fs.existsSync(dbPath)) {
     const SQLMod: any = await import('sql.js').catch(() => null);
     if (SQLMod) {
         const initSqlJs = (SQLMod.default ?? SQLMod) as any;
-        const wasmPath = path.resolve(process.cwd(), 'node_modules/sql.js/dist/sql-wasm.wasm');
+        const wasmPath = path.resolve(process.cwd(), '../../../node_modules/sql.js/dist/sql-wasm.wasm');
         const SQL = await initSqlJs({ wasmBinary: fs.readFileSync(wasmPath) });
         const buf = fs.readFileSync(dbPath);
         const db = new SQL.Database(new Uint8Array(buf));

@@ -18,11 +18,15 @@
         "strictPropertyInitialization": true,
         //"baseUrl": ".",
         "paths": {
+            "@ts": ["./source/ts/*"],
+
             "@capacitor/*": ["node_modules/@capacitor/*"],
             "@capacitor-community/*": ["node_modules/@capacitor-community/*"],
             "@ionic/*": ["node_modules/@ionic/*"],
-            "@components/*": ["source/html/components/*"],
+
             "@WWW-API-components/*": ["source/html/components/api-components/*"],
+
+            "@components/*": ["source/html/components/*"],
             "@BuildConfigs/*": ["source/BuildConfigs/*"],
             "@PackageRoot/*": ["./*"]
         },

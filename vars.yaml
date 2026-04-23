@@ -6,8 +6,9 @@
 ##
 
 sources:
-    # Read package.json as pkg (e.g., {{pkg.version}}, {{pkg.buildConfig.banner}})
+    # Read .package.json as pkg (e.g., {{pkg.version}}, {{pkg.buildConfig.banner}})
     pkg: "./package.json"
+    deno: "./deno.jsonc"
 
 vars:
     # --- Project Paths ---
@@ -18,13 +19,16 @@ vars:
         # wdist, the temp build output dir before splitting into website and capacitor/mobile
         wdist: "{{www}}/dist"
 
+        # JS
+        js_src: "{{src}}/ts"
+        js_dist: "{{wdist}}/js"
         # CSS / SCSS
         scss: "{{src}}/scss"
         css_dist: "{{wdist}}/css"
         # Images
         img_src: "{{src}}/images/Source"
         img_dist: "{{wdist}}/data/images/prod"
-        webp_conf: "{{src}}/images/webp.json"
+        webp_conf: "{{src}}/images/webp.yaml"
 
         # Web / PWA
         web_root: "{{www}}/website"
@@ -38,11 +42,11 @@ vars:
         pwa_assets: "resources/pwa-capacitor"
 
         # Icons (Source)
-        bi_src: "node_modules/bootstrap-icons"
-        fa_src: "node_modules/@fortawesome/fontawesome-free/webfonts"
+        bi_src: "../../../node_modules/bootstrap-icons"
+        fa_src: "../../../node_modules/@fortawesome/fontawesome-free/webfonts"
         # Icons (Dest)
         bi_dist: "{{wdist}}/css/assets/icons"
-        fa_dist: "{{wdist}}/webfonts"
+        fa_dist: "{{wdist}}"
 
         # Dotnet API
         api_dir: "subModules/Anime-Dimension-api"

@@ -11,7 +11,6 @@
 //   --verbose / -v        => extra logs
 
 import path from 'node:path'
-import fs from 'node:fs'
 
 const buildCore = await import('@yggdrasil-au/build-core')
 
@@ -59,7 +58,7 @@ const assets = createAssetManager({
 
 async function updateEnvironmentConfig(mode) {
     const apiJsPath = path.resolve(root, 'source', 'BuildConfigs', 'api.js')
-    let content = await fs.promises.readFile(apiJsPath, 'utf-8')
+    let content = await Deno.readTextFile(apiJsPath)
 
     const prodLine = "export const PUBLIC_API_BASE = 'https://api.anime-dimension.com';"
     const devLine = "export const PUBLIC_API_BASE = 'http://localhost:5050';"
@@ -69,7 +68,7 @@ async function updateEnvironmentConfig(mode) {
             content = content.replace(devLine, prodLine)
             if (dryRun) log('[dry-run] would update api.js for production API base')
             else {
-                await fs.promises.writeFile(apiJsPath, content, 'utf-8')
+                await Deno.writeTextFile(apiJsPath, content)
                 log('Updated api.js to use production API base')
             }
         } else {
@@ -80,7 +79,7 @@ async function updateEnvironmentConfig(mode) {
             content = content.replace(prodLine, devLine)
             if (dryRun) log('[dry-run] would update api.js for dev API base')
             else {
-                await fs.promises.writeFile(apiJsPath, content, 'utf-8')
+                await Deno.writeTextFile(apiJsPath, content)
                 log('Updated api.js to use dev API base')
             }
         } else {
@@ -190,7 +189,7 @@ async function main() {
 
     if (!actionTaken) {
         console.log('No action arguments provided.')
-        console.log('Usage: node asset-handler.mjs [--production|--dev] [--prepare] [--split] [--update-api]')
+        console.log('Usage: deno run --allow-env --allow-read --allow-run --allow-write scripts/asset-handler.mjs [--production|--dev] [--prepare] [--split] [--update-api]')
     }
 }
 

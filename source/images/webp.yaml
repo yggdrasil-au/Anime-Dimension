@@ -1,0 +1,32 @@
+vars:
+    original: [0]
+
+images:
+    - source: "assets/inc/img/banners/homepage/banner-bg.svg"
+      output: "svg"
+      sizes: "{{original}}"
+
+    - source: "assets/inc/img/banners/homepage/planet-bits.png"
+      sizes: "{{original}}"
+      output: "webp"
+
+    - source: "assets/inc/img/banners/homepage/space-min.svg"
+      output: "svg"
+      sizes: "{{original}}"
+
+    - source: "assets/inc/img/banners/homepage/space-mobile-min.svg"
+      output: "svg"
+      sizes: "{{original}}"
+
+    - source: "assets/inc/img/logos/dimension-kun.svg"
+      output: "svg"
+      sizes: "{{original}}"
+
+    - source: "assets/inc/img/logos/planet-min.svg"
+      output: "svg"
+      sizes: "{{original}}"
+
+    - source: "assets/favicon.png"
+      sizes: "{{original}}"
+      output: "webp"
+

@@ -7,7 +7,7 @@ import path from 'node:path';
 
 const root = Deno.cwd();
 const sourceDir = path.join(root, 'source');
-const yamlRunScript = '../../../Tools/TS/yaml-run/main.js';
+const yamlRunScript = await import('@yggdrasil-au/yaml-run');
 const DEBOUNCE_MS = 200;
 
 function classifyChange(file) {
@@ -99,7 +99,7 @@ async function runYamlRun(scriptName) {
     }
 }
 
-let pendingTypes = new Set();
+const pendingTypes = new Set();
 let currentRunningTypes = new Set();
 const changedFiles = { scss: new Set(), ts: new Set(), astro: new Set() };
 let debounceTimer = null;

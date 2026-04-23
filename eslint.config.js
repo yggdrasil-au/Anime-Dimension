@@ -1,9 +1,9 @@
 
-import globals from 'globals/index.js';
-import pluginJs from '@eslint/js/src/index.js';
-import tseslint from 'typescript-eslint';
-import pluginUnicorn from 'eslint-plugin-unicorn';
-import astroPlugin from 'eslint-plugin-astro';
+import globals from 'npm:globals/index.js';
+import pluginJs from 'npm:@eslint/js/src/index.js';
+import tseslint from 'npm:typescript-eslint';
+import pluginUnicorn from 'npm:eslint-plugin-unicorn';
+import astroPlugin from 'npm:eslint-plugin-astro';
 
 export default [
     {
@@ -46,7 +46,7 @@ export default [
             'comment-whitespace-inside': 'off',
             'arrow-body-style': 'off',
             'capitalized-comments': 'off',
-            'comma-dangle': ['warn', 'always-multiline'],
+            'comma-dangle': ['off'],
             'indent': ['off', 4, { 'MemberExpression': 'off', 'SwitchCase': 1 }],
             'max-params': ['warn', 5],
             'multiline-ternary': 'off',
@@ -56,6 +56,7 @@ export default [
             'object-curly-spacing': 'off',
             'operator-linebreak': ['warn', 'after'],
             'no-unused-vars': 'off',
+            'no-useless-assignment': 'warn',
             'no-new': 'off',
             'semi': 'off',
             'no-empty': 'warn',
@@ -63,6 +64,7 @@ export default [
             'unicorn/no-array-callback-reference': 'off',
             'unicorn/no-array-for-each': 'off',
             'unicorn/no-array-method-this-argument': 'off',
+            'unicorn/no-await-expression-member': 'warn',
             'unicorn/no-null': 'off',
             'unicorn/no-unused-properties': 'off',
             'unicorn/prefer-array-flat': 'off',
@@ -92,6 +94,7 @@ export default [
             'unicorn/no-array-sort': 'warn',
             'unicorn/no-useless-undefined': 'warn',
             '@typescript-eslint/no-unused-expressions': 'warn',
+            'unicorn/no-console-spaces': 'warn',
             'unicorn/switch-case-braces': 'warn',
             'unicorn/empty-brace-spaces': 'warn',
             'unicorn/no-nested-ternary': 'warn',
@@ -100,14 +103,14 @@ export default [
             'unicorn/no-array-reduce': 'warn',
             'unicorn/prefer-math-min-max': 'warn',
             'no-cond-assign': 'warn',
-            'no-undef': 'warn',
+            'no-undef': 'off', // Handled by TypeScript
             'unicorn/prefer-optional-catch-binding': 'warn',
             'no-prototype-builtins': 'warn',
             'unicorn/prefer-includes': 'warn',
             'unicorn/prefer-native-coercion-functions': 'warn',
             'unicorn/no-new-array': 'warn',
+            'prefer-const': 'warn',
             'no-dupe-keys': 'warn',
-
         },
     },
     {

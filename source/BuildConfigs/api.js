@@ -1,3 +1,3 @@
 /** @type {string} */
-export const PUBLIC_API_BASE = 'http://localhost:5050';
+export const PUBLIC_API_BASE = 'https://api.anime-dimension.com';
 

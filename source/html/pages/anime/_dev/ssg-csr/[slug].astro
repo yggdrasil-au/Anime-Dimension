@@ -37,7 +37,7 @@ export async function getStaticPaths() {
         try {
             const SQLMod: any = await import('sql.js');
             const initSqlJs = (SQLMod.default ?? SQLMod) as any;
-            const wasmPath = path.resolve(process.cwd(), 'node_modules/sql.js/dist/sql-wasm.wasm');
+            const wasmPath = path.resolve(process.cwd(), '../../../node_modules/sql.js/dist/sql-wasm.wasm');
             const SQL = await initSqlJs({ wasmBinary: fs.readFileSync(wasmPath) });
             const db = new SQL.Database(new Uint8Array(fs.readFileSync(dbPath)));
             const qAll = db.prepare('SELECT id, slug, title, thumbnail_url, "year" AS year, "type" AS type, synopsis FROM anime WHERE slug IS NOT NULL ORDER BY slug');
