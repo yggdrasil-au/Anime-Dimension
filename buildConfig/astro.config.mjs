@@ -7,9 +7,11 @@ import mdx from 'npm:@astrojs/mdx@5.0.3'
 // https://astro.build/config
 export default defineConfig({
     output: 'static',
+    //output: 'server', // SSR
     build: {
         format: 'preserve',
     },
+    //base: '/client/',
     /*adapter: node({
         mode: 'standalone'
     }),*/
@@ -23,13 +25,13 @@ export default defineConfig({
     publicDir: './public',
     cacheDir: './www/dist/astrobuild/.astrocache',
     outDir: './www/dist/astrobuild',
-    server: {
-        host: '0.0.0.0',
-        port: 3000,
-    },
+    //server: {
+    //    host: '127.0.0.1',
+    //    port: 3000,
+    //},
     vite: {
         server: {
-            host: '0.0.0.0',
+            host: '127.0.0.1',
             // Allow custom host for dev access (Vite 5 host check)
             allowedHosts: ['dev.anime-dimension.com'],
             watch: {

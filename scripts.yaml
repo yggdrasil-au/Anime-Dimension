@@ -94,7 +94,6 @@ scripts:
             - css-rtl
             - css-minify
 
-
     css-compile: >
         npm: sass --style expanded --load-path="node_modules" --load-path="../../../node_modules"
         --source-map --embed-sources --no-error-css --quiet
@@ -216,7 +215,7 @@ scripts:
             - generate-sitemap
             - capSync
 
-    generate-sitemap: "path: deno run --allow-read --allow-write scripts/generate-sitemap.mjs"
+    generate-sitemap: "path: deno run --allow-read --allow-write scripts/generate-sitemap.ts"
 
     capSync: "npm: @capacitor/cli sync"
 
@@ -268,7 +267,7 @@ scripts:
         - update-api-www-no-build
 
     # main
-    dotnet:run: "cd {{paths.api_dir}} && dotnet run -c Debug --project ./{{paths.api_proj}} --framework net10.0"
+    dotnet:run: "cd {{paths.api_dir}}; dotnet run -c Debug --project ./{{paths.api_proj}} --framework net10.0"
     # build and run dotnet:build-release-win, this wont work with dev-prod yet as it uses actuall prod servers
     # this can be used with dev server as it uses localhost
     # copy dev users.db into exe folder Sites\Anime-Dimension\main\subModules\db\users.db
@@ -285,7 +284,7 @@ scripts:
         series:
             - update-api-www-no-build
             - >
-                cross-shell: cd {{paths.api_dir}} && rimraf {{paths.api_pub_linux}} &&
+                cross-shell: cd {{paths.api_dir}}; rimraf {{paths.api_pub_linux}};
                 dotnet publish ./{{paths.api_proj}} -c Release -f net10.0 -r linux-x64 --self-contained true
                 -p:PublishSingleFile=true -p:PublishTrimmed=false -p:IncludeAllContentForSelfExtract=true -o {{paths.api_pub_linux}}
 
@@ -294,7 +293,7 @@ scripts:
         series:
             - update-api-www-no-build
             - >
-                cross-shell: cd {{paths.api_dir}} && rimraf {{paths.api_pub_linux_arm}} &&
+                cross-shell: cd {{paths.api_dir}}; rimraf {{paths.api_pub_linux_arm}};
                 dotnet publish ./{{paths.api_proj}} -c Release -f net10.0 -r linux-arm64 --self-contained true
                 -p:PublishSingleFile=true -p:PublishTrimmed=false -p:IncludeAllContentForSelfExtract=true -o {{paths.api_pub_linux_arm}}
 
@@ -303,7 +302,7 @@ scripts:
         series:
             - update-api-www
             - >
-                cross-shell: cd {{paths.api_dir}} && rimraf {{paths.api_pub_win}} &&
+                cross-shell: cd {{paths.api_dir}}; rimraf {{paths.api_pub_win}};
                 dotnet publish ./{{paths.api_proj}} -c Release -f net10.0 -r win-x64 --self-contained true
                 -p:PublishSingleFile=true -p:PublishTrimmed=false -p:IncludeAllContentForSelfExtract=true -o {{paths.api_pub_win}}
 

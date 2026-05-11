@@ -46,7 +46,7 @@ export const page = page_data;
 import * as packagejson from "@PackageRoot/package.json";
 
 ////
-// expporting the entire json objects above ensures the data is accessable, as a fallback, even if it lacks a specific var in this file below
+// exporting the entire json objects above ensures the data is accessable, as a fallback, even if it lacks a specific var in this file below
 ////
 
 export const data_json = data; // export entire file as object for easy access when extra logic is not needed or not yet implemented

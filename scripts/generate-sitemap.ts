@@ -1,0 +1,1 @@
+../../../Shared/main/scripts/generate-sitemap.ts
