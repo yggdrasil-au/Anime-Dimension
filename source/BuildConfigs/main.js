@@ -5,7 +5,7 @@
 //
 
 // global site data, used across multiple pages, footer, header, meta tags, and generic data
-var data = {
+const data = {
     // site name variants
     "siteName1": "Anime-Dimension",
     "siteName2": "Anime Dimension",
@@ -31,6 +31,8 @@ var data = {
 
 }
 
+export const favicon = "/data/images/prod/assets/favicon--x48.webp"; // path to favicon, used in _0-Head astro component, shared across all pages
+
 // individual page specific data
 const page_data = {
     description: {
@@ -43,7 +45,7 @@ const page_data = {
 export const page = page_data;
 
 //import * as data from "@BuildConfigs/data.json";
-import * as packagejson from "@PackageRoot/package.json";
+import * as packagejson from "@PackageRoot/package.json" with { type: "json" };
 
 ////
 // exporting the entire json objects above ensures the data is accessable, as a fallback, even if it lacks a specific var in this file below
