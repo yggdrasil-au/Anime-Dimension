@@ -43,7 +43,17 @@ scripts:
         - "fs: rm \"{{paths.web_dist}}/**/*.html\""
 
 
-    watch: "path: deno run --allow-read --allow-run scripts/watch-updates.mjs"
+    # watch-updates.mjs
+    watch: "path: deno run --allow-read --allow-run scripts/watch-updates.ts"
+
+    astro-tasks:
+        series:
+            - clean-www-dist-html
+            - clean-www-website-html
+            - docs-compile
+            - docs-format
+            - move-astro-output-to-dist
+            - assets:handle
 
     lint:
         parallel:
