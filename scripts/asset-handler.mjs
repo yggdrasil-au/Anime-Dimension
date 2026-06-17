@@ -11,9 +11,9 @@
 //   --verbose / -v        => extra logs
 
 import path from 'node:path'
+import CleanCSS from 'npm:clean-css@5.3.3'
 
 const buildCore = await import('@yggdrasil-au/build-core')
-
 const root = Deno.cwd()
 const distRoot = path.resolve(root, 'www/dist')
 const distHtmlDir = path.resolve(distRoot, 'astrobuild')
@@ -30,6 +30,8 @@ const doSetDev = args.has('--dev') || args.has('--development')
 const doPrepare = args.has('--prepare')
 const doSplit = args.has('--split')
 const doUpdateApi = args.has('--update-api')
+const doMinifyCss = args.has('--minify-css')
+const doRelocateCpanelErrors = args.has('--relocate-cpanel-errors')
 
 // --- Logging ---
 function log(...msg) { console.log('[assets]', ...msg) }
@@ -37,7 +39,7 @@ function vlog(...msg) { if (verbose) console.log('[assets]', ...msg) }
 function warn(...msg) { console.warn('[assets]', ...msg) }
 
 // --- Asset Manager Setup ---
-const { createAssetManager, copyPath, emptyDir, ensureDir, pathExists, removePath } = buildCore
+const { createAssetManager, copyPath, emptyDir, ensureDir, listFilesRelative, pathExists, removePath } = buildCore
 
 const assets = createAssetManager({
     rootDir: root,
@@ -135,14 +137,19 @@ async function performSplit() {
         warn(`Build output not found at ${distRoot}. Run your build first.`)
     }
 
+    log('Staging web-only top-level assets into dist...')
+
     if (dryRun) log('[dry-run] ensure', path.resolve(root, 'source/web'))
     else await ensureDir(path.resolve(root, 'source/web'))
+
+    log('Splitting dist into platform-specific outputs...')
 
     await assets.stageWebOnlyTopLevelIntoDist()
     await assets.split({ cleanupCapSync: true, cleanupWebsite: false })
 
     // Remove api folder from website and capacitorsync as it is extracted to subModule
     const apiRel = 'api'
+    log('Removing API pages from website and capacitorsync outputs as they are extracted to API submodule...')
     const websiteApi = path.resolve(assets.paths.website, apiRel)
     const capSyncApi = path.resolve(assets.paths.capSync, apiRel)
 
@@ -150,10 +157,164 @@ async function performSplit() {
         log('[dry-run] remove', websiteApi)
         log('[dry-run] remove', capSyncApi)
     } else {
+        log('Removing', websiteApi)
         await removePath(websiteApi)
+        log('Removing', capSyncApi)
         await removePath(capSyncApi)
+        log('Removed API pages from website and capacitorsync outputs')
     }
 }
+
+function createMinifiedCssPath(cssFileAbsPath) {
+    const parsed = path.parse(cssFileAbsPath)
+    return path.join(parsed.dir, `${parsed.name}.min${parsed.ext}`)
+}
+
+function toPosix(p) {
+    return p.split(path.sep).join('/')
+}
+
+async function runCssMinifyForFiles(cssFilesAbs) {
+    let count = 0
+
+    for (const cssFileAbs of cssFilesAbs) {
+        const minFileAbs = createMinifiedCssPath(cssFileAbs)
+        const minMapFileAbs = `${minFileAbs}.map`
+
+        if (dryRun) {
+            log('[dry-run] minify', cssFileAbs, '->', minFileAbs)
+            count++
+            continue
+        }
+
+        // Each file is minified independently so output stays beside the source file.
+        const output = new CleanCSS({
+            level: 1,
+            format: {
+                breakWith: 'lf',
+            },
+            rebase: true,
+            rebaseTo: path.dirname(minFileAbs),
+            sourceMap: true,
+            sourceMapInlineSources: true,
+        }).minify([cssFileAbs])
+
+        if (output.errors.length > 0) {
+            throw new Error(`CSS minification failed for ${cssFileAbs}: ${output.errors.join(' | ')}`)
+        }
+
+        if (output.warnings.length > 0) {
+            vlog('clean-css warnings for', cssFileAbs, output.warnings)
+        }
+
+        const sourceMap = output.sourceMap?.toString() ?? ''
+        const sourceMapMarker = `/*# sourceMappingURL=${path.basename(minMapFileAbs)} */`
+        const stylesWithSourceMap = output.styles.includes('sourceMappingURL=')
+            ? output.styles
+            : `${output.styles}\n${sourceMapMarker}\n`
+
+        await Deno.writeTextFile(minFileAbs, stylesWithSourceMap)
+
+        if (sourceMap.length > 0) {
+            await Deno.writeTextFile(minMapFileAbs, sourceMap)
+        }
+
+        count++
+    }
+
+    return count
+}
+
+async function performCssMinify() {
+    const cssRoot = path.resolve(root, 'www/dist/css')
+
+    if (!(await pathExists(cssRoot))) {
+        warn(`CSS build output not found at ${cssRoot}. Run your CSS build first.`)
+        return
+    }
+
+    const relFiles = await listFilesRelative(cssRoot, { includeDot: true })
+    const mainCssRel = []
+    const rtlCssRel = []
+
+    for (const rel of relFiles) {
+        const relPosix = toPosix(rel)
+
+        if (!relPosix.endsWith('.css')) {
+            continue
+        }
+
+        if (relPosix.endsWith('.min.css')) {
+            continue
+        }
+
+        if (relPosix.endsWith('rtl.css')) {
+            rtlCssRel.push(rel)
+        } else {
+            mainCssRel.push(rel)
+        }
+    }
+
+    const mainCssAbs = mainCssRel.map((rel) => path.join(cssRoot, rel))
+    const rtlCssAbs = rtlCssRel.map((rel) => path.join(cssRoot, rel))
+
+    vlog('main css files:', mainCssRel.length)
+    vlog('rtl css files:', rtlCssRel.length)
+
+    const mainCount = await runCssMinifyForFiles(mainCssAbs)
+    const rtlCount = await runCssMinifyForFiles(rtlCssAbs)
+
+    log(`CSS minify complete. main=${mainCount}, rtl=${rtlCount}`)
+}
+
+async function performRelocateCpanelErrorPages() {
+    const websiteRoot = path.resolve(root, 'www/website')
+    const cpanelRoot = path.join(websiteRoot, 'cpanelErrorPages')
+
+    if (!(await pathExists(cpanelRoot))) {
+        vlog('cpanelErrorPages directory not found, skipping relocation.')
+        return
+    }
+
+    const relFiles = await listFilesRelative(cpanelRoot, { includeDot: true })
+    const candidates = []
+
+    for (const rel of relFiles) {
+        const relPosix = toPosix(rel).toLowerCase()
+
+        if (!relPosix.endsWith('.html') && !relPosix.endsWith('.phtml')) {
+            continue
+        }
+
+        candidates.push(rel)
+    }
+
+    if (candidates.length === 0) {
+        vlog('no cPanel error pages found to relocate.')
+        return
+    }
+
+    for (const rel of candidates) {
+        const sourceAbs = path.join(cpanelRoot, rel)
+        const sourceParsed = path.parse(sourceAbs)
+        const destAbs = path.join(websiteRoot, `${sourceParsed.name}.shtml`)
+
+        if (await pathExists(destAbs)) {
+            throw new Error(`Conflict while relocating cPanel error page: source="${sourceAbs}" destination="${destAbs}" already exists.`)
+        }
+
+        if (dryRun) {
+            log('[dry-run] relocate', sourceAbs, '->', destAbs)
+            continue
+        }
+
+        await Deno.rename(sourceAbs, destAbs)
+        vlog('relocated', sourceAbs, '->', destAbs)
+    }
+
+    log(`Relocated cPanel error pages: ${candidates.length}`)
+}
+
 
 // --- Main Execution ---
 
@@ -181,6 +342,11 @@ async function main() {
         actionTaken = true
     }
 
+    if (doMinifyCss) {
+        await performCssMinify()
+        actionTaken = true
+    }
+
     // 4. Update API Project
     if (doUpdateApi) {
         await extractApiWebsiteFromDist()
@@ -189,7 +355,7 @@ async function main() {
 
     if (!actionTaken) {
         console.log('No action arguments provided.')
-        console.log('Usage: deno run --allow-env --allow-read --allow-run --allow-write scripts/asset-handler.mjs [--production|--dev] [--prepare] [--split] [--update-api]')
+        console.log('Usage: deno run --allow-env --allow-read --allow-run --allow-write scripts/asset-handler.mjs [--production|--dev] [--prepare] [--split] [--minify-css] [--update-api]')
     }
 }
 

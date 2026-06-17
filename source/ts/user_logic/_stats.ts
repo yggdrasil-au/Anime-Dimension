@@ -1,6 +1,6 @@
-import { byId } from './_dom';
-import { formatHours } from './_utils';
-import type { WatchStats } from './_types';
+import { byId } from './_dom.ts';
+import { formatHours } from './_utils.ts';
+import type { WatchStats } from './_types.ts';
 
 export const renderWatchTime = (totalMins: number): void => {
     const { text, percent } = formatHours(Math.max(0, Number(totalMins || 0)));

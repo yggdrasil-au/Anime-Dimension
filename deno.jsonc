@@ -3,109 +3,50 @@
     "name": "anime-dimension",
     "description": "a public database for western and eastern animated works including TV shows and movies, with user reviews, ratings, and recommendations.",
 
-    "version": "0.11.3-A",
+    "version": "0.11.4-A",
 
     "type": "module",
     "private": true,
 
-    "exports": "",
+    "exports": "./**/*.{ts}",
 
     "tasks": {
         "yaml-run": "deno run -A @yggdrasil-au/yaml-run"
     },
     "lint": {
-        "exclude": ["**/node_modules", "**/dist", "**/web_dist", "**/cap_sync", "**/www, subModules/Anime-dimension-api", "**/subModules"],
+        "exclude": ["**/node_modules", "**/dist", "**/web_dist", "**/cap_sync", "**/www, subModules/Anime-dimension-api", "**/subModules", "*.mjs", "*.js"],
         "rules": {
             "tags": ["fresh", "jsr", "jsx", "react", "recommended", "workspace"],
             "include": [],
-            "exclude": ["no-import-prefix"]
+            "exclude": ["no-import-prefix", "no-explicit-any", "verbatim-module-syntax", "no-unused-vars"]
         }
     },
+
     "imports": {
-        // todo, find and remove unused deps
+        // astro/vite build dependencies
+        "astro": "npm:astro",
+        "@astrojs/mdx": "npm:@astrojs/mdx",
+        "html-escaper": "npm:html-escaper",
+        "aria-query": "npm:aria-query",
+        "axobject-query": "npm:axobject-query",
+        "cssesc": "npm:cssesc",
 
-        // Runtime dependencies
-        "@capacitor-community/sqlite": "npm:@capacitor-community/sqlite@8.1.0",
-        "@capacitor/action-sheet": "npm:@capacitor/action-sheet@8.1.1",
-        "@capacitor/android": "npm:@capacitor/android@8.3.0",
-        "@capacitor/app": "npm:@capacitor/app@8.1.0",
-        "@capacitor/app-launcher": "npm:@capacitor/app-launcher@8.0.1",
-        "@capacitor/background-runner": "npm:@capacitor/background-runner@3.0.0",
-        "@capacitor/barcode-scanner": "npm:@capacitor/barcode-scanner@3.0.2",
-        "@capacitor/browser": "npm:@capacitor/browser@8.0.3",
-        "@capacitor/camera": "npm:@capacitor/camera@8.0.2",
-        "@capacitor/clipboard": "npm:@capacitor/clipboard@8.0.1",
-        "@capacitor/core": "npm:@capacitor/core@8.3.0",
-        "@capacitor/device": "npm:@capacitor/device@8.0.2",
-        "@capacitor/dialog": "npm:@capacitor/dialog@8.0.1",
-        "@capacitor/file-transfer": "npm:@capacitor/file-transfer@2.0.4",
-        "@capacitor/file-viewer": "npm:@capacitor/file-viewer@2.0.1",
-        "@capacitor/filesystem": "npm:@capacitor/filesystem@8.1.2",
-        "@capacitor/geolocation": "npm:@capacitor/geolocation@8.2.0",
-        "@capacitor/haptics": "npm:@capacitor/haptics@8.0.2",
-        "@capacitor/inappbrowser": "npm:@capacitor/inappbrowser@3.0.2",
-        "@capacitor/ios": "npm:@capacitor/ios@8.3.0",
-        "@capacitor/keyboard": "npm:@capacitor/keyboard@8.0.2",
-        "@capacitor/local-notifications": "npm:@capacitor/local-notifications@8.0.2",
-        "@capacitor/network": "npm:@capacitor/network@8.0.1",
-        "@capacitor/preferences": "npm:@capacitor/preferences@8.0.1",
-        "@capacitor/privacy-screen": "npm:@capacitor/privacy-screen@2.0.1",
-        "@capacitor/push-notifications": "npm:@capacitor/push-notifications@8.0.3",
-        "@capacitor/screen-orientation": "npm:@capacitor/screen-orientation@8.0.1",
-        "@capacitor/screen-reader": "npm:@capacitor/screen-reader@8.0.1",
-        "@capacitor/share": "npm:@capacitor/share@8.0.1",
-        "@capacitor/splash-screen": "npm:@capacitor/splash-screen@8.0.1",
-        "@capacitor/status-bar": "npm:@capacitor/status-bar@8.0.2",
-        "@capacitor/toast": "npm:@capacitor/toast@8.0.1",
-        "@ionic/pwa-elements": "npm:@ionic/pwa-elements@3.4.0",
-        "@sqlite.org/sqlite-wasm": "npm:@sqlite.org/sqlite-wasm@3.51.2-build6",
-        "jeep-sqlite": "npm:jeep-sqlite@2.8.0",
-
-        // Dev dependencies
-        "@aws-sdk/client-s3": "npm:@aws-sdk/client-s3@3.1028.0",
-        "@astrojs/check": "npm:@astrojs/check@0.9.8",
-        "@astrojs/mdx": "npm:@astrojs/mdx@5.0.3",
+        // capacitor
         "@capacitor/cli": "npm:@capacitor/cli@8.3.0",
-        "@eslint/js": "npm:@eslint/js@10.0.1",
-        "@fortawesome/fontawesome-free": "npm:@fortawesome/fontawesome-free@7.2.0",
-        "@rollup/plugin-node-resolve": "npm:@rollup/plugin-node-resolve@16.0.3",
-        "@rollup/plugin-typescript": "npm:@rollup/plugin-typescript@12.3.0",
-        "@types/sql.js": "npm:@types/sql.js@1.4.11",
-        "@typescript-eslint/eslint-plugin": "npm:@typescript-eslint/eslint-plugin@8.58.1",
-        "@typescript-eslint/parser": "npm:@typescript-eslint/parser@8.58.1",
-        "ssh2": "npm:ssh2@1.17.0",
-        "astro": "npm:astro@6.1.5",
-        "autoprefixer": "npm:autoprefixer@10.4.27",
-        "bootstrap": "npm:bootstrap@5.3.8",
-        "bootstrap-icons": "npm:bootstrap-icons@1.13.1",
-        "clean-css-cli": "npm:clean-css-cli@5.6.3",
-        "cross-env": "npm:cross-env@10.1.0",
-        "eslint": "npm:eslint@10.2.0",
-        "eslint-config-xo": "npm:eslint-config-xo@0.51.0",
-        "eslint-config-xo-typescript": "npm:eslint-config-xo-typescript@11.0.0",
-        "eslint-plugin-astro": "npm:eslint-plugin-astro@1.7.0",
-        "eslint-plugin-import": "npm:eslint-plugin-import@2.32.0",
-        "eslint-plugin-unicorn": "npm:eslint-plugin-unicorn@64.0.0",
-        "fast-glob": "npm:fast-glob@3.3.3",
-        "fs-extra": "npm:fs-extra@11.3.4",
-        "globals": "npm:globals@17.4.0",
-        "postcss": "npm:postcss@8.5.9",
-        "postcss-cli": "npm:postcss-cli@11.0.1",
-        "prettier": "npm:prettier@3.8.2",
-        "prettier-plugin-astro": "npm:prettier-plugin-astro@0.14.1",
-        "rimraf": "npm:rimraf@6.1.3",
-        "rollup": "npm:rollup@4.60.1",
-        "rsync": "npm:rsync@0.6.1",
-        "rtlcss": "npm:rtlcss@4.3.0",
-        "sass": "npm:sass@1.99.0",
-        "shx": "npm:shx@0.4.0",
-        "sql.js": "npm:sql.js@1.14.1",
-        "ssh2-sftp-client": "npm:ssh2-sftp-client@12.1.1",
-        "stylelint": "npm:stylelint@17.6.0",
-        "stylelint-config-twbs-bootstrap": "npm:stylelint-config-twbs-bootstrap@16.1.0",
-        "terser": "npm:terser@5.46.1",
-        "tslib": "npm:tslib@2.8.1",
-        "typescript": "npm:typescript@6.0.2",
-        "typescript-eslint": "npm:typescript-eslint@8.58.1"
+
+        // sql for some astro pages and scripts/generate-offline-data.mjs
+        "sql.js": "npm:sql.js@1.14.1", "@types/sql.js": "npm:@types/sql.js@1.4.11",
+
+        // eslint.config.js dependencies
+        "globals" : "npm:globals/index.js",
+        "pluginJs" : "npm:@eslint/js/src/index.js",
+        "tseslint" : "npm:typescript-eslint",
+        "pluginUnicorn" : "npm:eslint-plugin-unicorn",
+        "astroPlugin" : "npm:eslint-plugin-astro",
+
+        // scss dependencies
+        "@fortawesome/fontawesome-free": "npm:@fortawesome/fontawesome-free",
+            // css-prefix
+            "postcss-cli": "npm:postcss-cli@11.0.1",
     }
 }

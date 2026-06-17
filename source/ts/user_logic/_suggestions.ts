@@ -1,8 +1,8 @@
-import { apiBaseNoSlash } from '../config';
-import { normalizeListResponse } from '../home';
-import { renderCards } from '../ui/cards';
-import { enableTooltips } from '../ui/tooltips';
-import { coerceAnimeItemList } from '../anime-types';
+import { apiBaseNoSlash } from '../config.ts';
+import { normalizeListResponse } from '../home.ts';
+import { renderCards } from '../ui/cards.ts';
+import { enableTooltips } from '../ui/tooltips.ts';
+import { coerceAnimeItemList } from '../anime-types.ts';
 
 // Helper: Parse common truthy strings
 const boolish = (s?: string): boolean => (s ? /^(1|true|yes|on)$/i.test(s) : false);

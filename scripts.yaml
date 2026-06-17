@@ -133,7 +133,18 @@ scripts:
 
     js-compile: 'workspace: ts-builder "{{pkg.buildConfig.banner}}" --inputDir {{paths.js_src}} --outputDir {{paths.js_dist}}'
     js-compile:prod: 'workspace: ts-builder "{{pkg.buildConfig.banner}}" --inputDir {{paths.js_src}} --outputDir {{paths.js_dist}} --no-source-map'
-    js-lint: "npm: eslint --format=stylish ."
+
+
+    # many files .ts and .mjs use deno some still use node, moving towards deno for all, keep old linter for now
+    js-lint:
+        series:
+            - "js-lint-deno"
+            - "js-lint-node"
+
+    js-lint-node: "npm: eslint --format=stylish ."
+    js-lint-deno: "deno lint ./**/*.ts"
+
+
     js-min: "workspace: js-minify --inputDir {{paths.web_root}} --inputDir {{paths.web_dist}} --inputDir {{paths.cap_sync}}"
     js-min:prod: "workspace: js-minify --inputDir {{paths.web_root}} --inputDir {{paths.web_dist}} --inputDir {{paths.cap_sync}} --no-sourcemap --delete-source"
 

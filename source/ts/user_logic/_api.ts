@@ -1,5 +1,5 @@
-import { LoginState, UserProfile } from './_types';
-import { getApiBase } from './_utils';
+import { LoginState, UserProfile } from './_types.ts';
+import { getApiBase } from './_utils.ts';
 
 export const fetchUserProfile = async (uname: string): Promise<UserProfile | null> => {
     if (!uname || !/^[a-zA-Z0-9]+$/.test(uname)) return null;

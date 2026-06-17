@@ -1,6 +1,6 @@
 // /source/ts/anime-csr.ts
 
-import { fetchBySlug, resolveSlug, setHeadCanonical, renderTags, renderRelated } from './anime-shared';
+import { fetchBySlug, resolveSlug, setHeadCanonical, renderTags, renderRelated } from './anime-shared.ts';
 
 type Dict = Record<string, unknown>;
 

@@ -98,7 +98,7 @@ globalThis.EventBus = {
 };
 
 import { defineCustomElements as jeepSqlite } from 'jeep-sqlite/loader';
-jeepSqlite(window);
+jeepSqlite(globalThis.window);
 
 // core
 import { Capacitor } from '@capacitor/core';
@@ -144,24 +144,24 @@ try {
         ScreenReader, Share, SplashScreen, StatusBar, Toast,
     };
 
-    window.PLATFORM = globalThis.App.Capacitor.getPlatform();
+    globalThis.window.PLATFORM = globalThis.App.Capacitor.getPlatform();
     // EMIT event to the bus instead of using document.dispatchEvent
-    window.EventBus.emit('capacitorReady');
+    globalThis.window.EventBus.emit('capacitorReady');
     console.debug("[AD::capacitorinit.ts::(global)] Capacitor and plugins initialized. 'capacitorReady' event emitted.");
     // (Optional) Log available plugins
     for (const key in globalThis.App) {
         if (Object.hasOwn(globalThis.App, key)) {
             if (globalThis.App.Capacitor.isPluginAvailable(key)) {
-                console.debug(`[AD::capacitorinit.ts::(global)] Plugin ${key} is available on ${window.PLATFORM}`);
+                console.debug(`[AD::capacitorinit.ts::(global)] Plugin ${key} is available on ${globalThis.window.PLATFORM}`);
             }
             else {
-                //console.warn(`{Mobile::04} Plugin ${key} is NOT available on ${window.PLATFORM}`);
+                //console.warn(`{Mobile::04} Plugin ${key} is NOT available on ${globalThis.window.PLATFORM}`);
             }
         }
     }
 } catch (error) {
     console.error("[AD::capacitorinit.ts::(global)] Error initializing Capacitor or plugins:", error);
-    window.EventBus.emit('capacitorInitError', error);
+    globalThis.window.EventBus.emit('capacitorInitError', error);
 }
 const onDOMContentLoaded = () => {
     return new Promise<void>(resolve => {
@@ -175,7 +175,7 @@ const onDOMContentLoaded = () => {
 const onCapacitorReady = () => {
     return new Promise(resolve => {
         // Listen to the event on the bus
-        window.EventBus.on('capacitorReady', resolve);
+        globalThis.window.EventBus.on('capacitorReady', resolve);
     });
 };
 // Use an async function to manage the ready states
@@ -188,7 +188,7 @@ const onCapacitorReady = () => {
     ]);
     console.debug('[AD::capacitorinit.ts::(global)] Both DOM and Capacitor are ready. Emitting "DOMandCapReady".');
     // EMIT the combined ready event to the bus
-    window.EventBus.emit('DOMandCapReady');
+    globalThis.window.EventBus.emit('DOMandCapReady');
     // Hide splash screen after DOM is ready
     try {
         await globalThis.App.SplashScreen.hide();

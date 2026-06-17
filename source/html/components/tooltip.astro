@@ -1,7 +1,6 @@
 ---
 // \source\html\components\tooltip.astro
-const { TITLE, ALT_TITLE, DESCRIPTION, NOTES, TAGS, TYPE, STUDIO, ICON_YEAR, RATING } = Astro.props;
-
+const { TITLE, ALT_TITLE, DESCRIPTION, NOTES, TAGS, TYPE, STUDIO, ICON_YEAR, RATING, STREAMS } = Astro.props;
 
 /// populate variables for use in template
 // if props are null/undefined, set to error message, allow empty strings/arrays
@@ -14,7 +13,7 @@ let rating = RATING ?? "[ASTRO COMPONENT TOOLTIP ERROR :: RATING MISSING]";
 let description = DESCRIPTION ?? "[ASTRO COMPONENT TOOLTIP ERROR :: DESCRIPTION MISSING]";
 let notes = NOTES ?? ["[ASTRO COMPONENT TOOLTIP ERROR :: NOTES MISSING]"];
 let Tags = TAGS ?? ["[ASTRO COMPONENT TOOLTIP ERROR :: TAGS MISSING]"];
-
+let streams = STREAMS ?? [];
 
 ///
 // this is the template for generating tooltips for anime cards
@@ -28,6 +27,7 @@ let Tags = TAGS ?? ["[ASTRO COMPONENT TOOLTIP ERROR :: TAGS MISSING]"];
             { type && <li class="type">{type}</li> }
             { studio && <li>{studio}</li> }
             { iconYear && <li class="iconYear">{iconYear}</li> }
+
             { rating && (
                 <li>
                     <div class="ttRating">{rating}</div>
@@ -36,6 +36,22 @@ let Tags = TAGS ?? ["[ASTRO COMPONENT TOOLTIP ERROR :: TAGS MISSING]"];
         </ul>)
     }
     { description && (<p>{description}</p>) }
+
+    { streams && streams.length > 0 && (
+        <div class="streams mb-2">
+            <h4>Available On</h4>
+            <ul style="list-style: none; padding: 0; display: flex; gap: 0.5rem; margin-bottom: 0;">
+                {streams.map((s: any) => (
+                    <li>
+                        <a href={s.url || s.u} target="_blank" rel="noopener noreferrer" class="badge text-bg-warning text-dark text-decoration-none">
+                            {s.platform || s.p}
+                        </a>
+                    </li>
+                ))}
+            </ul>
+        </div>
+    )}
+
     { notes.length > 0 && (
         <div class="tooltip notes">
             { notes && (

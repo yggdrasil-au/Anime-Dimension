@@ -104,7 +104,7 @@ export const enableTooltips = (root: HTMLElement): void => {
         let hideTimer: number | null = null;
         const scheduleHide = () => {
             if (hideTimer) return;
-            hideTimer = window.setTimeout(() => {
+            hideTimer = globalThis.window.setTimeout(() => {
                 instance.hide();
                 hideTimer = null;
             }, HIDE_DELAY);
@@ -167,7 +167,7 @@ export default enableTooltips;
 
 // --- Auto-initializer -------------------------------------------------------
 export const initAuto = (): void => {
-    const w = window as unknown as { bootstrap?: { Tooltip?: unknown } };
+    const w = globalThis.window as unknown as { bootstrap?: { Tooltip?: unknown } };
 
     const ensureBootstrap = (cb: () => void): void => {
         if (w.bootstrap && (w.bootstrap as any).Tooltip) {
@@ -180,17 +180,17 @@ export const initAuto = (): void => {
         console.debug('[AD::tooltips.ts::initAuto()] Waiting for Bootstrap.Tooltip...');
         const onReady = () => {
             if (w.bootstrap && (w.bootstrap as any).Tooltip) {
-                window.removeEventListener('DOMContentLoaded', onReady);
-                window.removeEventListener('load', onReady);
+                globalThis.window.removeEventListener('DOMContentLoaded', onReady);
+                globalThis.window.removeEventListener('load', onReady);
 
                 console.debug('[AD::tooltips.ts::initAuto()] Bootstrap ready after event.');
                 cb();
             }
         };
-        window.addEventListener('DOMContentLoaded', onReady, { once: true });
-        window.addEventListener('load', onReady, { once: true });
+        globalThis.window.addEventListener('DOMContentLoaded', onReady, { once: true });
+        globalThis.window.addEventListener('load', onReady, { once: true });
         let tries = 0;
-        const id = window.setInterval(() => {
+        const id = globalThis.window.setInterval(() => {
             if ((w.bootstrap && (w.bootstrap as any).Tooltip) || tries++ > 40) {
                 clearInterval(id);
                 if (w.bootstrap && (w.bootstrap as any).Tooltip) {
@@ -275,7 +275,7 @@ export const initAuto = (): void => {
 
 // Auto-run on script load in browsers
 try {
-    if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+    if (typeof globalThis.window !== 'undefined' && typeof document !== 'undefined') {
 
         console.debug('[AD::tooltips.ts::(global)] Loaded. Auto-init enabled.');
         initAuto();

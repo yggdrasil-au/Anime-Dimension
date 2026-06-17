@@ -1,6 +1,6 @@
 // /source/ts/ui/cards.ts
 
-import type { AnimeItemRaw, Dict } from '../anime-types';
+import type { AnimeItemRaw, Dict } from '../anime-types.ts';
 
 // Small utilities for safe rendering and flexible API shapes
 const getString = (o: Dict, key: string): string | undefined => (typeof o[key] === 'string' ? (o[key]) : undefined);
@@ -48,7 +48,7 @@ export const getUrl = (item: AnimeItemRaw): string => {
 };
 
 
-import { buildTooltipHtml } from './tooltip-template';
+import { buildTooltipHtml } from './tooltip-template.ts';
 
 /**
  * Render a list of anime items into the provided grid.

@@ -17,7 +17,7 @@ export const initialsFrom = (name: string): string => {
 
 export const storageKey = (username: string, what: string): string => `ad:user:${username || 'guest'}:${what}`;
 
-import {apiBaseNoSlash} from '../config';
+import {apiBaseNoSlash} from '../config.ts';
 export const getApiBase = (): string => apiBaseNoSlash;
 
 export const toDataUrl = (file: File): Promise<string> => new Promise((resolve, reject) => {

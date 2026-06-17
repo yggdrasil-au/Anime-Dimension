@@ -1,6 +1,6 @@
-import { byId, qs } from './_dom';
-import { storageKey, toDataUrl, getApiBase } from './_utils';
-import type { UserProfile } from './_types';
+import { byId, qs } from './_dom.ts';
+import { storageKey, toDataUrl, getApiBase } from './_utils.ts';
+import type { UserProfile } from './_types.ts';
 
 export const toggleAvatarActions = (show: boolean): void => {
     const avatarActions = qs('.profile-avatar .avatar-actions');

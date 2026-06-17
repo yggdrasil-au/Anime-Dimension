@@ -5,9 +5,6 @@
 
 type Dict = Record<string, unknown>;
 
-const asString = (v: unknown): string | undefined => (typeof v === 'string' ? v : undefined);
-const asNumber = (v: unknown): number | undefined => (typeof v === 'number' && Number.isFinite(v) ? v : undefined);
-
 const str = (o: Dict, ...keys: string[]): string | undefined => {
     for (const k of keys) {
         const v = o[k];
@@ -61,7 +58,19 @@ export interface TooltipDataLike {
     description?: string;
     notes?: string[];
     tags?: string[];
+    streams?: { platform: string, url: string }[];
 }
+
+const parseStreams = (o: Dict): { platform: string, url: string }[] | undefined => {
+    const s = o.streams || o.str;
+    if (Array.isArray(s) && s.length > 0) {
+        return s.map(x => ({
+            platform: String(x.platform || x.p || 'Unknown'),
+            url: String(x.url || x.u || '#')
+        }));
+    }
+    return undefined;
+};
 
 const normalize = (it: Dict): TooltipDataLike => {
     const title = getTitle(it);
@@ -77,7 +86,8 @@ const normalize = (it: Dict): TooltipDataLike => {
     const description = str(it, 'description', 'summary', 'synopsis');
     const notes = list(it, 'notes');
     const tags = list(it, 'tags', 'genres');
-    return { title, altTitle, type, studio, year, rating, description, notes, tags };
+    const streams = parseStreams(it);
+    return { title, altTitle, type, studio, year, rating, description, notes, tags, streams };
 };
 
 // Safely create text nodes (avoid inline HTML injection)
@@ -133,6 +143,26 @@ export const buildTooltipHtml = (raw: Dict): string => {
         appendTextEl(root, 'p', data.description);
     }
 
+    // Streams
+    if (data.streams && data.streams.length) {
+        const strDiv = document.createElement('div');
+        strDiv.className = 'streams mb-2';
+        appendTextEl(strDiv, 'h4', 'Available On');
+        const ul = document.createElement('ul');
+        // Inline styles or utility classes depending on your CSS framework
+        ul.setAttribute('style', 'list-style: none; padding: 0; display: flex; gap: 0.5rem; margin-bottom: 0;');
+        for (const s of data.streams) {
+            const li = document.createElement('li');
+            const a = appendTextEl(li, 'a', s.platform, 'badge text-bg-warning text-dark text-decoration-none');
+            (a as HTMLAnchorElement).href = s.url;
+            (a as HTMLAnchorElement).target = '_blank';
+            (a as HTMLAnchorElement).rel = 'noopener noreferrer';
+            ul.appendChild(li);
+        }
+        strDiv.appendChild(ul);
+        root.appendChild(strDiv);
+    }
+
     // Notes
     if (data.notes && data.notes.length) {
         const notesDiv = document.createElement('div');
@@ -162,4 +192,3 @@ export const buildTooltipHtml = (raw: Dict): string => {
 };
 
 export default buildTooltipHtml;
-

@@ -14,7 +14,6 @@ async function pathExists(filePath) {
         if (error instanceof Deno.errors.NotFound) {
             return false;
         }
-
         throw error;
     }
 }
@@ -24,8 +23,6 @@ async function main() {
 
     if (!(await pathExists(dbPath))) {
         console.error(`Database not found at ${dbPath}`);
-        // For CI/CD where DB might not exist, we might want to skip or fail.
-        // Assuming it exists for now as per context.
         Deno.exit(1);
     }
 
@@ -46,10 +43,6 @@ async function main() {
 
     console.log('Anime table columns:', columns);
 
-    // Build Query
-    // We want: id, slug, title, year, type, synopsis (as description)
-    // Optional: rating, studio, alt_title (if they exist)
-    
     const selectCols = [
         'id', 'slug', 'title', 'thumbnail_url', 
         '"year"', '"type"', 'synopsis'
@@ -58,13 +51,21 @@ async function main() {
     if (hasCol('rating')) selectCols.push('rating');
     if (hasCol('studio')) selectCols.push('studio');
     if (hasCol('alt_title')) selectCols.push('alt_title');
-    if (hasCol('notes')) selectCols.push('notes'); // Assuming notes might be in anime table or separate? existing code doesn't show notes
+    if (hasCol('notes')) selectCols.push('notes');
     
     const sql = `SELECT ${selectCols.join(', ')} FROM anime WHERE slug IS NOT NULL ORDER BY title`;
     const stmt = db.prepare(sql);
     
     // Tag query
     const tagStmt = db.prepare('SELECT t.name FROM tag t JOIN anime_tag at ON at.tag_id = t.id WHERE at.anime_id = ? ORDER BY t.name');
+
+    // Stream query (wrapped in try/catch in case tables are missing from older DBs)
+    let streamStmt;
+    try {
+        streamStmt = db.prepare('SELECT cr.Id as crId, cr.SlugTitle as crSlug FROM CrAnMap map JOIN crseries cr ON map.CrId = cr.Id WHERE map.AnId = ?');
+    } catch (e) {
+        console.warn("Streaming tables (CrAnMap/crseries) not found. Skipping stream info.");
+    }
 
     const animeLite = [];
     let tooltipCount = 0;
@@ -81,8 +82,22 @@ async function main() {
         }
         tagStmt.reset();
 
+        // Streams
+        const streams = [];
+        if (streamStmt) {
+            streamStmt.bind([row.id]);
+            while (streamStmt.step()) {
+                const r = streamStmt.getAsObject();
+                const slugPart = r.crSlug ? `/${r.crSlug}` : '';
+                streams.push({
+                    p: 'Crunchyroll',
+                    u: `https://www.crunchyroll.com/series/${r.crId}${slugPart}`
+                });
+            }
+            streamStmt.reset();
+        }
+
         // 1. Add to Anime Lite
-        // [slug, title, year, type, thumbnailUrl]
         animeLite.push([
             row.slug,
             row.title,
@@ -92,16 +107,6 @@ async function main() {
         ]);
 
         // 2. Write Tooltip File
-        // t: title (redundant if in lite, but useful for standalone)
-        // at: alt_title
-        // ty: type
-        // y: year
-        // st: studio
-        // r: rating
-        // d: description
-        // g: tags (genres)
-        // n: notes
-        
         const tooltip = {
             t: row.title,
             ty: row.type,
@@ -115,6 +120,7 @@ async function main() {
         if (row.studio) tooltip.st = row.studio;
         if (row.rating) tooltip.r = row.rating;
         if (row.notes) tooltip.n = row.notes;
+        if (streams.length) tooltip.str = streams;
 
         // Remove undefined/null
         Object.keys(tooltip).forEach(key => tooltip[key] === undefined && delete tooltip[key]);
@@ -125,6 +131,7 @@ async function main() {
     
     stmt.free();
     tagStmt.free();
+    if (streamStmt) streamStmt.free();
     db.close();
 
     console.log(`Processed ${animeLite.length} items.`);

@@ -6,7 +6,8 @@
 */
 
 // import bootstrap JavaScript components to enable interactive components like dropdowns.
-import 'npm:bootstrap/dist/js/bootstrap.bundle.min.js';
+import 'npm:bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js';
+
 import { initHomeSections } from './home.ts';
 
 /*

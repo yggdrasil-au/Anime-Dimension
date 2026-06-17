@@ -1,4 +1,4 @@
-import {apiBaseNoSlash} from './config';
+import {apiBaseNoSlash} from './config.ts';
 // /source/ts/home.ts
 
 // Small utilities for safe rendering and flexible API shapes
@@ -32,9 +32,9 @@ const htmlToPlainText = (html: unknown, maxLen = 220): string => {
     return text.length > maxLen ? `${text.slice(0, maxLen - 1)}…` : text;
 };
 
-import { renderCards } from './ui/cards';
-import { enableTooltips } from './ui/tooltips';
-import { coerceAnimeItemList } from './anime-types';
+import { renderCards } from './ui/cards.ts';
+import { enableTooltips } from './ui/tooltips.ts';
+import { coerceAnimeItemList } from './anime-types.ts';
 
 // Parse common truthy strings like "true", "1", "yes", "on"
 const boolish = (s?: string): boolean => (s ? /^(1|true|yes|on)$/i.test(s) : false);

@@ -1,13 +1,14 @@
 
-import globals from 'npm:globals/index.js';
-import pluginJs from 'npm:@eslint/js/src/index.js';
-import tseslint from 'npm:typescript-eslint';
-import pluginUnicorn from 'npm:eslint-plugin-unicorn';
-import astroPlugin from 'npm:eslint-plugin-astro';
+import globals from 'globals/index.js';
+import pluginJs from '@eslint/js/src/index.js';
+import tseslint from 'typescript-eslint';
+import pluginUnicorn from 'eslint-plugin-unicorn';
+import astroPlugin from 'eslint-plugin-astro';
 
 export default [
     {
         ignores: [
+            "source/ts",
             "subModules/",
             "dist/",
             "**/.history/",

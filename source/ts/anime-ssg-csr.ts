@@ -1,7 +1,7 @@
 // /source/ts/anime-ssg.ts
 // Very similar to anime-csr, but reads slug from data attribute or path /anime-ssg/<slug>
 
-import { fetchBySlug, renderTags, renderRelated, setHeadCanonical, resolveSlug } from './anime-shared';
+import { fetchBySlug, renderTags, renderRelated, setHeadCanonical, resolveSlug } from './anime-shared.ts';
 
 const init = async (): Promise<void> => {
     const root = document.getElementById('anime-ssg');

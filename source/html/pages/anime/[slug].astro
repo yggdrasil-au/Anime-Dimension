@@ -49,6 +49,11 @@ type Discussion = { user: string; avatarUrl?: string; date: string; title: strin
 
 type CustomList = { title: string; user?: string; images?: string[]; comments?: number; likes?: number; url?: string };
 
+type StreamingSource = {
+    platform: string;
+    url: string;
+};
+
 type Anime = {
     slug: string;
     title: string;
@@ -77,6 +82,7 @@ type Anime = {
     staff?: Staff[];
     discussions?: Discussion[];
     customLists?: CustomList[];
+    streamingSources?: StreamingSource[];
 };
 
 function normalizePoster(a: Anime): string | undefined {
@@ -84,18 +90,60 @@ function normalizePoster(a: Anime): string | undefined {
     return a.posterUrl || a.poster || a.image || a.cover || a.thumbnailUrl;
 }
 
-// Remove top-level toNormalizedAnime; we'll define it inside getStaticPaths for safer bundling
-
+// This function is called at build time by Astro to determine which pages to generate
 export async function getStaticPaths() {
     // Prefer SQLite, fallback to per‑show JSON from AnimeCards/all
     const path = await import('node:path');
     const fs = await import('node:fs');
-    const { fileURLToPath } = await import('node:url');
+    //const { fileURLToPath } = await import('node:url');
 
-    // Use the new central Anime‑Dimension linker DB populated from all sources
-    const dbPath = path.resolve(process.cwd(), 'subModules', 'db', 'anime-dimension.sqlite3');
-    const hasDb = fs.existsSync(dbPath);
 
+        /*
+            to map data from the core anilist db 'anime' table to the crunchyroll anime table 'CrSeries'
+            we use the 'CrAnMap' table as it contains these columns:
+                - id - a combined id from cr and anilist, in the format 'GYVNXMVP6:1' or 'GT00369409:202957' (Crunchyroll_ID:ANILIST_ID)
+                - CrId - the id of the anime in the Crunchyroll database, which can be used to get data from the Crunchyroll tables
+                - AnId - the id of the anime in the Anilist database, which can be used to get data from the Anilist tables
+
+        the 'crseries' table contains the following columns:
+                Id TEXT PRIMARY KEY,
+                ChannelId TEXT,
+                ExternalId TEXT,
+                Title TEXT,
+                Slug TEXT,
+                SlugTitle TEXT,
+                PromoTitle TEXT,
+                Description TEXT,
+                PromoDescription TEXT,
+                ExtendedDescription TEXT,
+                SeriesLaunchYear INTEGER,
+                EpisodeCount INTEGER,
+                SeasonCount INTEGER,
+                IsDubbed INTEGER,
+                IsSubbed INTEGER,
+                IsNew INTEGER,
+                IsMature INTEGER,
+                IsSimulcast INTEGER,
+                MatureBlocked INTEGER,
+                LastPublic TEXT,
+                LinkedResourceKey TEXT,
+                AvailabilityNotes TEXT,
+                AverageRating REAL,
+                RatingCount INTEGER,
+                ExtMaturityLevel TEXT,
+                ExtMaturityRating TEXT,
+                ExtMaturitySystem TEXT,
+                LastUpdatedUTC TEXT,
+                CoreSourceIngestRowId INTEGER NULL,
+                CoreSourceRegion TEXT NULL,
+                CoreSourceReceivedAtUtc TEXT NULL
+
+        example
+        GEXH3W29Z,crunchyroll,SRZ.283979,#COMPASS2.0 ANIMATION PROJECT,,compass20-animation-project,,"In the combat providence analysis system, “COMPASS2.0,” heroes gather alongside human partners in a dreamlike space. The heroes have to keep fighting to produce enough energy to keep the system running. One hero named 13 is a troublemaker who refuses to find a partner. When 13 is nearly kicked out, a new player named Jin agrees to join him. Can they bring peace to the world of #COMPASS2.0?",,,2025,12,1,0,1,0,0,0,0,2025-06-23T16:00:05Z,cms:/series/GEXH3W29Z,,3.1,3350,M1,PG,cr-au-tv,2026-05-05T03:14:37.8761877Z,1,AU,2026-05-05T03:14:37.8761877Z
+
+        */
+
+    // Convert from the central Anime‑Dimension linker DB format to the Anime type used by the page, using the bySlug function to get related data from other tables
     const toAnimeFromDb = (row: any, bySlug: (slug: string, kind?: string) => any) => {
         const slug = String(row.slug);
         const tags = bySlug(slug, 'tags') as string[];
@@ -103,6 +151,7 @@ export async function getStaticPaths() {
         const staff = bySlug(slug, 'staff') as any[];
         const reviews = bySlug(slug, 'reviews') as any[];
         const relatedAnime = bySlug(slug, 'relatedAnime') as any[];
+        const streamingSources = bySlug(slug, 'streams') as any[];
         return {
             slug,
             title: row.title,
@@ -118,108 +167,103 @@ export async function getStaticPaths() {
             staff,
             reviews,
             relatedAnime,
+            streamingSources,
         } as Anime;
     };
 
-    if (hasDb) {
-        // Use WASM SQLite (sql.js) to avoid native dependency in the build
-        const SQLMod: any = await import('sql.js').catch(() => null);
-        if (SQLMod) {
-            const initSqlJs = (SQLMod.default ?? SQLMod) as any;
-            const wasmPath = path.resolve(process.cwd(), '../../../node_modules/sql.js/dist/sql-wasm.wasm');
-            const SQL = await initSqlJs({ wasmBinary: fs.readFileSync(wasmPath) });
-            const buf = fs.readFileSync(dbPath);
-            const db = new SQL.Database(new Uint8Array(buf));
-            const qAll = db.prepare('SELECT slug, title, synopsis, thumbnail_url, "year" AS year, "type" AS type, data_total_episodes FROM anime WHERE slug IS NOT NULL ORDER BY slug');
-            const rows: any[] = [];
-            while (qAll.step()) rows.push(qAll.getAsObject());
-            qAll.free();
+    // Use the new central Anime‑Dimension linker DB populated from all sources
+    const dbPath = path.resolve(process.cwd(), 'subModules', 'db', 'anime-dimension.sqlite3');
+    const hasDb = fs.existsSync(dbPath);
+    const SQLMod: any = await import('sql.js').catch(() => null);
 
-            const qId = db.prepare('SELECT id FROM anime WHERE slug = ?');
-            const qTags = db.prepare('SELECT t.name FROM tag t JOIN anime_tag at ON at.tag_id = t.id WHERE at.anime_id = ? ORDER BY t.name');
-            const qChars = db.prepare('SELECT name, image_url, voice_actor FROM character_role WHERE anime_id = ? ORDER BY id');
-            const qStaff = db.prepare('SELECT name, role, image_url FROM staff WHERE anime_id = ? ORDER BY id');
-            const qReviews = db.prepare('SELECT username, user_avatar_url, user_profile_url, review_date, rating, excerpt, review_key FROM review WHERE anime_id = ? ORDER BY id DESC');
-            const qRelated = db.prepare('SELECT title, image_url, external_url, relation, "year" AS year, "type" AS type FROM related_anime WHERE anime_id = ? ORDER BY id');
-
-            const bySlug = (slug: string, kind?: string) => {
-                qId.bind([slug]);
-                const idRow = qId.step() ? qId.getAsObject() : null;
-                qId.reset();
-                if (!idRow) return kind ? [] : null;
-                const id = (idRow as any).id;
-                const collect = (stmt: any, mapper: (r: any) => any) => {
-                    stmt.bind([id]);
-                    const out: any[] = [];
-                    while (stmt.step()) out.push(mapper(stmt.getAsObject()));
-                    stmt.reset();
-                    return out;
-                };
-                switch (kind) {
-                    case 'tags': {
-                        return collect(qTags, (r) => r.name);
-                    } case 'characters': {
-                        return collect(qChars, (r) => ({ name: r.name, image: r.image_url ?? undefined, voice: r.voice_actor ?? undefined }));
-                    } case 'staff': {
-                        return collect(qStaff, (r) => ({ name: r.name, role: r.role, image: r.image_url ?? undefined }));
-                    } case 'reviews': {
-                        return collect(qReviews, (r) => ({ id: r.review_key, user: { username: r.username ?? undefined, avatarUrl: r.user_avatar_url ?? undefined, profileUrl: r.user_profile_url ?? undefined }, date: r.review_date ?? undefined, rating: r.rating ?? undefined, excerpt: r.excerpt ?? undefined }));
-                    } case 'relatedAnime': {
-                        return collect(qRelated, (r) => ({ title: r.title, image: r.image_url ?? undefined, externalUrl: r.external_url ?? undefined, relation: r.relation ?? undefined, year: r.year ?? undefined, type: r.type ?? undefined }));
-                    } default: {
-                        return null;
-                    }
-                }
-            };
-
-            const all = rows.map((r) => toAnimeFromDb(r, bySlug));
-            return all.map((anime) => ({ params: { slug: anime.slug }, props: { anime } }));
+    if (hasDb && SQLMod) {
+        const initSqlJs = (SQLMod.default ?? SQLMod) as any;
+        const wasmPath = path.resolve(process.cwd(), '../../../node_modules/sql.js/dist/sql-wasm.wasm');
+        const SQL = await initSqlJs({ wasmBinary: fs.readFileSync(wasmPath) });
+        const buf = fs.readFileSync(dbPath);
+        const db = new SQL.Database(new Uint8Array(buf));
+        const qAll = db.prepare('SELECT slug, title, synopsis, thumbnail_url, "year" AS year, "type" AS type, data_total_episodes FROM anime WHERE slug IS NOT NULL ORDER BY slug');
+        const rows: any[] = [];
+        while (qAll.step()) {
+            rows.push(qAll.getAsObject());
         }
+        qAll.free();
+
+        const qId = db.prepare('SELECT id FROM anime WHERE slug = ?');
+        const qTags = db.prepare('SELECT t.name FROM tag t JOIN anime_tag at ON at.tag_id = t.id WHERE at.anime_id = ? ORDER BY t.name');
+        const qChars = db.prepare('SELECT name, image_url, voice_actor FROM character_role WHERE anime_id = ? ORDER BY id');
+        const qStaff = db.prepare('SELECT name, role, image_url FROM staff WHERE anime_id = ? ORDER BY id');
+        const qReviews = db.prepare('SELECT username, user_avatar_url, user_profile_url, review_date, rating, excerpt, review_key FROM review WHERE anime_id = ? ORDER BY id DESC');
+        const qRelated = db.prepare('SELECT title, image_url, external_url, relation, "year" AS year, "type" AS type FROM related_anime WHERE anime_id = ? ORDER BY id');
+        // Retrieve Crunchyroll mappings based on the AnId bridging link
+        const qStreams = db.prepare('SELECT cr.Id as crId, cr.SlugTitle as crSlug FROM CrAnMap map JOIN crseries cr ON map.CrId = cr.Id WHERE map.AnId = ?');
+
+        const bySlug = (slug: string, kind?: string) => {
+            qId.bind([slug]);
+            const idRow = qId.step() ? qId.getAsObject() : null;
+            qId.reset();
+            if (!idRow) {
+                return kind ? [] : null;
+            }
+            const id = (idRow as any).id;
+            const collect = (stmt: any, mapper: (r: any) => any) => {
+                stmt.bind([id]);
+                const out: any[] = [];
+                while (stmt.step()) {
+                    out.push(mapper(stmt.getAsObject()));
+                }
+                stmt.reset();
+                return out;
+            };
+            switch (kind) {
+                case 'tags': {
+                    return collect(qTags, (r) => r.name);
+                } 
+                case 'characters': {
+                    return collect(qChars, (r) => ({ name: r.name, image: r.image_url ?? undefined, voice: r.voice_actor ?? undefined }));
+                } 
+                case 'staff': {
+                    return collect(qStaff, (r) => ({ name: r.name, role: r.role, image: r.image_url ?? undefined }));
+                } 
+                case 'reviews': {
+                    return collect(qReviews, (r) => ({ id: r.review_key, user: { username: r.username ?? undefined, avatarUrl: r.user_avatar_url ?? undefined, profileUrl: r.user_profile_url ?? undefined }, date: r.review_date ?? undefined, rating: r.rating ?? undefined, excerpt: r.excerpt ?? undefined }));
+                } 
+                case 'relatedAnime': {
+                    return collect(qRelated, (r) => ({ title: r.title, image: r.image_url ?? undefined, externalUrl: r.external_url ?? undefined, relation: r.relation ?? undefined, year: r.year ?? undefined, type: r.type ?? undefined }));
+                } 
+                case 'streams': {
+                    return collect(qStreams, (r) => {
+                        const slugPart = r.crSlug ? `/${r.crSlug}` : '';
+                        return { platform: 'Crunchyroll', url: `https://www.crunchyroll.com/series/${r.crId}${slugPart}` };
+                    });
+                }
+                default: {
+                    return null;
+                }
+            }
+        };
+
+        // Map all rows to Anime objects and return the paths for Astro to generate, including the anime data as props for each page to avoid needing to query the database again during page generation
+        const all = rows.map((r) => toAnimeFromDb(r, bySlug));
+        return all.map((anime) => ({ params: { slug: anime.slug }, props: { anime } }));
+    } else {
+        // if no db or no sql throw err
+        if (!hasDb) {
+            console.warn(`SQLite database not found at ${dbPath}. Falling back to JSON data source.`);
+        } else {
+            console.warn(`Failed to load SQL.js. Falling back to JSON data source.`);
+        }
+        throw new Error('Database may not be available');
     }
 
-    // Fallback: iterate per‑show JSON under AnimeCards/processed_json_output/all
-    const allDir = path.resolve(process.cwd(), 'Anime-Dimension-Database-Orchestrator', 'scraper', 'data', 'main', 'Source', 'AnimePlanet', 'AnimeCards', 'processed_json_output', 'all');
-    const fromLinkToSlug = (href?: string) => {
-        if (!href) return;
-        try {
-            const u = new URL(href, 'https://anime-dimension.com');
-            const parts = u.pathname.split('/').filter(Boolean);
-            const idx = parts.indexOf('anime');
-            return idx !== -1 && idx + 1 < parts.length ? parts[idx + 1] : undefined;
-        } catch {
-            return;
-        }
-    };
-    const files = fs.existsSync(allDir) ? fs.readdirSync(allDir).filter((f) => f.endsWith('.json')) : [];
-    const items: Anime[] = files.map((f) => {
-        try {
-            const raw = JSON.parse(fs.readFileSync(path.join(allDir, f), 'utf-8')) as any;
-            const slug = fromLinkToSlug(raw.link);
-            return slug ?
-                ({
-                    slug,
-                    title: raw.title,
-                    summary: raw.synopsis ?? undefined,
-                    description: raw.synopsis ?? undefined,
-                    posterUrl: raw.image_url ?? undefined,
-                    thumbnailUrl: raw.image_url ?? undefined,
-                    tags: Array.isArray(raw.tags) ? raw.tags : undefined,
-                    year: raw.year ?? undefined,
-                    type: raw.type ?? undefined,
-                } as Anime) :
-                null;
-        } catch {
-            return null;
-        }
-    }).filter(Boolean) as Anime[];
-
-    return items.map((anime) => ({ params: { slug: anime.slug }, props: { anime } }));
 }
 
 // Ensure this route is fully prerendered at build time
 export const prerender = true;
 
+// get anime name from url
 const { anime } = Astro.props as { anime: Anime };
+
 const MainJS = "../../js/main.min.js";
 
 // Replace meta details to match SSR format
@@ -233,10 +277,10 @@ const tags: string[] = (anime.genres ?? []).concat(anime.tags ?? []);
 
 // placeholder for user stats, later replaced by build time injection from API when available
 const Public = (
-        Astro as unknown as {
-            globals?: Record<string, unknown>
-        }
-    ).globals?.Public as | { User?: { stats?: { Watched: number; Watching: number; WantToWatch: number; Dropped: number } } } | undefined;
+    Astro as unknown as {
+        globals?: Record<string, unknown>
+    }
+).globals?.Public as | { User?: { stats?: { Watched: number; Watching: number; WantToWatch: number; Dropped: number } } } | undefined;
 
 ---
 
@@ -251,10 +295,10 @@ const Public = (
 
         {
             /**
-             *  upper banner
-             *  This banner is visible by default and can be toggled via JS or the default button.
-             *  it can be hidden by default by adding the class d-none.
-             *  placing above the app-wrapper allows it to be at the top of the page on all screens.
+             * upper banner
+             * This banner is visible by default and can be toggled via JS or the default button.
+             * it can be hidden by default by adding the class d-none.
+             * placing above the app-wrapper allows it to be at the top of the page on all screens.
              */
         }
         <header id="upper-header" class="upper-header p-3 d-table d-none">
@@ -263,15 +307,15 @@ const Public = (
 
         {
             /**
-             *  Main application wrapper
-             *  the app-wrapper class is defined in the main CSS file
+             * Main application wrapper
+             * the app-wrapper class is defined in the main CSS file
              */
         }
         <div id="app-wrapper">
             {
                 /**
-                 *  Main Navigation Bar
-                 *  it dynamically adjusts based on screen size, becoming a bottom nav on mobile, topnav on desktop, and a collapsible sidebar on tablets.
+                 * Main Navigation Bar
+                 * it dynamically adjusts based on screen size, becoming a bottom nav on mobile, topnav on desktop, and a collapsible sidebar on tablets.
                  */
             }
             <nav id="main-nav" class="main-nav p-2">
@@ -280,9 +324,9 @@ const Public = (
             <section>
                 {
                     /**
-                     *  main banner 2
-                     *  This banner is visible by default and can be toggled via JS or the default button.
-                     *  hidden by default, by adding the class d-none.
+                     * main banner 2
+                     * This banner is visible by default and can be toggled via JS or the default button.
+                     * hidden by default, by adding the class d-none.
                      */
                 }
                 <section id="hero-banner" class="hero-banner sb sb-homepage fullbleed p-3 rounded">
@@ -291,17 +335,17 @@ const Public = (
 
                 {
                     /**
-                     *  Main section
-                     *  This section contains the main content of the page, the footer, and the right sidebar.
-                     *  the classes d-flex and flex-column are from Bootstrap 5 and are used to create a flexible layout.
+                     * Main section
+                     * This section contains the main content of the page, the footer, and the right sidebar.
+                     * the classes d-flex and flex-column are from Bootstrap 5 and are used to create a flexible layout.
                      */
                 }
                 <div id="page-content-wrapper" style="height: 100%;" class="page-content-wrapper d-flex flex-column">
                     {
                         /**
-                         *  main banner
-                         *  This banner is visible by default and can be toggled via JS or the default button.
-                         *  hidden by default, by adding the class d-none.
+                         * main banner
+                         * This banner is visible by default and can be toggled via JS or the default button.
+                         * hidden by default, by adding the class d-none.
                          */
                     }
                     <section id="content-top-banner" class="content-top-banner p-3 rounded d-none">
@@ -333,9 +377,9 @@ const Public = (
                         <main class="flex-grow-1 p-4">
                             {
                                 /**
-                                 *  Inner banner
-                                 *  This banner is visible by default and can be toggled via JS or the default button.
-                                 *  it can be hidden by default by adding the class d-none.
+                                 * Inner banner
+                                 * This banner is visible by default and can be toggled via JS or the default button.
+                                 * it can be hidden by default by adding the class d-none.
                                  */
                             }
                             <section id="inline-banner" class="inline-banner p-3 text-center rounded d-none" >
@@ -348,7 +392,6 @@ const Public = (
                                         <main class="flex-grow-1">
                                             <div class="container-xxl py-3">
                                                 <div id="anime-ssg" class="anime-page">
-                                                    <!-- Static, prefilled content -->
                                                     <article id="anime-article" class="row g-3">
                                                         <div class="col-auto">
                                                             {posterSrc ?
@@ -379,10 +422,23 @@ const Public = (
                                                             )}
                                                             {description && <p id="animeSummary" class="mb-3">{description}</p>}
                                                             {tags.length > 0 && (
-                                                                <div id="animeTags" class="d-flex flex-wrap gap-1">
+                                                                <div id="animeTags" class="d-flex flex-wrap gap-1 mb-3">
                                                                     {tags.map((t) => (
                                                                         <span class="badge text-bg-secondary" data-tag={t}>{t}</span>
                                                                     ))}
+                                                                </div>
+                                                            )}
+                                                            {Array.isArray(anime.streamingSources) && anime.streamingSources.length > 0 && (
+                                                                <div id="animeStreaming" class="mt-2">
+                                                                    <div class="text-body-secondary small mb-1">Available on:</div>
+                                                                    <div class="d-flex flex-wrap gap-2">
+                                                                        {anime.streamingSources.map((source) => (
+                                                                            <a href={source.url} target="_blank" rel="noopener noreferrer" class={`btn btn-sm ${source.platform === 'Crunchyroll' ? 'btn-warning text-dark' : 'btn-outline-primary'} fw-semibold d-flex align-items-center gap-1`}>
+                                                                                <i class="bi bi-play-circle-fill"></i>
+                                                                                {source.platform}
+                                                                            </a>
+                                                                        ))}
+                                                                    </div>
                                                                 </div>
                                                             )}
                                                         </div>
@@ -406,95 +462,95 @@ const Public = (
                                                                 .status4:before,
                                                                 .status5:before,
                                                                 .status6:before {
-                                                                content: "";
-                                                                display: inline-block;
-                                                                width: 0.9em;
-                                                                height: 0.9em;
-                                                                border-radius: 50%;
+                                                                    content: "";
+                                                                    display: inline-block;
+                                                                    width: 0.9em;
+                                                                    height: 0.9em;
+                                                                    border-radius: 50%;
                                                                 }
                                                                 .status0:before {
-                                                                background-color: #666;
+                                                                    background-color: #666;
                                                                 }
                                                                 .status1:before {
-                                                                background-color: #6f99e4;
+                                                                    background-color: #6f99e4;
                                                                 }
                                                                 .status2:before {
-                                                                background-color: #8DEA43;
+                                                                    background-color: #8DEA43;
                                                                 }
                                                                 .status3:before {
-                                                                background-color: #d93d48;
+                                                                    background-color: #d93d48;
                                                                 }
                                                                 .status4:before {
-                                                                background-color: #FCFC3C;
+                                                                    background-color: #FCFC3C;
                                                                 }
                                                                 .status5:before {
-                                                                background-color: #FC9F3C;
+                                                                    background-color: #FC9F3C;
                                                                 }
                                                                 .status6:before {
-                                                                background-color: #9942E9;
+                                                                    background-color: #9942E9;
                                                                 }
                                                                 .statList {
-                                                                list-style: none;
-                                                                margin: 0;
-                                                                padding: 0;
-                                                                white-space: nowrap;
+                                                                    list-style: none;
+                                                                    margin: 0;
+                                                                    padding: 0;
+                                                                    white-space: nowrap;
                                                                 }
                                                                 .statList li {
-                                                                position: relative;
-                                                                padding-bottom: 0.5em;
-                                                                padding-left: 0.9em;
+                                                                    position: relative;
+                                                                    padding-bottom: 0.5em;
+                                                                    padding-left: 0.9em;
                                                                 }
                                                                 .statList li:before {
-                                                                position: absolute;
-                                                                left: 0;
-                                                                bottom: 40%;
+                                                                    position: absolute;
+                                                                    left: 0;
+                                                                    bottom: 40%;
                                                                 }
                                                                 .statList li a {
-                                                                padding-left: 0.3em;
+                                                                    padding-left: 0.3em;
                                                                 }
                                                                 .statList a {
-                                                                display: inline-block;
-                                                                width: 80px;
+                                                                    display: inline-block;
+                                                                    width: 80px;
                                                                 }
                                                                 .statList a:hover .slCount,
                                                                 .statList a:hover .slLabel {
-                                                                color: var(--color-text);
+                                                                    color: var(--color-text);
                                                                 }
                                                                 .statList .slCount {
-                                                                display: inline-block;
-                                                                margin-left: 0.7em;
-                                                                width: 3.4em;
-                                                                font-weight: bold;
-                                                                color: var(--color-text);
-                                                                font-size: 17px;
+                                                                    display: inline-block;
+                                                                    margin-left: 0.7em;
+                                                                    width: 3.4em;
+                                                                    font-weight: bold;
+                                                                    color: var(--color-text);
+                                                                    font-size: 17px;
                                                                 }
                                                                 .statList .slLabel {
-                                                                font-weight: normal;
+                                                                    font-weight: normal;
                                                                 }
                                                                 .statList.long .slCount {
-                                                                width: 4em;
+                                                                    width: 4em;
                                                                 }
                                                                 .statList li::before {
-                                                                position: absolute;
-                                                                left: 0;
-                                                                bottom: 40%;
+                                                                    position: absolute;
+                                                                    left: 0;
+                                                                    bottom: 40%;
                                                                 }
 
                                                                 .statList .slCount {
-                                                                width: 4em;
+                                                                    width: 4em;
                                                                 }
                                                                 .statList .slCount {
-                                                                display: inline-block;
-                                                                margin-left: 0.7em;
-                                                                width: 3.4em;
-                                                                font-weight: bold;
-                                                                color: var(--color-text);
-                                                                font-size: 17px;
+                                                                    display: inline-block;
+                                                                    margin-left: 0.7em;
+                                                                    width: 3.4em;
+                                                                    font-weight: bold;
+                                                                    color: var(--color-text);
+                                                                    font-size: 17px;
                                                                 }
 
                                                                 .statList {
-                                                                list-style: none;
-                                                                white-space: nowrap;
+                                                                    list-style: none;
+                                                                    white-space: nowrap;
                                                                 }
 
 
@@ -532,7 +588,9 @@ const Public = (
                                                     {(() => {
                                                         const recAnime: Recommendation[] = anime.recommendations?.anime ?? [];
                                                         const recManga: Recommendation[] = anime.recommendations?.manga ?? [];
-                                                        if (recAnime.length === 0 && recManga.length === 0) return null;
+                                                        if (recAnime.length === 0 && recManga.length === 0) {
+                                                            return null;
+                                                        }
 
                                                         const animeTabActive = recAnime.length > 0;
                                                         const mangaTabActive = !animeTabActive && recManga.length > 0;
@@ -814,7 +872,7 @@ const Public = (
                         </main>
                         {
                             /**
-                             *  Right Sidebar
+                             * Right Sidebar
                              */
                         }
                         <aside id="right-sidebar" class="right-sidebar rounded d-none">
@@ -825,8 +883,8 @@ const Public = (
             </section>
             {
                 /**
-                 *  Footer
-                 *  This footer is visible on larger screens and hidden on mobile and tablet.
+                 * Footer
+                 * This footer is visible on larger screens and hidden on mobile and tablet.
                  */
             }
             <footer class="main-footer p-3 mt-auto d-none d-lg-block">

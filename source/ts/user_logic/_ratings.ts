@@ -1,5 +1,5 @@
-import { byId } from './_dom';
-import type { RatingsMap } from './_types';
+import { byId } from './_dom.ts';
+import type { RatingsMap } from './_types.ts';
 
 export const renderRatingsGraph = (ratings?: RatingsMap): void => {
     const r = ratings || {};

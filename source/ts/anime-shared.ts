@@ -1,6 +1,6 @@
 // filepath: source/ts/anime-shared.ts
 // Shared utilities for CSR anime pages (used by anime-csr and anime-ssg-csr)
-import {apiBaseNoSlash} from './config';
+import {apiBaseNoSlash} from './config.ts';
 
 export type Dict = Record<string, unknown>;
 

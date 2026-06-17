@@ -1,26 +1,26 @@
 // User page entrypoint – composes user_logic modules
 
-import { byId, qs } from './user_logic/_dom';
-import { getParam, initialsFrom } from './user_logic/_utils';
-import { fetchLoginState, fetchUserProfile } from './user_logic/_api';
-import { applyInitialAvatar, attachAvatarUploader, toggleAvatarActions } from './user_logic/_avatar';
-import { applyInitialBanner, attachBannerHandlers, toggleBannerActions } from './user_logic/_banner';
-import { renderWatchStats, renderWatchTime } from './user_logic/_stats';
-import { renderRatingsGraph } from './user_logic/_ratings';
-import { initUserRelated, initUserSuggestions } from './user_logic/_suggestions';
+import { byId, qs } from './user_logic/_dom.ts';
+import { getParam, initialsFrom } from './user_logic/_utils.ts';
+import { fetchLoginState, fetchUserProfile } from './user_logic/_api.ts';
+import { applyInitialAvatar, attachAvatarUploader, toggleAvatarActions } from './user_logic/_avatar.ts';
+import { applyInitialBanner, attachBannerHandlers, toggleBannerActions } from './user_logic/_banner.ts';
+import { renderWatchStats, renderWatchTime } from './user_logic/_stats.ts';
+import { renderRatingsGraph } from './user_logic/_ratings.ts';
+import { initUserRelated, initUserSuggestions } from './user_logic/_suggestions.ts';
 
 const initUserPage = async (): Promise<void> => {
     // Resolve username from URL; redirect if missing
     const rawUsername = getParam(['u', 'user', 'username'], '').trim();
     if (!rawUsername) {
-        window.location.replace('/');
+        globalThis.window.location.replace('/');
         return;
     }
     const username = rawUsername;
 
     // Fetch profile
     const profile = await fetchUserProfile(username);
-    if (!profile) { window.location.replace('/'); return; }
+    if (!profile) { globalThis.window.location.replace('/'); return; }
 
     // Fill basic identity info
     const unameEl = byId('profileUsername');
