@@ -1,7 +1,7 @@
 import { apiBaseNoSlash } from '../config.ts';
 import { normalizeListResponse } from '../home.ts';
 import { renderCards } from '../ui/cards.ts';
-import { enableTooltips } from '../ui/tooltips.ts';
+import { enableTooltips } from '../ui/_tooltips.ts';
 import { coerceAnimeItemList } from '../anime-types.ts';
 
 // Helper: Parse common truthy strings

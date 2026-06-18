@@ -256,7 +256,7 @@ export const prerender = true;
                     return root.innerHTML;
                 };
 
-                // Tooltips auto-init now handled by /js/ui/tooltips.min.js
+                // Tooltips auto-init now handled by /js/ui/tooltips.min.js imported via main.min.ts
 
                 const renderGrid = (list) => {
                     grid.innerHTML = '';
@@ -477,7 +477,7 @@ export const prerender = true;
         <!-- Main bundle (theme + utilities). Already used globally. -->
         <script is:inline src={MainJS}></script>
         <!-- Shared tooltip runtime (UMD) -->
-        <script is:inline src="/js/ui/tooltips.js"></script>
+        <script is:inline src="/js/ui/tooltips.min.js"></script>
 
     </body>
 </html>

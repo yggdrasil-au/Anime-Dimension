@@ -6,7 +6,14 @@
 */
 
 // import bootstrap JavaScript components to enable interactive components like dropdowns.
-import 'npm:bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js';
+// REMOVE THIS:
+// import 'npm:bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js';
+
+// ADD THIS:
+import * as bootstrap from 'npm:bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js';
+
+// Attach to global window object so tooltips.ts and inline scripts can access it
+(globalThis.window as any).bootstrap = bootstrap;
 
 import { initHomeSections } from './home.ts';
 
@@ -110,8 +117,8 @@ const ADUI = {
     toggleVisibilityById,
 };
 // Attach to globalThis (window in browsers)
-(window as Window).ADUI = ADUI;
-(window as Window).toggleVisibilityById = toggleVisibilityById;
+(globalThis.window as Window).ADUI = ADUI;
+(globalThis.window as Window).toggleVisibilityById = toggleVisibilityById;
 // Type augmentation for TypeScript consumers.
 declare global {
     interface Window {

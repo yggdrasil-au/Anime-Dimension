@@ -33,7 +33,7 @@ const htmlToPlainText = (html: unknown, maxLen = 220): string => {
 };
 
 import { renderCards } from './ui/cards.ts';
-import { enableTooltips } from './ui/tooltips.ts';
+import { enableTooltips } from './ui/_tooltips.ts';
 import { coerceAnimeItemList } from './anime-types.ts';
 
 // Parse common truthy strings like "true", "1", "yes", "on"
