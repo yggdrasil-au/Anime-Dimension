@@ -1,6 +1,6 @@
 ---
 // \source\html\components\tooltip.astro
-const { TITLE, ALT_TITLE, DESCRIPTION, NOTES, TAGS, TYPE, STUDIO, ICON_YEAR, RATING, STREAMS } = Astro.props;
+const { TITLE, ALT_TITLE, DESCRIPTION, NOTES, TAGS, TYPE, STUDIO, ICON_YEAR, RATING, STREAMS, ANILIST_ID, CRUNCHYROLL_ID } = Astro.props;
 
 /// populate variables for use in template
 // if props are null/undefined, set to error message, allow empty strings/arrays
@@ -20,6 +20,11 @@ let streams = STREAMS ?? [];
 ///
 ---
 <div>
+    { (ANILIST_ID || CRUNCHYROLL_ID) && (
+        <div class="debug-ids" style="font-family: monospace; font-size: 0.75rem; color: #ffc107; margin-bottom: 0.25rem;">
+            [DEBUG] AL: {ANILIST_ID || 'N/A'} | CR: {CRUNCHYROLL_ID || 'N/A'}
+        </div>
+    )}
     <h5 class="theme-font">{title}</h5>
     { alt_title && (<h6 class="theme-font tooltip-alt">Alt title: {alt_title}</h6>) }
     { (type && studio && iconYear && rating) &&

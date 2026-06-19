@@ -49,6 +49,8 @@ const getTitle = (it: Dict): string => (
 );
 
 export interface TooltipDataLike {
+    anilistId?: string | number;
+    crunchyrollId?: string | number;
     title?: string;
     altTitle?: string;
     type?: string;
@@ -73,6 +75,8 @@ const parseStreams = (o: Dict): { platform: string, url: string }[] | undefined 
 };
 
 const normalize = (it: Dict): TooltipDataLike => {
+    const anilistId = str(it, 'aid', 'anilistId') || num(it, 'aid', 'anilistId');
+    const crunchyrollId = str(it, 'crid', 'crunchyrollId');
     const title = getTitle(it);
     const altTitleRaw = str(it, 'altTitle', 'alt_title', 'alt', 'subtitle', 'titleAlt', 'japanese', 'native', 'romaji', 'english');
     const altTitle = altTitleRaw && altTitleRaw !== title ? altTitleRaw : undefined;
@@ -87,7 +91,7 @@ const normalize = (it: Dict): TooltipDataLike => {
     const notes = list(it, 'notes');
     const tags = list(it, 'tags', 'genres');
     const streams = parseStreams(it);
-    return { title, altTitle, type, studio, year, rating, description, notes, tags, streams };
+    return { anilistId, crunchyrollId, title, altTitle, type, studio, year, rating, description, notes, tags, streams };
 };
 
 // Safely create text nodes (avoid inline HTML injection)
@@ -102,6 +106,15 @@ const appendTextEl = (p: ParentNode & Element, tag: string, text: string, classN
 export const buildTooltipHtml = (raw: Dict): string => {
     const data = normalize(raw);
     const root = document.createElement('div');
+
+    // Add Debug IDs at the very top
+    if (data.anilistId != null || data.crunchyrollId != null) {
+        const debugDiv = document.createElement('div');
+        debugDiv.className = 'debug-ids';
+        debugDiv.setAttribute('style', 'font-family: monospace; font-size: 0.75rem; color: #ffc107; margin-bottom: 0.25rem;');
+        debugDiv.textContent = `[DEBUG] AL: ${data.anilistId ?? 'N/A'} | CR: ${data.crunchyrollId ?? 'N/A'}`;
+        root.appendChild(debugDiv);
+    }
 
     // Title
     appendTextEl(root, 'h5', data.title ?? 'Untitled', 'theme-font');

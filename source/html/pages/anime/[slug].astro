@@ -56,6 +56,8 @@ type StreamingSource = {
 
 type Anime = {
     slug: string;
+    anilistId?: string | number;
+    crunchyrollId?: string;
     title: string;
     summary?: string;
     description?: string;
@@ -152,8 +154,12 @@ export async function getStaticPaths() {
         const reviews = bySlug(slug, 'reviews') as any[];
         const relatedAnime = bySlug(slug, 'relatedAnime') as any[];
         const streamingSources = bySlug(slug, 'streams') as any[];
+        const crunchyrollId = bySlug(slug, 'crId') as string | undefined;
+        
         return {
             slug,
+            anilistId: row.id,
+            crunchyrollId,
             title: row.title,
             summary: row.summary ?? row.synopsis ?? undefined,
             description: row.synopsis ?? undefined,
@@ -182,7 +188,9 @@ export async function getStaticPaths() {
         const SQL = await initSqlJs({ wasmBinary: fs.readFileSync(wasmPath) });
         const buf = fs.readFileSync(dbPath);
         const db = new SQL.Database(new Uint8Array(buf));
-        const qAll = db.prepare('SELECT slug, title, synopsis, thumbnail_url, "year" AS year, "type" AS type, data_total_episodes FROM anime WHERE slug IS NOT NULL ORDER BY slug');
+        
+        // Added 'id' to the SELECT statement
+        const qAll = db.prepare('SELECT id, slug, title, synopsis, thumbnail_url, "year" AS year, "type" AS type, data_total_episodes FROM anime WHERE slug IS NOT NULL ORDER BY slug');
         const rows: any[] = [];
         while (qAll.step()) {
             rows.push(qAll.getAsObject());
@@ -237,6 +245,12 @@ export async function getStaticPaths() {
                         return { platform: 'Crunchyroll', url: `https://www.crunchyroll.com/series/${r.crId}${slugPart}` };
                     });
                 }
+                case 'crId': {
+                    qStreams.bind([id]);
+                    const streamRow = qStreams.step() ? qStreams.getAsObject() : null;
+                    qStreams.reset();
+                    return streamRow ? (streamRow as any).crId : undefined;
+                }
                 default: {
                     return null;
                 }
@@ -285,8 +299,11 @@ const Public = (
 ---
 
 <!doctype html>
+{/* Added data attributes here */}
 <html lang="en" data-bs-theme="dark">
     <head>
+        <meta data-anilist-id={anime.anilistId} />
+        <meta data-crunchyroll-id={anime.crunchyrollId} />
         <Head title={`Anime • ${anime.title}`} description={description || `Offline page for ${anime.title}`} />
     </head>
     <body class="sidebar-collapsed">

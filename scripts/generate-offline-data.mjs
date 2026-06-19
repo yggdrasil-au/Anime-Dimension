@@ -59,19 +59,14 @@ async function main() {
     // Tag query
     const tagStmt = db.prepare('SELECT t.name FROM tag t JOIN anime_tag at ON at.tag_id = t.id WHERE at.anime_id = ? ORDER BY t.name');
 
-    // Stream query (wrapped in try/catch in case tables are missing from older DBs)
-    let streamStmt;
-    try {
-        streamStmt = db.prepare('SELECT cr.Id as crId, cr.SlugTitle as crSlug FROM CrAnMap map JOIN crseries cr ON map.CrId = cr.Id WHERE map.AnId = ?');
-    } catch (e) {
-        console.warn("Streaming tables (CrAnMap/crseries) not found. Skipping stream info.");
-    }
+    // Stream query
+    const streamStmt = db.prepare('SELECT cr.Id as crId, cr.SlugTitle as crSlug FROM CrAnMap map JOIN crseries cr ON map.CrId = cr.Id WHERE map.AnId = ?');
 
     const animeLite = [];
     let tooltipCount = 0;
     
     // Process rows
-    while (stmt.step()) {
+while (stmt.step()) {
         const row = stmt.getAsObject();
         
         // Tags
@@ -82,12 +77,16 @@ async function main() {
         }
         tagStmt.reset();
 
-        // Streams
+        // Streams and CR ID capture
         const streams = [];
+        let currentCrId = null;
         if (streamStmt) {
             streamStmt.bind([row.id]);
             while (streamStmt.step()) {
                 const r = streamStmt.getAsObject();
+                if (!currentCrId) {
+                    currentCrId = r.crId;
+                }
                 const slugPart = r.crSlug ? `/${r.crSlug}` : '';
                 streams.push({
                     p: 'Crunchyroll',
@@ -97,17 +96,22 @@ async function main() {
             streamStmt.reset();
         }
 
+        const availableStreams = streams.map(s => s.p);
+
         // 1. Add to Anime Lite
         animeLite.push([
             row.slug,
             row.title,
             row.year,
             row.type,
-            row.thumbnail_url
+            row.thumbnail_url,
+            availableStreams
         ]);
 
         // 2. Write Tooltip File
         const tooltip = {
+            aid: row.id,           // Added Anilist ID
+            crid: currentCrId,     // Added Crunchyroll ID
             t: row.title,
             ty: row.type,
             y: row.year,

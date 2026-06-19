@@ -5,6 +5,7 @@
  * offline search over a build-time, hardcoded dataset (no network requests).
  */
 
+
 import Head from "@components/_0-Head.astro";
 //
 import UpperHeader from "@components/_1-UpperHeader.astro";
@@ -81,6 +82,11 @@ const MainJS = "/js/main.min.js";
                                         <div class="input-group" role="group" aria-label="Offline search">
                                             <span class="input-group-text" id="searchLabel"><i class="bi bi-search"></i></span>
                                             <input id="nameInput" name="name" type="search" class="form-control" placeholder="Search anime…" aria-labelledby="searchLabel" />
+                                            
+                                            <select id="streamInput" name="stream" class="form-select" style="max-width: 150px;">
+                                                <option value="">All Platforms</option>
+                                                <option value="Crunchyroll">Crunchyroll</option>
+                                                </select>
                                         </div>
                                         <button class="btn btn-primary" type="submit">Search</button>
                                     </form>
@@ -125,7 +131,8 @@ const MainJS = "/js/main.min.js";
                             title: r[1],
                             year: r[2],
                             type: r[3],
-                            thumbnailUrl: r[4]
+                            thumbnailUrl: r[4],
+                            streams: r[5] || []
                         }));
                     }
                 } catch (e) {
@@ -148,15 +155,20 @@ const MainJS = "/js/main.min.js";
                 };
 
                 const norm = (s) => String(s || '').toLowerCase();
-                const matches = (q, item) => {
+                const matches = (q, streamQ, item) => {
+                    // 1. Check Streaming Filter first (it's faster to fail here)
+                    if (streamQ && !item.streams.includes(streamQ)) {
+                        return false; 
+                    }
+
+                    // 2. Check Text Query
                     if (!q) return true;
                     const nq = norm(q);
                     if (norm(item.title).includes(nq)) return true;
                     if (norm(item.slug).includes(nq)) return true;
-                    // Lite data doesn't have summary or tags, so search is limited to title/slug/year/type
-                    // If we want detailed search, we would need to load index, but for lite offline search this is acceptable.
                     if (item.year && String(item.year).includes(nq)) return true;
                     if (item.type && norm(item.type).includes(nq)) return true;
+                    
                     return false;
                 };
 
@@ -475,11 +487,15 @@ const MainJS = "/js/main.min.js";
                 const update = () => {
                     const params = getParams();
                     const q = params.get('name') || '';
+                    const streamQ = params.get('stream') || ''; // Read stream param
                     const pageParam = Math.max(1, Number.parseInt(params.get('page') || '1', 10) || 1);
-                    // sync input
-                    if (input) input.value = q;
 
-                    const pool = DATA.filter((it) => matches(q, it));
+                    // sync inputs
+                    if (input) input.value = q;
+                    const streamSelect = byId('streamInput');
+                    if (streamSelect) streamSelect.value = streamQ;
+
+                    const pool = DATA.filter((it) => matches(q, streamQ, it));
                     const total = pool.length;
 
                     // Clamp page within bounds and reflect in URL if needed
@@ -511,9 +527,14 @@ const MainJS = "/js/main.min.js";
                 form?.addEventListener('submit', (ev) => {
                     ev.preventDefault();
                     const q = input ? input.value.trim() : '';
+                    const streamSelect = byId('streamInput');
+                    const streamQ = streamSelect ? streamSelect.value : '';
+                    
                     const p = getParams();
                     if (q) p.set('name', q); else p.delete('name');
+                    if (streamQ) p.set('stream', streamQ); else p.delete('stream');
                     p.delete('page'); // reset to page 1
+                    
                     setParams(p);
                     update();
                 });
