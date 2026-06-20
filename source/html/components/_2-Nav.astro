@@ -107,8 +107,8 @@
                                     method: 'POST',
                                     credentials: 'include',
                                 });
-                            } catch (err) {
-                                console.warn('Logout request failed', err);
+                            } catch (error) {
+                                console.warn('Logout request failed', error);
                             }
                             // Hard reload is safer to clear cached user states in Capacitor
                             window.location.href = '/index.html';

@@ -55,9 +55,11 @@ type StreamingSource = {
 };
 
 type Anime = {
+    id?: string | number;
     slug: string;
     anilistId?: string | number;
     crunchyrollId?: string;
+    hidiveId?: string | number;
     title: string;
     summary?: string;
     description?: string;
@@ -74,7 +76,8 @@ type Anime = {
     format?: string;
     episodes?: number;
     status?: string;
-    related?: string[]; // optional list of related slugs
+    related?: string[];
+    // optional list of related slugs
     // Extended fields used by the page
     recommendations?: { anime?: Recommendation[]; manga?: Recommendation[] };
     reviews?: Review[];
@@ -99,8 +102,22 @@ export async function getStaticPaths() {
     const fs = await import('node:fs');
     //const { fileURLToPath } = await import('node:url');
 
+    /*
+        anime table columns:
+        id TEXT PRIMARY KEY,
+        slug TEXT NOT NULL,
+        title TEXT NOT NULL,
+        alt_titles TEXT,
+        thumbnail_url TEXT,
+        thumbnail_source_url TEXT,
+        synopsis TEXT,
+        year TEXT,
+        season TEXT,
+        type TEXT,
+        data_total_episodes INTEGER,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
 
-        /*
             to map data from the core anilist db 'anime' table to the crunchyroll anime table 'CrSeries'
             we use the 'CrAnMap' table as it contains these columns:
                 - id - a combined id from cr and anilist, in the format 'GYVNXMVP6:1' or 'GT00369409:202957' (Crunchyroll_ID:ANILIST_ID)
@@ -139,13 +156,9 @@ export async function getStaticPaths() {
                 CoreSourceIngestRowId INTEGER NULL,
                 CoreSourceRegion TEXT NULL,
                 CoreSourceReceivedAtUtc TEXT NULL
+    */
 
-        example
-        GEXH3W29Z,crunchyroll,SRZ.283979,#COMPASS2.0 ANIMATION PROJECT,,compass20-animation-project,,"In the combat providence analysis system, “COMPASS2.0,” heroes gather alongside human partners in a dreamlike space. The heroes have to keep fighting to produce enough energy to keep the system running. One hero named 13 is a troublemaker who refuses to find a partner. When 13 is nearly kicked out, a new player named Jin agrees to join him. Can they bring peace to the world of #COMPASS2.0?",,,2025,12,1,0,1,0,0,0,0,2025-06-23T16:00:05Z,cms:/series/GEXH3W29Z,,3.1,3350,M1,PG,cr-au-tv,2026-05-05T03:14:37.8761877Z,1,AU,2026-05-05T03:14:37.8761877Z
-
-        */
-
-    // Convert from the central Anime‑Dimension linker DB format to the Anime type used by the page, using the bySlug function to get related data from other tables
+    // Convert from the central Anime‑Dimension linker DB format to the Anime type used by the page
     const toAnimeFromDb = (row: any, bySlug: (slug: string, kind?: string) => any) => {
         const slug = String(row.slug);
         const tags = bySlug(slug, 'tags') as string[];
@@ -155,11 +168,14 @@ export async function getStaticPaths() {
         const relatedAnime = bySlug(slug, 'relatedAnime') as any[];
         const streamingSources = bySlug(slug, 'streams') as any[];
         const crunchyrollId = bySlug(slug, 'crId') as string | undefined;
+        const hidiveId = bySlug(slug, 'hdId') as string | number | undefined;
         
         return {
+            id: row.internal_id,       // Internal SQLite ID for backend/relational mapping
             slug,
-            anilistId: row.id,
+            anilistId: row.anilist_id, // The true AniList ID exposed to the static UI
             crunchyrollId,
+            hidiveId,
             title: row.title,
             summary: row.summary ?? row.synopsis ?? undefined,
             description: row.synopsis ?? undefined,
@@ -189,22 +205,46 @@ export async function getStaticPaths() {
         const buf = fs.readFileSync(dbPath);
         const db = new SQL.Database(new Uint8Array(buf));
         
-        // Added 'id' to the SELECT statement
-        const qAll = db.prepare('SELECT id, slug, title, synopsis, thumbnail_url, "year" AS year, "type" AS type, data_total_episodes FROM anime WHERE slug IS NOT NULL ORDER BY slug');
+        // Pull both the internal SQLite ID and the external AniList ID
+        const qAll = db.prepare(`SELECT 
+            a.id AS internal_id,
+            e.external_numeric_id AS anilist_id,
+            a.slug, 
+            a.title, 
+            a.synopsis, 
+            a.thumbnail_url, 
+            a."year" AS year, 
+            a."type" AS type, 
+            a.data_total_episodes
+            FROM anime a
+            JOIN external_id e ON a.id = e.anime_id
+            JOIN source_system ss ON e.source_id = ss.id 
+            WHERE a.slug IS NOT NULL 
+            AND ss.code = 'anilist'
+            ORDER BY a.slug`
+        );
+
         const rows: any[] = [];
         while (qAll.step()) {
             rows.push(qAll.getAsObject());
         }
         qAll.free();
 
-        const qId = db.prepare('SELECT id FROM anime WHERE slug = ?');
+        const qId = db.prepare(`
+            SELECT a.id, e.external_numeric_id as anilist_id 
+            FROM anime a 
+            JOIN external_id e ON a.id = e.anime_id 
+            JOIN source_system ss ON e.source_id = ss.id 
+            WHERE a.slug = ? AND ss.code = 'anilist'
+        `);
+
         const qTags = db.prepare('SELECT t.name FROM tag t JOIN anime_tag at ON at.tag_id = t.id WHERE at.anime_id = ? ORDER BY t.name');
         const qChars = db.prepare('SELECT name, image_url, voice_actor FROM character_role WHERE anime_id = ? ORDER BY id');
         const qStaff = db.prepare('SELECT name, role, image_url FROM staff WHERE anime_id = ? ORDER BY id');
         const qReviews = db.prepare('SELECT username, user_avatar_url, user_profile_url, review_date, rating, excerpt, review_key FROM review WHERE anime_id = ? ORDER BY id DESC');
         const qRelated = db.prepare('SELECT title, image_url, external_url, relation, "year" AS year, "type" AS type FROM related_anime WHERE anime_id = ? ORDER BY id');
-        // Retrieve Crunchyroll mappings based on the AnId bridging link
-        const qStreams = db.prepare('SELECT cr.Id as crId, cr.SlugTitle as crSlug FROM CrAnMap map JOIN crseries cr ON map.CrId = cr.Id WHERE map.AnId = ?');
+// Retrieve mappings via the comprehensive view to capture all related seasons
+        const qStreams = db.prepare('SELECT service_code, service_text_id, service_numeric_id, service_url FROM v_anilist_streaming WHERE anilist_id = ?');
 
         const bySlug = (slug: string, kind?: string) => {
             qId.bind([slug]);
@@ -213,9 +253,12 @@ export async function getStaticPaths() {
             if (!idRow) {
                 return kind ? [] : null;
             }
-            const id = (idRow as any).id;
-            const collect = (stmt: any, mapper: (r: any) => any) => {
-                stmt.bind([id]);
+            const id = (idRow as any).id; // Internal SQLite ID
+            const anilistId = (idRow as any).anilist_id; // True AniList ID
+
+            // Update collect to take a 'bindParam' argument
+            const collect = (stmt: any, bindParam: any, mapper: (r: any) => any) => {
+                stmt.bind([bindParam]);
                 const out: any[] = [];
                 while (stmt.step()) {
                     out.push(mapper(stmt.getAsObject()));
@@ -223,34 +266,59 @@ export async function getStaticPaths() {
                 stmt.reset();
                 return out;
             };
+
             switch (kind) {
                 case 'tags': {
-                    return collect(qTags, (r) => r.name);
+                    return collect(qTags, id, (r) => r.name);
                 } 
                 case 'characters': {
-                    return collect(qChars, (r) => ({ name: r.name, image: r.image_url ?? undefined, voice: r.voice_actor ?? undefined }));
+                    return collect(qChars, id, (r) => ({ name: r.name, image: r.image_url ?? undefined, voice: r.voice_actor ?? undefined }));
                 } 
                 case 'staff': {
-                    return collect(qStaff, (r) => ({ name: r.name, role: r.role, image: r.image_url ?? undefined }));
+                    return collect(qStaff, id, (r) => ({ name: r.name, role: r.role, image: r.image_url ?? undefined }));
                 } 
                 case 'reviews': {
-                    return collect(qReviews, (r) => ({ id: r.review_key, user: { username: r.username ?? undefined, avatarUrl: r.user_avatar_url ?? undefined, profileUrl: r.user_profile_url ?? undefined }, date: r.review_date ?? undefined, rating: r.rating ?? undefined, excerpt: r.excerpt ?? undefined }));
+                    return collect(qReviews, id, (r) => ({ id: r.review_key, user: { username: r.username ?? undefined, avatarUrl: r.user_avatar_url ?? undefined, profileUrl: r.user_profile_url ?? undefined }, date: r.review_date ?? undefined, rating: r.rating ?? undefined, excerpt: r.excerpt ?? undefined }));
                 } 
                 case 'relatedAnime': {
-                    return collect(qRelated, (r) => ({ title: r.title, image: r.image_url ?? undefined, externalUrl: r.external_url ?? undefined, relation: r.relation ?? undefined, year: r.year ?? undefined, type: r.type ?? undefined }));
+                    return collect(qRelated, id, (r) => ({ title: r.title, image: r.image_url ?? undefined, externalUrl: r.external_url ?? undefined, relation: r.relation ?? undefined, year: r.year ?? undefined, type: r.type ?? undefined }));
                 } 
                 case 'streams': {
-                    return collect(qStreams, (r) => {
-                        const slugPart = r.crSlug ? `/${r.crSlug}` : '';
-                        return { platform: 'Crunchyroll', url: `https://www.crunchyroll.com/series/${r.crId}${slugPart}` };
+                    // Pull from the intelligent streaming view (supports CR & HiDive)
+                    return collect(qStreams, anilistId, (r) => {
+                        let platformName = r.service_code;
+                        if (r.service_code === 'crunchyroll') platformName = 'Crunchyroll';
+                        else if (r.service_code === 'hidive') platformName = 'HiDive';
+                        
+                        return { platform: platformName, url: r.service_url };
                     });
                 }
-                case 'crId': {
-                    qStreams.bind([id]);
-                    const streamRow = qStreams.step() ? qStreams.getAsObject() : null;
+                        case 'crId': {
+                    qStreams.bind([anilistId]);
+                    let crId = undefined;
+                    while (qStreams.step()) {
+                        const r = qStreams.getAsObject();
+                        if (r.service_code === 'crunchyroll') {
+                            crId = r.service_text_id;
+                            break;
+                        }
+                    }
                     qStreams.reset();
-                    return streamRow ? (streamRow as any).crId : undefined;
-                }
+                    return crId;
+                        }
+                        case 'hdId': {
+                            qStreams.bind([anilistId]);
+                            let hdId = undefined;
+                            while (qStreams.step()) {
+                                const r = qStreams.getAsObject();
+                                if (r.service_code === 'hidive') {
+                                    hdId = r.service_numeric_id;
+                                    break;
+                                }
+                            }
+                            qStreams.reset();
+                            return hdId;
+                        }
                 default: {
                     return null;
                 }
@@ -285,7 +353,6 @@ const yearStr = typeof anime.year === "number" ? String(anime.year) : "";
 const type = typeof anime.type === "string" ? anime.type : "";
 const description = (anime.description ?? anime.summary ?? "") as string;
 const metaText = [type, yearStr].filter(Boolean).join(" • ");
-
 const posterSrc: Maybe<string> = normalizePoster(anime);
 const tags: string[] = (anime.genres ?? []).concat(anime.tags ?? []);
 
@@ -294,7 +361,8 @@ const Public = (
     Astro as unknown as {
         globals?: Record<string, unknown>
     }
-).globals?.Public as | { User?: { stats?: { Watched: number; Watching: number; WantToWatch: number; Dropped: number } } } | undefined;
+).globals?.Public as |
+{ User?: { stats?: { Watched: number; Watching: number; WantToWatch: number; Dropped: number } } } | undefined;
 
 ---
 
@@ -302,8 +370,10 @@ const Public = (
 {/* Added data attributes here */}
 <html lang="en" data-bs-theme="dark">
     <head>
+        <meta data-id={anime.id} />
         <meta data-anilist-id={anime.anilistId} />
         <meta data-crunchyroll-id={anime.crunchyrollId} />
+        <meta data-hidive-id={anime.hidiveId} />
         <Head title={`Anime • ${anime.title}`} description={description || `Offline page for ${anime.title}`} />
     </head>
     <body class="sidebar-collapsed">
@@ -368,6 +438,7 @@ const Public = (
                     <section id="content-top-banner" class="content-top-banner p-3 rounded d-none">
                         <ContentTopBanner />
                     </section>
+ 
                     <div class="MainSection d-flex flex-column flex-md-row flex-grow-1">
                         {
                             /**
@@ -411,8 +482,7 @@ const Public = (
                                                 <div id="anime-ssg" class="anime-page">
                                                     <article id="anime-article" class="row g-3">
                                                         <div class="col-auto">
-                                                            {posterSrc ?
-                                                                (
+                                                            {posterSrc ? (
                                                                     <img
                                                                         id="animePoster"
                                                                         class="rounded"
@@ -423,8 +493,7 @@ const Public = (
                                                                         loading="lazy"
                                                                         decoding="async"
                                                                     />
-                                                                ) :
-                                                                (
+                                                                ) : (
                                                                     <div
                                                                         class="rounded bg-secondary"
                                                                         style="width:190px;height:260px;"
@@ -450,7 +519,7 @@ const Public = (
                                                                     <div class="text-body-secondary small mb-1">Available on:</div>
                                                                     <div class="d-flex flex-wrap gap-2">
                                                                         {anime.streamingSources.map((source) => (
-                                                                            <a href={source.url} target="_blank" rel="noopener noreferrer" class={`btn btn-sm ${source.platform === 'Crunchyroll' ? 'btn-warning text-dark' : 'btn-outline-primary'} fw-semibold d-flex align-items-center gap-1`}>
+                                                                            <a href={source.url} target="_blank" rel="noopener noreferrer" class={`btn btn-sm ${source.platform === 'Crunchyroll' ? 'btn-warning text-dark' : source.platform === 'HiDive' ? 'btn-info text-dark' : 'btn-outline-primary'} fw-semibold d-flex align-items-center gap-1`}>
                                                                                 <i class="bi bi-play-circle-fill"></i>
                                                                                 {source.platform}
                                                                             </a>
@@ -570,7 +639,6 @@ const Public = (
                                                                     white-space: nowrap;
                                                                 }
 
-
                                                             </style>
 
                                                             { /* User stats section, shown if Public.User and Public.User.stats are available */ }
@@ -617,7 +685,6 @@ const Public = (
                                                         const mangaTabEnabled = recManga.length > 0;
                                                         const animeTabClass = animeTabActive ? "active" : "disabled";
                                                         const mangaTabClass = mangaTabActive ? "active" : (mangaTabEnabled ? "" : "disabled");
-
                                                         return (
                                                             <section class="mt-4">
                                                                 <h2 class="h5 mb-3">If you like this anime, you might like...</h2>
@@ -879,7 +946,6 @@ const Public = (
                                                             </div>
                                                         </section>
                                                     )}
-
                                                 </div>
                                             </div>
                                         </main>

@@ -10,7 +10,7 @@
     transition: width 0.3s ease;
 
     // Mobile: Bottom Nav
-    @include nav-state('mobile') {
+    @include nav-state("mobile") {
         position: fixed;
         bottom: 0;
         z-index: 1030;
@@ -19,7 +19,7 @@
     }
 
     // Tablet: Collapsible Side Nav
-    @include nav-state('tablet') {
+    @include nav-state("tablet") {
         flex-shrink: 0;
         width: 250px;
         position: relative; // create stacking context for dropdowns within nav
@@ -27,7 +27,7 @@
     }
 
     // Desktop: Top Nav
-    @include nav-state('desktop') {
+    @include nav-state("desktop") {
         width: 100%;
         height: auto;
     }
@@ -35,7 +35,7 @@
 
 .nav-list {
     // Mobile
-    @include nav-state('mobile') {
+    @include nav-state("mobile") {
         flex-direction: row;
         align-items: center;
         justify-content: space-around;
@@ -43,12 +43,12 @@
     }
 
     // Tablet
-    @include nav-state('tablet') {
+    @include nav-state("tablet") {
         flex-direction: column;
     }
 
     // Desktop
-    @include nav-state('desktop') {
+    @include nav-state("desktop") {
         flex-direction: row;
         align-items: center;
         justify-content: center;
@@ -64,7 +64,7 @@
 
 .main-nav .nav-label {
     // Hide on mobile by default
-    @include nav-state('mobile') {
+    @include nav-state("mobile") {
         display: none;
     }
 }
@@ -75,7 +75,7 @@
 
 // Tablet-specific styles for collapsed sidebar state
 body.sidebar-collapsed {
-    @include nav-state('tablet') {
+    @include nav-state("tablet") {
         .main-nav {
             width: 70px;
         }
@@ -105,7 +105,7 @@ body.sidebar-collapsed {
 
 // Desktop: Theme toggler alignment
 #theme-toggler {
-    @include nav-state('desktop') {
+    @include nav-state("desktop") {
         position: absolute;
         right: 1rem;
     }
@@ -121,7 +121,7 @@ body.sidebar-collapsed {
 }
 
 /* Tablet: show tablet logo at top (above toggle) */
-@include nav-state('tablet') {
+@include nav-state("tablet") {
     .siteLogo {
         display: flex;
         align-items: center;
@@ -144,7 +144,7 @@ body.sidebar-collapsed {
 }
 
 /* Desktop: left-aligned desktop logo */
-@include nav-state('desktop') {
+@include nav-state("desktop") {
     .main-nav {
         position: relative;
     }
@@ -175,7 +175,7 @@ body.sidebar-collapsed {
 .auth-loading {
     display: none;
 }
-@include nav-state('tablet') {
+@include nav-state("tablet") {
     .auth-buttons {
         display: flex;
         justify-content: center;
@@ -191,7 +191,7 @@ body.sidebar-collapsed {
         margin: 0.5rem 0 1rem;
     }
 }
-@include nav-state('desktop') {
+@include nav-state("desktop") {
     .auth-buttons {
         display: flex;
         gap: 0.5rem;
@@ -213,7 +213,7 @@ body.sidebar-collapsed {
 }
 
 // Re-enable pointer events for actual interactive items inside the centered nav
-@include nav-state('desktop') {
+@include nav-state("desktop") {
     .nav-list > li,
     .nav-list a,
     .nav-list .nav-link,
@@ -228,7 +228,7 @@ body.sidebar-collapsed {
     display: none; // hidden on mobile by default
 }
 
-@include nav-state('tablet') {
+@include nav-state("tablet") {
     #siteUser {
         display: flex;
         justify-content: center;
@@ -238,7 +238,7 @@ body.sidebar-collapsed {
     }
 }
 
-@include nav-state('desktop') {
+@include nav-state("desktop") {
     #siteUser {
         display: block;
         position: absolute;
@@ -252,11 +252,11 @@ body.sidebar-collapsed {
 
 #siteUser .loggedIn {
     position: relative;
-    display: inherit; // should inherit 'flex' from parent #siteUser
+    display: inherit; // should inherit "flex" from parent #siteUser
 }
 
 #siteUser .user-avatar-link {
-    display: inherit; // should inherit 'flex' from parent .loggedIn
+    display: inherit; // should inherit "flex" from parent .loggedIn
     padding: 9px;
 }
 
@@ -274,7 +274,7 @@ body.sidebar-collapsed {
     position: absolute;
     right: 0;
     top: 100%; // position below avatar, by its entire height including padding
-    @include nav-state('tablet') {
+    @include nav-state("tablet") {
         left: 0; // keep within window on tablet, prevent floating off left edge
     }
     min-width: 220px;
@@ -291,7 +291,7 @@ body.sidebar-collapsed {
 
 #siteUser .loggedIn:hover .loggedInOptions,
 #siteUser .loggedIn:focus-within .loggedInOptions {
-    display: inherit; // should inherit 'flex' from parent .loggedIn
+    display: inherit; // should inherit "flex" from parent .loggedIn
     flex-flow: column;
 }
 

@@ -44,56 +44,80 @@ async function main() {
     console.log('Anime table columns:', columns);
 
     const selectCols = [
-        'id', 'slug', 'title', 'thumbnail_url', 
-        '"year"', '"type"', 'synopsis'
+        'a.id as internal_id', 'e.external_numeric_id as anilist_id', 'a.slug', 'a.title', 'a.thumbnail_url',
+        'a."year"', 'a."type"', 'a.synopsis'
     ];
-    
-    if (hasCol('rating')) selectCols.push('rating');
-    if (hasCol('studio')) selectCols.push('studio');
-    if (hasCol('alt_title')) selectCols.push('alt_title');
-    if (hasCol('notes')) selectCols.push('notes');
-    
-    const sql = `SELECT ${selectCols.join(', ')} FROM anime WHERE slug IS NOT NULL ORDER BY title`;
+
+    if (hasCol('rating')) selectCols.push('a.rating');
+    if (hasCol('studio')) selectCols.push('a.studio');
+    if (hasCol('alt_title')) selectCols.push('a.alt_title');
+    if (hasCol('notes')) selectCols.push('a.notes');
+
+    // Join external_id table to get the true AniList ID
+    const sql = `
+        SELECT ${selectCols.join(', ')}
+        FROM anime a
+        JOIN external_id e ON a.id = e.anime_id
+        JOIN source_system ss ON e.source_id = ss.id
+        WHERE a.slug IS NOT NULL AND ss.code = 'anilist'
+        ORDER BY a.title
+    `;
     const stmt = db.prepare(sql);
-    
+
     // Tag query
     const tagStmt = db.prepare('SELECT t.name FROM tag t JOIN anime_tag at ON at.tag_id = t.id WHERE at.anime_id = ? ORDER BY t.name');
 
-    // Stream query
-    const streamStmt = db.prepare('SELECT cr.Id as crId, cr.SlugTitle as crSlug FROM CrAnMap map JOIN crseries cr ON map.CrId = cr.Id WHERE map.AnId = ?');
+// Use the comprehensive view to capture inherited season links
+    const streamStmt = db.prepare('SELECT service_code, service_text_id, service_numeric_id, service_url FROM v_anilist_streaming WHERE anilist_id = ?');
 
     const animeLite = [];
     let tooltipCount = 0;
-    
+
     // Process rows
-while (stmt.step()) {
+    while (stmt.step()) {
         const row = stmt.getAsObject();
-        
-        // Tags
+
+        // Tags (Uses Internal ID)
         const tags = [];
-        tagStmt.bind([row.id]);
+        tagStmt.bind([row.internal_id]);
         while (tagStmt.step()) {
             tags.push(tagStmt.getAsObject().name);
         }
         tagStmt.reset();
 
-        // Streams and CR ID capture
+        // Streams and CR ID capture (Uses True Anilist ID)
         const streams = [];
         let currentCrId = null;
+        let currentHdId = null;
         if (streamStmt) {
-            streamStmt.bind([row.id]);
-            while (streamStmt.step()) {
-                const r = streamStmt.getAsObject();
-                if (!currentCrId) {
-                    currentCrId = r.crId;
+            // Safely grab the integer ID, falling back if the alias dropped
+            const anilistId = Number(row.anilist_id || row.external_numeric_id);
+
+            if (!Number.isNaN(anilistId)) {
+                streamStmt.bind([anilistId]);
+                while (streamStmt.step()) {
+                    const r = streamStmt.getAsObject();
+                    let platformName = r.service_code;
+
+                    if (r.service_code === 'crunchyroll') {
+                        platformName = 'Crunchyroll';
+                        if (!currentCrId) {
+                            currentCrId = r.service_text_id;
+                        }
+                    } else if (r.service_code === 'hidive') {
+                        platformName = 'HiDive';
+                        if (!currentHdId) {
+                            currentHdId = r.service_numeric_id;
+                        }
+                    }
+
+                    streams.push({
+                        p: platformName,
+                        u: r.service_url
+                    });
                 }
-                const slugPart = r.crSlug ? `/${r.crSlug}` : '';
-                streams.push({
-                    p: 'Crunchyroll',
-                    u: `https://www.crunchyroll.com/series/${r.crId}${slugPart}`
-                });
+                streamStmt.reset();
             }
-            streamStmt.reset();
         }
 
         const availableStreams = streams.map(s => s.p);
@@ -110,8 +134,9 @@ while (stmt.step()) {
 
         // 2. Write Tooltip File
         const tooltip = {
-            aid: row.id,           // Added Anilist ID
-            crid: currentCrId,     // Added Crunchyroll ID
+            aid: row.anilist_id,
+            crid: currentCrId,
+            hdid: currentHdId,
             t: row.title,
             ty: row.type,
             y: row.year,
@@ -128,11 +153,11 @@ while (stmt.step()) {
 
         // Remove undefined/null
         Object.keys(tooltip).forEach(key => tooltip[key] === undefined && delete tooltip[key]);
-        
+
         await Deno.writeTextFile(path.join(tooltipsDir, `${row.slug}.json`), JSON.stringify(tooltip));
         tooltipCount++;
     }
-    
+
     stmt.free();
     tagStmt.free();
     if (streamStmt) streamStmt.free();

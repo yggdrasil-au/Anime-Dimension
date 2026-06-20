@@ -85,8 +85,10 @@ const MainJS = "/js/main.min.js";
                                             
                                             <select id="streamInput" name="stream" class="form-select" style="max-width: 150px;">
                                                 <option value="">All Platforms</option>
+                                                <option value="Any">Any Stream</option>
                                                 <option value="Crunchyroll">Crunchyroll</option>
-                                                </select>
+                                                <option value="HiDive">HiDive</option>
+                                            </select>
                                         </div>
                                         <button class="btn btn-primary" type="submit">Search</button>
                                     </form>
@@ -157,8 +159,14 @@ const MainJS = "/js/main.min.js";
                 const norm = (s) => String(s || '').toLowerCase();
                 const matches = (q, streamQ, item) => {
                     // 1. Check Streaming Filter first (it's faster to fail here)
-                    if (streamQ && !item.streams.includes(streamQ)) {
-                        return false; 
+                    if (streamQ) {
+                        if (streamQ === 'Any') {
+                            if (!item.streams || item.streams.length === 0) {
+                                return false;
+                            }
+                        } else if (!item.streams.includes(streamQ)) {
+                            return false;
+                        }
                     }
 
                     // 2. Check Text Query
@@ -194,7 +202,7 @@ const MainJS = "/js/main.min.js";
                     return null;
                 }
 
-                const buildTooltipHtml = (it) => {
+const buildTooltipHtml = (it) => {
                     if (!it) return '';
                     const titleVal = it.t || it.title;
                     const typeVal = it.ty;
@@ -205,14 +213,27 @@ const MainJS = "/js/main.min.js";
                     const studio = it.st;
                     const rating = it.r;
                     const notes = it.n;
+                    const aid = it.aid;
+                    const crid = it.crid;
+                    const hdid = it.hdid;
+                    const streams = it.str;
 
                     const root = document.createElement('div');
+
+                    // --- DEBUG IDS ---
+                    if (aid || crid || hdid) {
+                        const debugDiv = document.createElement('div');
+                        debugDiv.className = 'debug-ids';
+                        debugDiv.setAttribute('style', 'font-family: monospace; font-size: 0.75rem; color: #ffc107; margin-bottom: 0.25rem;');
+                        debugDiv.textContent = `[DEBUG] AL: ${aid || 'N/A'} | CR: ${crid || 'N/A'} | HD: ${hdid || 'N/A'}`;
+                        root.append(debugDiv);
+                    }
 
                     const title = document.createElement('h5');
                     title.className = 'theme-font';
                     title.textContent = toText(titleVal || 'Untitled');
                     root.append(title);
-
+                    
                     if (altTitle) {
                         const h6 = document.createElement('h6');
                         h6.className = 'theme-font tooltip-alt';
@@ -256,6 +277,31 @@ const MainJS = "/js/main.min.js";
                         const p = document.createElement('p');
                         p.innerHTML = summaryVal;
                         root.append(p);
+                    }
+
+                    // --- STREAMS ---
+                    if (streams && Array.isArray(streams) && streams.length > 0) {
+                        const strDiv = document.createElement('div');
+                        strDiv.className = 'streams mb-2';
+                        const h4 = document.createElement('h4');
+                        h4.textContent = 'Available On';
+                        strDiv.append(h4);
+                        
+                        const ulStr = document.createElement('ul');
+                        ulStr.setAttribute('style', 'list-style: none; padding: 0; display: flex; gap: 0.5rem; margin-bottom: 0;');
+                        for (const s of streams) {
+                            const liStr = document.createElement('li');
+                            const aStr = document.createElement('a');
+                            aStr.className = 'badge text-bg-warning text-dark text-decoration-none';
+                            aStr.href = s.u || s.url || '#';
+                            aStr.target = '_blank';
+                            aStr.rel = 'noopener noreferrer';
+                            aStr.textContent = s.p || s.platform || 'Unknown';
+                            liStr.append(aStr);
+                            ulStr.append(liStr);
+                        }
+                        strDiv.append(ulStr);
+                        root.append(strDiv);
                     }
 
                     if (notes) {

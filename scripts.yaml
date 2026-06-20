@@ -44,8 +44,9 @@ scripts:
 
 
     # watch-updates.mjs
-    watch: "path: deno run --allow-read --allow-run scripts/watch-updates.ts"
+    watch: "path: deno run --allow-write --allow-read --allow-run scripts/watch-updates.ts"
 
+    # tasks executed by the watch-updates.ts tool for regenerating files on astro file content change
     astro-tasks:
         series:
             - clean-www-dist-html

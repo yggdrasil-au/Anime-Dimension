@@ -10,7 +10,7 @@
     min-height: 100vh;
 
     // Desktop: Top nav layout, the default flex direction is row and induces the tablet sidebar layout formatting
-    @include nav-state('desktop') {
+    @include nav-state("desktop") {
         flex-direction: column;
     }
 }

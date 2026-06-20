@@ -14,7 +14,7 @@
 }
 
 // Tablet State Overrides
-@include nav-state('tablet') {
+@include nav-state("tablet") {
     .nav-item-mobile-only {
         display: none;
     }
@@ -24,7 +24,7 @@
 }
 
 // Desktop State Overrides
-@include nav-state('desktop') {
+@include nav-state("desktop") {
     .nav-item-mobile-only {
         display: none;
     }
