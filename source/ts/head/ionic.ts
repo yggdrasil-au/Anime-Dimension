@@ -1,4 +1,1 @@
-import { defineCustomElements } from '@ionic/pwa-elements/loader';
-
-defineCustomElements(window);
-
+../../../../../Shared/main/source/ts/head/ionic.ts

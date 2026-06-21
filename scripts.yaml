@@ -41,7 +41,8 @@ scripts:
         - "fs: rm \"{{paths.web_root}}/**/*.html\""
     clean-www-dist-html:
         - "fs: rm \"{{paths.web_dist}}/**/*.html\""
-
+    clean-cache-files:
+        - "fs: rm \"{{paths.astrocache}}/**/*\""
 
     # watch-updates.mjs
     watch: "path: deno run --allow-write --allow-read --allow-run scripts/watch-updates.ts"
@@ -49,6 +50,7 @@ scripts:
     # tasks executed by the watch-updates.ts tool for regenerating files on astro file content change
     astro-tasks:
         series:
+            - clean-cache-files
             - clean-www-dist-html
             - clean-www-website-html
             - docs-compile
@@ -304,7 +306,7 @@ scripts:
     # main
     dotnet:build-release-linux:
         series:
-            - update-api-www-no-build
+            - update-api-www-no-build # pulls the most recent astro www files for the apis website into the api source files
             - >
                 cross-shell: cd {{paths.api_dir}}; rimraf {{paths.api_pub_linux}};
                 dotnet publish ./{{paths.api_proj}} -c Release -f net10.0 -r linux-x64 --self-contained true
@@ -313,7 +315,7 @@ scripts:
     # main
     dotnet:build-release-linux-arm:
         series:
-            - update-api-www-no-build
+            - update-api-www-no-build # pulls the most recent astro www files for the apis website into the api source files
             - >
                 cross-shell: cd {{paths.api_dir}}; rimraf {{paths.api_pub_linux_arm}};
                 dotnet publish ./{{paths.api_proj}} -c Release -f net10.0 -r linux-arm64 --self-contained true
@@ -358,6 +360,12 @@ scripts:
             - production
             - dotnet:build-release-linux
             - deploy:www-us
+    #same as above but skips the rebuild of prod files and assumes they already exist, usefull after running dev-prod as it shouldve generated all prod files ithink
+    ww-d-nobuild:
+            series:
+            - dotnet:build-release-linux
+            - deploy:www-us
+
 
     # build and deploy only US C# API backend
     api-d:
@@ -397,6 +405,9 @@ scripts:
     deploy-www-only:
         series:
             - ww-d
+    deploy-www-only-no-build:
+        series:
+            - ww-d-nobuild
 
     # deploy only API to production servers
     deploy-api-only:
