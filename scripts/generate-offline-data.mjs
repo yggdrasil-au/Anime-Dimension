@@ -2,7 +2,7 @@ import path from 'node:path';
 
 const root = Deno.cwd();
 const dbPath = path.resolve(root, 'subModules/db/anime-dimension.sqlite3');
-const wasmPath = path.resolve(root, '../../../node_modules/sql.js/dist/sql-wasm.wasm');
+const wasmPath = path.resolve(root, 'node_modules/sql.js/dist/sql-wasm.wasm');
 const distDataDir = path.resolve(root, 'www/dist/data');
 const tooltipsDir = path.join(distDataDir, 'tooltips');
 

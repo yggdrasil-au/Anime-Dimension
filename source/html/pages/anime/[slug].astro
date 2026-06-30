@@ -169,7 +169,7 @@ export async function getStaticPaths() {
         const streamingSources = bySlug(slug, 'streams') as any[];
         const crunchyrollId = bySlug(slug, 'crId') as string | undefined;
         const hidiveId = bySlug(slug, 'hdId') as string | number | undefined;
-        
+
         return {
             id: row.internal_id,       // Internal SQLite ID for backend/relational mapping
             slug,
@@ -200,26 +200,26 @@ export async function getStaticPaths() {
 
     if (hasDb && SQLMod) {
         const initSqlJs = (SQLMod.default ?? SQLMod) as any;
-        const wasmPath = path.resolve(process.cwd(), '../../../node_modules/sql.js/dist/sql-wasm.wasm');
+        const wasmPath = path.resolve(process.cwd(), 'node_modules/sql.js/dist/sql-wasm.wasm');
         const SQL = await initSqlJs({ wasmBinary: fs.readFileSync(wasmPath) });
         const buf = fs.readFileSync(dbPath);
         const db = new SQL.Database(new Uint8Array(buf));
-        
+
         // Pull both the internal SQLite ID and the external AniList ID
-        const qAll = db.prepare(`SELECT 
+        const qAll = db.prepare(`SELECT
             a.id AS internal_id,
             e.external_numeric_id AS anilist_id,
-            a.slug, 
-            a.title, 
-            a.synopsis, 
-            a.thumbnail_url, 
-            a."year" AS year, 
-            a."type" AS type, 
+            a.slug,
+            a.title,
+            a.synopsis,
+            a.thumbnail_url,
+            a."year" AS year,
+            a."type" AS type,
             a.data_total_episodes
             FROM anime a
             JOIN external_id e ON a.id = e.anime_id
-            JOIN source_system ss ON e.source_id = ss.id 
-            WHERE a.slug IS NOT NULL 
+            JOIN source_system ss ON e.source_id = ss.id
+            WHERE a.slug IS NOT NULL
             AND ss.code = 'anilist'
             ORDER BY a.slug`
         );
@@ -231,10 +231,10 @@ export async function getStaticPaths() {
         qAll.free();
 
         const qId = db.prepare(`
-            SELECT a.id, e.external_numeric_id as anilist_id 
-            FROM anime a 
-            JOIN external_id e ON a.id = e.anime_id 
-            JOIN source_system ss ON e.source_id = ss.id 
+            SELECT a.id, e.external_numeric_id as anilist_id
+            FROM anime a
+            JOIN external_id e ON a.id = e.anime_id
+            JOIN source_system ss ON e.source_id = ss.id
             WHERE a.slug = ? AND ss.code = 'anilist'
         `);
 
@@ -270,26 +270,26 @@ export async function getStaticPaths() {
             switch (kind) {
                 case 'tags': {
                     return collect(qTags, id, (r) => r.name);
-                } 
+                }
                 case 'characters': {
                     return collect(qChars, id, (r) => ({ name: r.name, image: r.image_url ?? undefined, voice: r.voice_actor ?? undefined }));
-                } 
+                }
                 case 'staff': {
                     return collect(qStaff, id, (r) => ({ name: r.name, role: r.role, image: r.image_url ?? undefined }));
-                } 
+                }
                 case 'reviews': {
                     return collect(qReviews, id, (r) => ({ id: r.review_key, user: { username: r.username ?? undefined, avatarUrl: r.user_avatar_url ?? undefined, profileUrl: r.user_profile_url ?? undefined }, date: r.review_date ?? undefined, rating: r.rating ?? undefined, excerpt: r.excerpt ?? undefined }));
-                } 
+                }
                 case 'relatedAnime': {
                     return collect(qRelated, id, (r) => ({ title: r.title, image: r.image_url ?? undefined, externalUrl: r.external_url ?? undefined, relation: r.relation ?? undefined, year: r.year ?? undefined, type: r.type ?? undefined }));
-                } 
+                }
                 case 'streams': {
                     // Pull from the intelligent streaming view (supports CR & HiDive)
                     return collect(qStreams, anilistId, (r) => {
                         let platformName = r.service_code;
                         if (r.service_code === 'crunchyroll') platformName = 'Crunchyroll';
                         else if (r.service_code === 'hidive') platformName = 'HiDive';
-                        
+
                         return { platform: platformName, url: r.service_url };
                     });
                 }
@@ -438,7 +438,7 @@ const Public = (
                     <section id="content-top-banner" class="content-top-banner p-3 rounded d-none">
                         <ContentTopBanner />
                     </section>
- 
+
                     <div class="MainSection d-flex flex-column flex-md-row flex-grow-1">
                         {
                             /**

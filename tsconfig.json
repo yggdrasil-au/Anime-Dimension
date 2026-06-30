@@ -15,6 +15,7 @@
         "strictNullChecks": true,
         "strictBindCallApply": true,
         "strictFunctionTypes": true,
+        "types": ["@types/node"], // required by astro and deno for node types, fixed linter errors, probably also required for astro build given astro is a node tool
         "strictPropertyInitialization": true,
         //"baseUrl": ".",
         "paths": {

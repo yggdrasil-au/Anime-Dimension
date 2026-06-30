@@ -142,9 +142,9 @@ scripts:
     js-lint:
         series:
             - "js-lint-deno"
-            - "js-lint-node"
+            #- "js-lint-node"
 
-    js-lint-node: "npm: eslint --format=stylish ."
+    #js-lint-node: "npm: eslint --format=stylish ."
     js-lint-deno: "deno lint ./**/*.ts"
 
 
@@ -247,7 +247,7 @@ scripts:
     dev-apache-server:
         cmd: "workspace: apache-cli start --output --document-root ./{{paths.web_root}} --port 8080"
         interactive: true
-    dev-caddy-server: "caddy-cli start --output --ConfigFile ./{{configs.caddy}} --DocumentRoot ./{{paths.web_root}}"
+    dev-caddy-server: "workspace: caddy start --output --ConfigFile ./{{configs.caddy}} --DocumentRoot ./{{paths.web_root}}"
 
     dev-apache-watch:
         parallel:

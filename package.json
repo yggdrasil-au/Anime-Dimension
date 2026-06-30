@@ -3,7 +3,7 @@
     "name": "anime-dimension",
     "description": "a public database for western and eastern animated works including TV shows and movies, with user reviews, ratings, and recommendations.",
 
-    "version": "0.11.8-A",
+    "version": "0.12.0-A",
 
     "type": "module",
     "private": true,
