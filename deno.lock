@@ -5279,7 +5279,11 @@
       "npm:typescript@6.0.3"
     ],
     "links": {
-      "jsr:@yggdrasil-au/apache-cli@0.3.0": {},
+      "jsr:@yggdrasil-au/apache-cli@0.3.0": {
+        "dependencies": [
+          "npm:adm-zip@~0.5.16"
+        ]
+      },
       "jsr:@yggdrasil-au/build-php@0.2.0": {},
       "jsr:@yggdrasil-au/caddy@0.1.1": {},
       "jsr:@yggdrasil-au/cloudflare-r2@0.1.0": {
