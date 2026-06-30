@@ -1,5 +1,6 @@
-// Sites\Anime-Dimension\main\deno.jsonc
 {
+    // Sites\Anime-Dimension\main\deno.jsonc
+    "nodeModulesDir": "auto",
     "name": "anime-dimension",
     "description": "a public database for western and eastern animated works including TV shows and movies, with user reviews, ratings, and recommendations.",
 
@@ -21,32 +22,37 @@
             "exclude": ["no-import-prefix", "no-explicit-any", "verbatim-module-syntax", "no-unused-vars"]
         }
     },
-
     "imports": {
+        "@yggdrasil-au/yaml-run": "./Tools/TS/yaml-run/main.js",
+        "@yggdrasil-au/build-core": "./Tools/TS/build-core/index.mjs",
+
+
         // astro/vite build dependencies
-        "astro": "npm:astro",
-        "@astrojs/mdx": "npm:@astrojs/mdx",
-        "html-escaper": "npm:html-escaper",
-        "aria-query": "npm:aria-query",
-        "axobject-query": "npm:axobject-query",
-        "cssesc": "npm:cssesc",
+        "astro": "npm:astro@7.0.3",
+        "@astrojs/mdx": "npm:@astrojs/mdx@7.0.0",
+        "html-escaper": "npm:html-escaper@3.0.3",
+        "aria-query": "npm:aria-query@5.3.2",
+        "axobject-query": "npm:axobject-query@4.1.0",
+        "cssesc": "npm:cssesc@3.0.0",
 
         // capacitor
-        "@capacitor/cli": "npm:@capacitor/cli@8.3.0",
+        "@capacitor/cli": "npm:@capacitor/cli@8.4.1",
 
         // sql for some astro pages and scripts/generate-offline-data.mjs
-        "sql.js": "npm:sql.js@1.14.1", "@types/sql.js": "npm:@types/sql.js@1.4.11",
+        "sql.js": "npm:sql.js@1.14.1",
+        "@types/sql.js": "npm:@types/sql.js@1.4.11",
 
         // eslint.config.js dependencies
-        "globals" : "npm:globals/index.js",
-        "pluginJs" : "npm:@eslint/js/src/index.js",
-        "tseslint" : "npm:typescript-eslint",
-        "pluginUnicorn" : "npm:eslint-plugin-unicorn",
-        "astroPlugin" : "npm:eslint-plugin-astro",
+        "globals" : "npm:globals@17.7.0",
+        "eslint": "npm:eslint@10.6.0",
+        "@eslint/js": "npm:@eslint/js@10.0.1",
+        "typescript-eslint" : "npm:typescript-eslint@8.62.1",
+        "eslint-plugin-unicorn" : "npm:eslint-plugin-unicorn@69.0.0",
+        "eslint-plugin-astro" : "npm:eslint-plugin-astro@2.1.1",
 
         // scss dependencies
-        "@fortawesome/fontawesome-free": "npm:@fortawesome/fontawesome-free",
-            // css-prefix
-            "postcss-cli": "npm:postcss-cli@11.0.1",
+        "@fortawesome/fontawesome-free": "npm:@fortawesome/fontawesome-free@7.3.0",
+        // css-prefix
+        "postcss-cli": "npm:postcss-cli@11.0.1"
     }
 }

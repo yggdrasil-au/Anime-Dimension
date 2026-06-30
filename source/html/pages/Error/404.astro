@@ -16,7 +16,7 @@ import Footer from "@components/_8-Footer.astro";
 // get global build data/config/methods from shared build config js
 import * as buildconf from "@BuildConfigs/main.js";
 
-const MainJS = "./js/main.min.js"
+const MainJS = "../js/main.min.js"
 const description = buildconf.page.description.index;
 const title = buildconf.page.title.index || "Anime Dimension";
 
@@ -28,6 +28,10 @@ const title = buildconf.page.title.index || "Anime Dimension";
 {/* data-bs-theme defines the default bootstrap colour theme, class= night-mode sets the night mode styles as default, changing this is un-necessary as its controlled via the JS/TS theme Controller */}
 <html lang="en" data-bs-theme="dark">
     <head>
+
+        {/* Forces the browser to resolve all relative links from this base path */}
+        <base href="/Error/" />
+
         <Head title={title} description={description} />
         <style>
             .MainSection {

@@ -1,6 +1,5 @@
-
 import globals from 'globals/index.js';
-import pluginJs from '@eslint/js/src/index.js';
+import pluginJs from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import pluginUnicorn from 'eslint-plugin-unicorn';
 import astroPlugin from 'eslint-plugin-astro';
@@ -14,17 +13,20 @@ export default [
             "**/.history/",
             "node_modules/",
             ".cache/",
-            ".astro/",
+            "*.astro",
+            "source/html/pages/*.astro",
+            "source/html/pages/**/*.astro",
+            "source/html/pages/**/**/*.astro",
+            "source/html/**/*.astro",
             "**/*.min.js",
             "**/plugins/",
-            "/.temp/",
-            "source/html/docs/",
-            "docs_html/",
+            "**/.temp/",
             "public/",
             "www/",
             "ios",
             "android",
             "capacitor-assets/",
+            "scripts/",
         ],
     },
     ...tseslint.config(
@@ -69,7 +71,7 @@ export default [
             'unicorn/no-null': 'off',
             'unicorn/no-unused-properties': 'off',
             'unicorn/prefer-array-flat': 'off',
-            'unicorn/prefer-dom-node-dataset': 'off',
+            'unicorn/dom-node-dataset': 'warn',
             'unicorn/prefer-export-from': 'off',
             'unicorn/prefer-module': 'off',
             'unicorn/prefer-query-selector': 'off',
@@ -112,6 +114,16 @@ export default [
             'unicorn/no-new-array': 'warn',
             'prefer-const': 'warn',
             'no-dupe-keys': 'warn',
+            'unicorn/no-empty-file': 'warn',
+            'unicorn/consistent-conditional-object-spread': 'warn',
+            'unicorn/no-global-object-property-assignment': 'warn',
+            'unicorn/prefer-location-assign': 'warn',
+            'unicorn/name-replacements': 'warn',
+            'unicorn/prefer-await': 'warn',
+            'unicorn/consistent-boolean-name': 'warn',
+            'unicorn/no-declarations-before-early-exit': 'warn',
+            'unicorn/max-nested-calls': 'warn',
+            'unicorn/prefer-dom-node-replace-children': 'warn'
         },
     },
     {
@@ -126,4 +138,4 @@ export default [
             'unicorn/prefer-top-level-await': 'off',
         },
     },
-] 
+];
