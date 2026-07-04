@@ -6,16 +6,14 @@
 */
 
 // import bootstrap JavaScript components to enable interactive components like dropdowns.
-// REMOVE THIS:
-// import 'npm:bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js';
-
-// ADD THIS:
 import * as bootstrap from 'npm:bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js';
 
 // Attach to global window object so tooltips.ts and inline scripts can access it
 (globalThis.window as any).bootstrap = bootstrap;
 
 import { initHomeSections } from './home.ts';
+
+import { initTheme } from './theme/index.ts';
 
 /*
 |--------------------------------------------------------------------------
