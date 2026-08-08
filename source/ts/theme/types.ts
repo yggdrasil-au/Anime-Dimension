@@ -21,7 +21,6 @@ export interface ThemeCommandTarget {
 declare global {
     interface Window {
         ADUI?: ThemeCommandTarget;
-        PHCUI?: ThemeCommandTarget;
         toggleVisibilityById?: (id: string) => void;
     }
 }

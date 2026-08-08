@@ -10,6 +10,9 @@ import type { Theme, ThemeApi } from './types.ts';
 
 /* :: :: Constants :: START :: */
 
+// Keep this default aligned with the early theme preloader in source/html/components/_0-Head.astro.
+const DEFAULT_THEME: Theme = 'night';
+
 const themeIconMap: Record<Theme, string> = {
     light: 'bi-sun-fill',
     dark: 'bi-moon-fill',
@@ -25,35 +28,43 @@ const themeIconMap: Record<Theme, string> = {
 /* :: :: Theme Functions :: START :: */
 
 /**
+ * Normalizes persisted theme values to known options.
+ */
+const isTheme = (value: string | null): value is Theme => {
+    return value === 'light' || value === 'dark' || value === 'night' || value === 'day' || value === 'auto';
+};
+
+/**
  * Sets the current theme and updates persistence.
+ * The corresponding pre-render theme bootstrap lives in source/html/components/_0-Head.astro.
  * @param theme - The theme mode to apply.
  */
 export const setTheme = (theme: Theme): void => {
     document.documentElement.classList.remove('night-mode', 'day-mode');
-    console.debug(`[PHC::theme/controller.ts] Setting theme to: ${theme}`);
+    console.debug(`[AD::theme/controller.ts] Setting theme to: ${theme}`);
 
     switch (theme) {
         case 'night': {
             document.documentElement.setAttribute('data-bs-theme', 'dark');
             document.documentElement.classList.add('night-mode');
-            console.debug('[PHC::theme/controller.ts] Night mode activated.');
+            console.debug('[AD::theme/controller.ts] Night mode activated.');
             break;
         }
         case 'auto': {
             const prefersDark: boolean = globalThis.matchMedia('(prefers-color-scheme: dark)').matches;
             document.documentElement.setAttribute('data-bs-theme', prefersDark ? 'dark' : 'light');
-            console.debug(`[PHC::theme/controller.ts] Auto theme applied: ${prefersDark ? 'dark' : 'light'}`);
+            console.debug(`[AD::theme/controller.ts] Auto theme applied: ${prefersDark ? 'dark' : 'light'}`);
             break;
         }
         case 'day': {
             document.documentElement.setAttribute('data-bs-theme', 'light');
             document.documentElement.classList.add('day-mode');
-            console.debug('[PHC::theme/controller.ts] Day mode activated.');
+            console.debug('[AD::theme/controller.ts] Day mode activated.');
             break;
         }
         default: {
             document.documentElement.setAttribute('data-bs-theme', theme);
-            console.debug(`[PHC::theme/controller.ts] Theme set to: ${theme}`);
+            console.debug(`[AD::theme/controller.ts] Theme set to: ${theme}`);
             break;
         }
     }
@@ -63,7 +74,7 @@ export const setTheme = (theme: Theme): void => {
     const activeThemeIcon: HTMLElement | null = document.getElementById('theme-icon-active');
     if (activeThemeIcon) {
         activeThemeIcon.className = `bi me-2 ${themeIconMap[theme]}`;
-        console.debug('[PHC::theme/controller.ts] Updated active theme icon.');
+        console.debug('[AD::theme/controller.ts] Updated active theme icon.');
     }
 
     const sky: HTMLElement | null = document.querySelector('.sky');
@@ -77,10 +88,10 @@ export const setTheme = (theme: Theme): void => {
             if (prefersReducedMotion) {
                 cleanupDayCloudLoopUpdater();
                 sky.innerHTML = '';
-                console.debug('[PHC::theme/controller.ts] Day mode: reduced motion enabled, clouds omitted.');
+                console.debug('[AD::theme/controller.ts] Day mode: reduced motion enabled, clouds omitted.');
             } else {
                 renderDayClouds(sky);
-                console.debug('[PHC::theme/controller.ts] Day mode: clouds rendered.');
+                console.debug('[AD::theme/controller.ts] Day mode: clouds rendered.');
             }
         } else {
             cleanupDayCloudLoopUpdater();
@@ -96,18 +107,19 @@ export const setTheme = (theme: Theme): void => {
  */
 export const getTheme = (): Theme => {
     const stored: string | null = localStorage.getItem('theme');
-    if (stored === 'light' || stored === 'dark' || stored === 'night' || stored === 'day' || stored === 'auto') {
-        return stored as Theme;
+    if (isTheme(stored)) {
+        return stored;
     }
-    return 'day'; // default to day if no valid theme is stored
+
+    localStorage.setItem('theme', DEFAULT_THEME);
+    return DEFAULT_THEME;
 };
 
 /**
  * Cycles to the next theme in the sequence.
  */
 export const nextTheme = (): void => {
-    // Dev toggle intentionally skips auto to keep testing on fixed themes.
-    const themes: Theme[] = ['light', 'dark', 'day', 'night'];
+    const themes: Theme[] = ['light', 'dark', 'day', 'night', 'auto'];
     const current: Theme = getTheme();
     const currentIndex: number = themes.indexOf(current);
     const normalizedCurrentIndex: number = Math.max(currentIndex, 0);
@@ -122,7 +134,7 @@ export const nextTheme = (): void => {
 /* :: :: Initialization :: START :: */
 
 /**
- * Links exported theme commands into global ADUI/PHCUI namespaces.
+ * Links exported theme commands into the global ADUI namespace.
  */
 const linkGlobalThemeCommands = (): void => {
     const api: ThemeApi = {
@@ -137,13 +149,7 @@ const linkGlobalThemeCommands = (): void => {
         globalThis.window.ADUI.nextTheme = api.nextTheme;
     }
 
-    if (globalThis.window.PHCUI) {
-        globalThis.window.PHCUI.setTheme = api.setTheme;
-        globalThis.window.PHCUI.getTheme = api.getTheme;
-        globalThis.window.PHCUI.nextTheme = api.nextTheme;
-    }
-
-    console.debug('[PHC::theme/controller.ts] Global theme commands linked to ADUI/PHCUI.');
+    console.debug('[AD::theme/controller.ts] Global theme commands linked to ADUI.');
 };
 
 /**

@@ -213,7 +213,7 @@ scripts:
             - generate-data
             - assets:handle
 
-    # main
+    # dev build, used only by dev process
     build:
         series:
             - clean
@@ -238,6 +238,19 @@ scripts:
             - htm-minify
             - generate-sitemap
             - capSync
+
+    # should follew exactly the same flow as main 'production' but with dev endpoinds
+    dev-production:
+        series:
+            - assets:dev
+            - clean
+            - appAssetsGen
+            - lint
+            - compile:prod
+            - htm-minify
+            - generate-sitemap
+            - capSync
+
 
     generate-sitemap: "path: deno run --allow-read --allow-write scripts/generate-sitemap.ts"
 
@@ -270,7 +283,7 @@ scripts:
     dev-prod:
         series:
             - assets:prod
-            - production
+            - dev-production
             - dev-caddy-watch
 
     # --- PHP Build ---

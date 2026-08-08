@@ -31,6 +31,8 @@ const data = {
 
 }
 
+export const isSite = "AD"; // site identifier, used in shared files to determine which site is being built, and to allow for shared code between multiple sites
+
 export const favicon = "/data/images/prod/assets/favicon--x48.webp"; // path to favicon, used in _0-Head astro component, shared across all pages
 
 // individual page specific data

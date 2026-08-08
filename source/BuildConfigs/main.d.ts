@@ -20,6 +20,8 @@ export interface PageMetadata {
     [key: string]: string; // Allows for additional page keys if added later
 }
 
+export const IsSite: string; // site identifier, used in shared files to determine which site is being built, and to allow for shared code between multiple sites
+
 export const favicon: string;
 
 export interface Page {

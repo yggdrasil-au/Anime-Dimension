@@ -9,7 +9,7 @@
  * @param sky - The .sky element to add stars to.
  */
 export const renderNightSky = (sky: HTMLElement): void => {
-    console.debug('[PHC::theme/nightSky.ts] renderNightSky() called.');
+    console.debug('[AD::theme/nightSky.ts] renderNightSky() called.');
 
     sky.innerHTML = '';
 
@@ -56,5 +56,5 @@ export const renderNightSky = (sky: HTMLElement): void => {
         }
     }
 
-    console.debug('[PHC::theme/nightSky.ts] Night sky render completed.');
+    console.debug('[AD::theme/nightSky.ts] Night sky render completed.');
 };

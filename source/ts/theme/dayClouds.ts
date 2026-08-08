@@ -17,7 +17,7 @@ export const cleanupDayCloudLoopUpdater = (): void => {
     if (disposeCloudLoopUpdater) {
         disposeCloudLoopUpdater();
         disposeCloudLoopUpdater = null;
-        console.debug('[PHC::theme/dayClouds.ts] Day cloud loop listeners cleaned up.');
+        console.debug('[AD::theme/dayClouds.ts] Day cloud loop listeners cleaned up.');
     }
 };
 
@@ -44,7 +44,7 @@ const updateCloudLoopBounds = (sky: HTMLElement): void => {
     });
 
     sky.classList.remove('is-measuring');
-    console.debug('[PHC::theme/dayClouds.ts] Day cloud loop bounds updated for current viewport.');
+    console.debug('[AD::theme/dayClouds.ts] Day cloud loop bounds updated for current viewport.');
 };
 
 /**
@@ -81,7 +81,7 @@ const initCloudLoopUpdater = (sky: HTMLElement): void => {
         globalThis.removeEventListener('orientationchange', scheduleUpdate);
     };
 
-    console.debug('[PHC::theme/dayClouds.ts] Day cloud loop updater initialized.');
+    console.debug('[AD::theme/dayClouds.ts] Day cloud loop updater initialized.');
 };
 
 /**
@@ -99,5 +99,5 @@ export const renderDayClouds = (sky: HTMLElement): void => {
     `;
 
     initCloudLoopUpdater(sky);
-    console.debug('[PHC::theme/dayClouds.ts] Day clouds rendered.');
+    console.debug('[AD::theme/dayClouds.ts] Day clouds rendered.');
 };

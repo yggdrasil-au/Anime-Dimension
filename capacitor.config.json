@@ -1,0 +1,45 @@
+{
+    "appId": "au.yggdrasil.animedimension",
+    "appName": "Anime Dimension",
+    "webDir": "www/capacitorsync",
+    "loggingBehavior": "debug",
+    "zoomEnabled": true,
+    "initialFocus": true,
+    "android": {
+        "path": "android",
+        "captureInput": false,
+        "webContentsDebuggingEnabled": false,
+        "loggingBehavior": "debug",
+        "initialFocus": true,
+        "minWebViewVersion": 60,
+        "minHuaweiWebViewVersion": 10,
+        "buildOptions": {
+            "releaseType": "AAB",
+            "signingType": "jarsigner"
+        },
+        "useLegacyBridge": false
+    },
+    "ios": {
+        "path": "ios",
+        "scheme": "App",
+        "contentInset": "never",
+        "loggingBehavior": "debug",
+        "limitsNavigationsToAppBoundDomains": false,
+        "preferredContentMode": "recommended",
+        "handleApplicationNotifications": true,
+        "webContentsDebuggingEnabled": false
+    },
+    "server": {
+        "hostname": "anime-dimension.com",
+        "androidScheme": "https",
+        "errorPath": "capError/index.html"
+    },
+    "plugins": {
+        "CapacitorCookies": {
+            "enabled": false
+        },
+        "CapacitorHttp": {
+            "enabled": false
+        }
+    }
+}
