@@ -213,6 +213,15 @@ scripts:
             - generate-data
             - assets:handle
 
+    compile:prod:nosplit:
+        series:
+            - compile-parallel:prod
+            - comp1:prod
+            - docs-format
+            - move-astro-output-to-dist
+            - generate-data
+            #- assets:handle
+
     # dev build, used only by dev process
     build:
         series:
@@ -239,17 +248,17 @@ scripts:
             - generate-sitemap
             - capSync
 
-    # should follew exactly the same flow as main 'production' but with dev endpoinds
+    # should follew exactly the same flow as main 'production' but with dev endpoinds, and does not split the assets into web and capacitor folders
     dev-production:
         series:
             - assets:dev
             - clean
             - appAssetsGen
             - lint
-            - compile:prod
+            - compile:prod:nosplit
             - htm-minify
             - generate-sitemap
-            - capSync
+            #- capSync
 
 
     generate-sitemap: "path: deno run --allow-read --allow-write scripts/generate-sitemap.ts"
@@ -261,6 +270,8 @@ scripts:
         cmd: "workspace: apache-cli start --output --document-root ./{{paths.web_root}} --port 8080"
         interactive: true
     dev-caddy-server: "workspace: caddy start --output --ConfigFile ./{{configs.caddy}} --DocumentRoot ./{{paths.web_root}}"
+    dev-caddy-server-dist: "workspace: caddy start --output --ConfigFile ./{{configs.caddy}} --DocumentRoot ./{{paths.wdist}}"
+
 
     dev-apache-watch:
         parallel:
@@ -271,6 +282,9 @@ scripts:
         parallel:
             - watch
             - dev-caddy-server
+
+    dev-caddy-watch-dist:
+        - dev-caddy-server-dist
 
     # main
     dev:
@@ -284,7 +298,7 @@ scripts:
         series:
             - assets:prod
             - dev-production
-            - dev-caddy-watch
+            - dev-caddy-watch-dist
 
     # --- PHP Build ---
     # these three allow for php <?php ?> tags to be inside .astro files by commenting them out before astrobuild and restoring them in source and output after

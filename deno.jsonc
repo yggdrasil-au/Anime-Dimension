@@ -4,7 +4,7 @@
     "name": "anime-dimension",
     "description": "a public database for western and eastern animated works including TV shows and movies, with user reviews, ratings, and recommendations.",
 
-    "version": "0.12.2-A",
+    "version": "0.12.3-A",
 
     "type": "module",
     "private": true,
@@ -28,10 +28,10 @@
         "@yggdrasil-au/build-core": "./Tools/TS/build-core/index.mjs",
 
         // astro/vite build dependencies
-        "astro": "npm:astro@7.1.3",
-        "@astrojs/mdx": "npm:@astrojs/mdx@7.0.3",
-        "@astrojs/check": "npm:@astrojs/check@0.9.9",
-        "typescript": "npm:typescript@7.0.2",
+        "astro": "npm:astro@7.2.0",
+        "@astrojs/mdx": "npm:@astrojs/mdx@7.0.5",
+        "@astrojs/check": "npm:@astrojs/check@0.9.10",
+        "typescript": "npm:typescript@6.0.3",
         "html-escaper": "npm:html-escaper@3.0.3",
         "aria-query": "npm:aria-query@5.3.2",
         "axobject-query": "npm:axobject-query@4.1.0",
@@ -41,24 +41,24 @@
         "@types/node": "npm:@types/node@^26.1.1",
 
         // capacitor
-        "@capacitor/cli": "npm:@capacitor/cli@8.4.2",
-        "@capacitor/core": "npm:@capacitor/core@8.4.2",
+        "@capacitor/cli": "npm:@capacitor/cli@8.5.0",
+        "@capacitor/core": "npm:@capacitor/core@8.5.0",
         "@capacitor/action-sheet": "npm:@capacitor/action-sheet@8.1.1",
         "@capacitor/app": "npm:@capacitor/app@8.1.1",
         "@capacitor/app-launcher": "npm:@capacitor/app-launcher@8.0.1",
         "@capacitor/background-runner": "npm:@capacitor/background-runner@3.0.0",
         "@capacitor/barcode-scanner": "npm:@capacitor/barcode-scanner@3.1.0",
         "@capacitor/browser": "npm:@capacitor/browser@8.0.4",
-        "@capacitor/camera": "npm:@capacitor/camera@8.2.1",
+        "@capacitor/camera": "npm:@capacitor/camera@8.2.2",
         "@capacitor/clipboard": "npm:@capacitor/clipboard@8.0.1",
         "@capacitor/device": "npm:@capacitor/device@8.0.3",
         "@capacitor/dialog": "npm:@capacitor/dialog@8.0.1",
         "@capacitor/file-transfer": "npm:@capacitor/file-transfer@2.0.4",
         "@capacitor/file-viewer": "npm:@capacitor/file-viewer@2.0.1",
         "@capacitor/filesystem": "npm:@capacitor/filesystem@8.1.2",
-        "@capacitor/geolocation": "npm:@capacitor/geolocation@8.2.0",
+        "@capacitor/geolocation": "npm:@capacitor/geolocation@8.2.1",
         "@capacitor/haptics": "npm:@capacitor/haptics@8.0.2",
-        "@capacitor/inappbrowser": "npm:@capacitor/inappbrowser@4.0.1",
+        "@capacitor/inappbrowser": "npm:@capacitor/inappbrowser@4.0.2",
         "@capacitor/keyboard": "npm:@capacitor/keyboard@8.0.5",
         "@capacitor/local-notifications": "npm:@capacitor/local-notifications@8.2.1",
         "@capacitor/network": "npm:@capacitor/network@8.0.1",
@@ -74,7 +74,7 @@
 
         // sqlite for TS deps
         "jeep-sqlite": "npm:jeep-sqlite@2.8.0", // used by capacitor in TS
-        "@capacitor-community/sqlite": "npm:@capacitor-community/sqlite@8.1.0",
+        "@capacitor-community/sqlite": "npm:@capacitor-community/sqlite@8.1.1",
 
         // sql for some astro pages and scripts/generate-offline-data.mjs
         "sql.js": "npm:sql.js@1.14.1",
