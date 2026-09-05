@@ -5,3 +5,9 @@
 [submodule "Database-Orchestrator"]
 	path = subModules/Database-Orchestrator
     url = https://github.com/yggdrasil-au/Anime-Dimension-Database-Orchestrator.git
+
+# Tools submodule
+# usually this is a Symlink to the Tools submodule in the parent webdev repo but can be used directly if only developing this site
+[submodule "WebDev-Tools"]
+    path = Tools
+    url = https://github.com/yggdrasil-au/WebDev-Tools.git
