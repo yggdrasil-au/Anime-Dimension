@@ -1,0 +1,1413 @@
+---
+// /source/html/pages/users/list/user_anime.astro
+// Anime list page for user tracking, parity with Anime-Planet
+
+import Head from "@components/_0-Head.astro";
+import UpperHeader from "@components/_1-UpperHeader.astro";
+import Nav from "@components/_2-Nav.astro";
+import HeroBanner from "@components/_3-HeroBanner.astro";
+import LeftAdSidebar from "@components/_5-LeftAdSidebar.astro";
+import InlineBanner from "@components/_6-InlineBanner.astro";
+import RightSidebar from "@components/_7-RightSidebar.astro";
+import Footer from "@components/_8-Footer.astro";
+
+const description = "Track your animated works, ratings, reviews, and progress on Anime Dimension.";
+---
+
+<!doctype html>
+<html lang="en" data-bs-theme="dark">
+    <head>
+        <Head title="Anime List - Anime Dimension" description={description} />
+        <style is:inline>
+            /* Anime List & Anime-Planet Styling */
+            .controlBar.personalList {
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                justify-content: space-between;
+                gap: 0.75rem;
+                background: rgba(255, 255, 255, 0.03);
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                border-radius: 8px;
+                padding: 0.65rem 1rem;
+                margin-bottom: 1rem;
+            }
+
+            .quickFilter ul {
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                gap: 0.4rem;
+                list-style: none;
+                margin: 0;
+                padding: 0;
+            }
+
+            .quickFilter ul li a {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.35rem;
+                padding: 0.35rem 0.75rem;
+                font-size: 0.875rem;
+                font-weight: 500;
+                border-radius: 6px;
+                color: var(--bs-body-color);
+                text-decoration: none;
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid transparent;
+                transition: all 0.15s ease-in-out;
+            }
+
+            .quickFilter ul li a:hover {
+                background: rgba(255, 255, 255, 0.12);
+            }
+
+            .quickFilter ul li.selected a {
+                background: var(--bs-primary);
+                color: #fff;
+                font-weight: 600;
+            }
+
+            /* Status Pill Indicators */
+            .status-dot {
+                display: inline-block;
+                width: 9px;
+                height: 9px;
+                border-radius: 50%;
+                flex-shrink: 0;
+            }
+            .status-dot.status1, .status1:before { background-color: #6f99e4; } /* Watched */
+            .status-dot.status2, .status2:before { background-color: #8DEA43; } /* Watching */
+            .status-dot.status3, .status3:before { background-color: #d93d48; } /* Dropped */
+            .status-dot.status4, .status4:before { background-color: #FCFC3C; } /* Want to Watch */
+            .status-dot.status5, .status5:before { background-color: #FC9F3C; } /* Stalled */
+            .status-dot.status6, .status6:before { background-color: #9942E9; } /* Won't Watch */
+
+            /* Alphabetical Filter Bar */
+            nav.alpha.personalList {
+                margin: 0.75rem 0 1.25rem 0;
+                overflow-x: auto;
+            }
+
+            nav.alpha.personalList ul {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-wrap: wrap;
+                list-style: none;
+                padding: 0;
+                margin: 0;
+                gap: 0.2rem;
+            }
+
+            nav.alpha.personalList ul li a {
+                display: inline-block;
+                padding: 0.2rem 0.45rem;
+                font-size: 0.8rem;
+                font-weight: 600;
+                color: var(--bs-body-color);
+                text-decoration: none;
+                border-radius: 4px;
+                min-width: 1.6rem;
+                text-align: center;
+                background: rgba(255, 255, 255, 0.03);
+            }
+
+            nav.alpha.personalList ul li a:hover {
+                background: rgba(255, 255, 255, 0.12);
+            }
+
+            nav.alpha.personalList ul li.selected a {
+                background: var(--bs-primary);
+                color: #fff;
+            }
+
+            /* Table Styles */
+            .table-responsive-wrapper {
+                overflow-x: auto;
+                background: rgba(255, 255, 255, 0.02);
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                border-radius: 8px;
+            }
+
+            table.personalList {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 0.875rem;
+            }
+
+            table.personalList th, table.personalList td {
+                padding: 0.65rem 0.75rem;
+                vertical-align: middle;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+            }
+
+            table.personalList th {
+                background: rgba(0, 0, 0, 0.2);
+                font-weight: 600;
+                color: var(--bs-secondary-color);
+                text-transform: uppercase;
+                font-size: 0.75rem;
+                letter-spacing: 0.5px;
+            }
+
+            table.personalList tbody tr:hover {
+                background: rgba(255, 255, 255, 0.04);
+            }
+
+            .tableTitle {
+                min-width: 220px;
+            }
+
+            .tableTitle a {
+                color: var(--bs-body-color);
+                font-weight: 600;
+                text-decoration: none;
+            }
+
+            .tableTitle a:hover {
+                color: var(--bs-primary);
+            }
+
+            /* Tracking Form Controls Inside Table Row */
+            .myListBar {
+                display: flex;
+                align-items: center;
+                gap: 0.4rem;
+                flex-wrap: wrap;
+            }
+
+            .myListBar select {
+                background: rgba(0, 0, 0, 0.35);
+                color: var(--bs-body-color);
+                border: 1px solid rgba(255, 255, 255, 0.15);
+                border-radius: 5px;
+                padding: 0.25rem 0.4rem;
+                font-size: 0.8rem;
+                cursor: pointer;
+            }
+
+            .myListBar select:focus {
+                outline: none;
+                border-color: var(--bs-primary);
+            }
+
+            .incEpsBtn {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 1.75rem;
+                height: 1.75rem;
+                padding: 0;
+                font-size: 0.75rem;
+                font-weight: bold;
+                border-radius: 4px;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                background: rgba(255, 255, 255, 0.06);
+                color: var(--bs-body-color);
+                cursor: pointer;
+                transition: all 0.1s;
+            }
+
+            .incEpsBtn:hover {
+                background: var(--bs-primary);
+                color: #fff;
+                border-color: var(--bs-primary);
+            }
+
+            /* Star Rating Component */
+            .star-rating-box {
+                display: inline-flex;
+                align-items: center;
+                gap: 2px;
+                cursor: pointer;
+            }
+
+            .star-rating-box .star {
+                color: #ffc107;
+                font-size: 1rem;
+                transition: transform 0.1s;
+            }
+
+            .star-rating-box .star:hover {
+                transform: scale(1.15);
+            }
+
+            /* Grid Card View */
+            .anime-grid-view {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+                gap: 1rem;
+            }
+
+            .anime-card {
+                position: relative;
+                background: rgba(255, 255, 255, 0.03);
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                border-radius: 8px;
+                overflow: hidden;
+                display: flex;
+                flex-direction: column;
+                transition: transform 0.15s, box-shadow 0.15s;
+            }
+
+            .anime-card:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+            }
+
+            .anime-card-poster {
+                position: relative;
+                width: 100%;
+                aspect-ratio: 2/3;
+                background: #111;
+                overflow: hidden;
+            }
+
+            .anime-card-poster img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+            .anime-card-badge {
+                position: absolute;
+                top: 8px;
+                left: 8px;
+                font-size: 0.7rem;
+                font-weight: 700;
+                padding: 0.2rem 0.5rem;
+                border-radius: 4px;
+                text-transform: uppercase;
+                background: rgba(0, 0, 0, 0.75);
+                backdrop-filter: blur(4px);
+            }
+
+            .anime-card-body {
+                padding: 0.65rem;
+                display: flex;
+                flex-direction: column;
+                flex-grow: 1;
+            }
+
+            .anime-card-title {
+                font-size: 0.875rem;
+                font-weight: 600;
+                line-height: 1.25;
+                margin-bottom: 0.35rem;
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+            }
+
+            .anime-card-meta {
+                font-size: 0.75rem;
+                color: var(--bs-secondary-color);
+                margin-top: auto;
+            }
+        </style>
+    </head>
+    <body class="sidebar-collapsed">
+        <div class="sky"></div>
+
+        <header id="upper-header" class="upper-header p-3 d-table d-none">
+            <UpperHeader />
+        </header>
+
+        <div id="app-wrapper">
+            <nav id="main-nav" class="main-nav p-2">
+                <Nav />
+            </nav>
+            <section>
+                <section id="hero-banner" class="hero-banner sb sb-homepage fullbleed p-3 rounded d-none">
+                    <HeroBanner />
+                </section>
+
+                <div id="page-content-wrapper" style="height: 100%;" class="page-content-wrapper d-flex flex-column">
+                    <main class="flex-grow-1 p-3 p-md-4">
+                        <section id="inline-banner" class="inline-banner p-3 text-center rounded d-none">
+                            <InlineBanner />
+                        </section>
+
+                        <div class="container-xxl py-2">
+                            <!-- User Header Bar -->
+                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 pb-3 mb-3 border-bottom border-secondary border-opacity-25">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="position-relative">
+                                        <img id="userAvatarImg" src="/data/images/prod/assets/inc/img/logos/dimension-kun.svg" alt="User avatar" class="rounded-circle" style="width: 52px; height: 52px; object-fit: cover; border: 2px solid var(--bs-primary);" />
+                                    </div>
+                                    <div>
+                                        <h1 class="h4 mb-0" id="listUsername">User's Anime</h1>
+                                        <div class="text-body-secondary small" id="listStatsSummary">Loading anime list...</div>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <button id="openImportModalBtn" type="button" class="btn btn-sm btn-outline-info d-none" title="Import anime list from Anime-Planet">
+                                        <i class="bi bi-cloud-arrow-up me-1"></i> Import List
+                                    </button>
+                                    <a id="viewProfileBtn" href="/users/user.html" class="btn btn-sm btn-outline-secondary">
+                                        <i class="bi bi-person me-1"></i> Profile
+                                    </a>
+                                    <a href="/anime/all.html" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-compass me-1"></i> Browse Anime
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- Filter & Controls Bar -->
+                            <div class="controlBar personalList">
+                                <div class="quickFilter">
+                                    <ul id="statusTabs">
+                                        <li data-status="all"><a href="?status=all">All</a></li>
+                                        <li data-status="watching"><a href="?status=watching"><span class="status-dot status2"></span>Watching</a></li>
+                                        <li data-status="want"><a href="?status=want"><span class="status-dot status4"></span>Want to watch</a></li>
+                                        <li data-status="watched"><a href="?status=watched"><span class="status-dot status1"></span>Watched</a></li>
+                                        <li data-status="stalled"><a href="?status=stalled"><span class="status-dot status5"></span>Stalled</a></li>
+                                        <li data-status="dropped"><a href="?status=dropped"><span class="status-dot status3"></span>Dropped</a></li>
+                                        <li data-status="wont"><a href="?status=wont"><span class="status-dot status6"></span>Won't watch</a></li>
+                                    </ul>
+                                </div>
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <input type="text" id="searchInput" placeholder="Filter title..." class="form-control form-control-sm" style="width: 140px;" />
+                                    <select id="sortSelect" class="form-select form-select-sm" style="width: 130px;">
+                                        <option value="user_updated">Recently updated</option>
+                                        <option value="title">Title (A-Z)</option>
+                                        <option value="rating">Rating</option>
+                                        <option value="year">Year</option>
+                                    </select>
+                                    <div class="btn-group btn-group-sm" role="group" aria-label="View switch">
+                                        <button type="button" class="btn btn-outline-secondary active" id="viewTableBtn" title="Table view">
+                                            <i class="bi bi-list"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary" id="viewGridBtn" title="Grid view">
+                                            <i class="bi bi-grid"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Alphabetical Letter Filter -->
+                            <nav class="alpha personalList" aria-label="Alphabetical filter">
+                                <ul id="letterNav">
+                                    <li class="selected" data-letter=""><a href="#all">all</a></li>
+                                    <li data-letter="#"><a href="#num">#</a></li>
+                                    <!-- A-Z inserted via script -->
+                                </ul>
+                            </nav>
+
+                            <!-- List Content Area -->
+                            <div id="listContainer">
+                                <div id="loadingIndicator" class="text-center py-5">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <div class="text-body-secondary mt-2">Loading your anime list...</div>
+                                </div>
+
+                                <div id="emptyMessage" class="card text-center p-5 border-0 bg-body-tertiary d-none">
+                                    <div class="mb-3">
+                                        <i class="bi bi-film fs-1 text-secondary"></i>
+                                    </div>
+                                    <h4 class="h5">No anime found</h4>
+                                    <p class="text-body-secondary small mb-3">No animated works match the selected filter or status.</p>
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <button id="emptyImportBtn" type="button" class="btn btn-sm btn-outline-info d-none">
+                                            <i class="bi bi-cloud-arrow-up me-1"></i> Import from Anime-Planet
+                                        </button>
+                                        <a href="/anime/all.html" class="btn btn-sm btn-primary">Discover Anime</a>
+                                    </div>
+                                </div>
+
+                                <!-- Table View -->
+                                <div class="table-responsive-wrapper d-none" id="tableViewWrapper">
+                                    <table class="personalList" id="animeTable">
+                                        <thead>
+                                            <tr>
+                                                <th style="width: 45px;"></th>
+                                                <th>Title</th>
+                                                <th style="width: 75px;">Type</th>
+                                                <th style="width: 65px;">Year</th>
+                                                <th style="width: 320px;">Status / Eps / Rating</th>
+                                                <th style="width: 45px;"></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="animeTableBody">
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <!-- Grid View -->
+                                <div class="anime-grid-view d-none" id="gridViewWrapper">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Import Anime Modal -->
+                        <div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true" style="display: none;">
+                            <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+                                <div class="modal-content border-secondary border-opacity-25 bg-dark text-light shadow-lg">
+                                    <div class="modal-header border-secondary border-opacity-25 py-3">
+                                        <h5 class="modal-title d-flex align-items-center gap-2 h6 mb-0" id="importModalLabel">
+                                            <i class="bi bi-cloud-arrow-up text-primary fs-5"></i>
+                                            <span class="fw-bold">Import Anime List</span>
+                                        </h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" id="modalCloseXBtn"></button>
+                                    </div>
+                                    
+                                    <div class="modal-body p-4">
+                                        <!-- STEP 1: Upload / Dropzone -->
+                                        <div id="importStepUpload">
+                                            <div class="mb-3">
+                                                <label class="form-label small fw-semibold text-body-secondary mb-1">Source Website / Service</label>
+                                                <select class="form-select form-select-sm bg-body-tertiary border-secondary border-opacity-25 text-body" id="importSourceSelect">
+                                                    <option value="anime-planet" selected>Anime-Planet (JSON Export)</option>
+                                                </select>
+                                                <div class="form-text text-body-secondary small mt-1">
+                                                    Export your personal list at <a href="https://www.anime-planet.com/users/export_list.php" target="_blank" rel="noopener noreferrer" class="text-info text-decoration-none"><i class="bi bi-box-arrow-up-right me-1"></i>anime-planet.com/users/export_list.php</a> as a JSON file, then upload it here.
+                                                </div>
+                                            </div>
+
+                                            <!-- Catalog Freshness Notice -->
+                                            <div class="alert alert-info py-2 px-3 small d-flex align-items-start gap-2 mb-3 bg-opacity-10 border-info border-opacity-25">
+                                                <i class="bi bi-info-circle-fill text-info mt-1 flex-shrink-0"></i>
+                                                <div>
+                                                    <strong>Catalog notice for new & ongoing releases:</strong>
+                                                    Anime-Dimension's anime catalog is maintained offline and may not yet include brand-new seasonal broadcasts. Any titles in your export that are not yet indexed in our local database will be clearly highlighted in the preview before importing.
+                                                </div>
+                                            </div>
+
+                                            <!-- Drag & Drop Zone -->
+                                            <div id="importDropZone" class="border border-2 border-dashed rounded-3 p-4 text-center cursor-pointer mb-3" style="border-color: rgba(255,255,255,0.2) !important; background: rgba(255,255,255,0.03); cursor: pointer; transition: all 0.2s ease;">
+                                                <input type="file" id="importFileInput" accept=".json,application/json" class="d-none" />
+                                                <i class="bi bi-file-earmark-arrow-up fs-1 text-primary mb-2 d-block"></i>
+                                                <div class="fw-semibold mb-1">Drag and drop your Anime-Planet JSON export file here</div>
+                                                <div class="text-body-secondary small mb-3">or click to browse from your computer</div>
+                                                <span class="badge bg-secondary bg-opacity-50 text-light fw-normal py-1 px-2"><i class="bi bi-file-code me-1"></i>export-anime-*.json</span>
+                                            </div>
+
+                                            <div id="importUploadError" class="alert alert-danger py-2 px-3 small d-none"></div>
+                                        </div>
+
+                                        <!-- STEP 2: Preview Results -->
+                                        <div id="importStepPreview" class="d-none">
+                                            <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2 pb-2 border-bottom border-secondary border-opacity-25">
+                                                <div>
+                                                    <h6 class="mb-0 fw-bold" id="previewSourceHeading">Anime-Planet Export Preview</h6>
+                                                    <div class="text-body-secondary small" id="previewTotalCount">0 total entries parsed</div>
+                                                </div>
+                                                <div class="d-flex gap-2 flex-wrap">
+                                                    <span class="badge bg-success bg-opacity-75" id="previewMatchedBadge">0 Matched</span>
+                                                    <span class="badge bg-warning bg-opacity-75 text-dark" id="previewUnmatchedBadge">0 Newer / Unindexed</span>
+                                                    <span class="badge bg-info bg-opacity-75 text-dark" id="previewExistingBadge">0 Already Tracked</span>
+                                                </div>
+                                            </div>
+
+                                            <!-- Preview Nav Tabs -->
+                                            <ul class="nav nav-pills nav-fill mb-3 gap-2" id="previewTabs" role="tablist">
+                                                <li class="nav-item" role="presentation">
+                                                    <button class="nav-link active small py-2 fw-semibold" id="previewMatchedTab" type="button">
+                                                        <i class="bi bi-check2-circle me-1 text-success"></i> Ready to Import (<span id="tabCountMatched">0</span>)
+                                                    </button>
+                                                </li>
+                                                <li class="nav-item" role="presentation">
+                                                    <button class="nav-link small py-2 fw-semibold" id="previewUnmatchedTab" type="button">
+                                                        <i class="bi bi-clock-history me-1 text-warning"></i> Newer / Unindexed (<span id="tabCountUnmatched">0</span>)
+                                                    </button>
+                                                </li>
+                                            </ul>
+
+                                            <!-- Matched Tab Pane -->
+                                            <div id="previewMatchedPane">
+                                                <div class="table-responsive border border-secondary border-opacity-25 rounded" style="max-height: 280px; overflow-y: auto;">
+                                                    <table class="table table-dark table-striped table-hover table-sm align-middle mb-0" style="font-size: 0.8rem;">
+                                                        <thead class="sticky-top bg-dark border-bottom border-secondary">
+                                                            <tr>
+                                                                <th>Export Title</th>
+                                                                <th>Matched Dimension Title</th>
+                                                                <th>Status</th>
+                                                                <th>Episodes</th>
+                                                                <th>Rating</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody id="previewMatchedTableBody">
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+
+                                            <!-- Unmatched / Newer Tab Pane -->
+                                            <div id="previewUnmatchedPane" class="d-none">
+                                                <div class="alert alert-warning py-2 px-3 small mb-2 bg-opacity-10 border-warning border-opacity-25">
+                                                    <i class="bi bi-exclamation-triangle-fill text-warning me-1"></i>
+                                                    These entries were not found in Anime-Dimension's offline database catalog (likely newer broadcast seasons or unindexed entries). They will be skipped during this import.
+                                                </div>
+                                                <div class="table-responsive border border-secondary border-opacity-25 rounded" style="max-height: 250px; overflow-y: auto;">
+                                                    <table class="table table-dark table-striped table-hover table-sm align-middle mb-0" style="font-size: 0.8rem;">
+                                                        <thead class="sticky-top bg-dark border-bottom border-secondary">
+                                                            <tr>
+                                                                <th>Export Title</th>
+                                                                <th>Export Status</th>
+                                                                <th>Episodes</th>
+                                                                <th>Note</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody id="previewUnmatchedTableBody">
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+
+                                            <hr class="border-secondary border-opacity-25 my-3" />
+
+                                            <!-- Overwrite Option -->
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="overwriteExistingCheck" checked>
+                                                <label class="form-check-label small fw-semibold" for="overwriteExistingCheck">
+                                                    Overwrite existing entries if already present in my Anime Dimension list
+                                                </label>
+                                                <div class="text-body-secondary small">
+                                                    When checked, entries already in your collection will have their status, watched episode count, and rating updated to match your export file.
+                                                </div>
+                                            </div>
+
+                                            <div id="importConfirmError" class="alert alert-danger py-2 px-3 small d-none mt-2"></div>
+                                        </div>
+
+                                        <!-- STEP 3: Complete / Summary -->
+                                        <div id="importStepComplete" class="d-none text-center py-4">
+                                            <div class="mb-3">
+                                                <i class="bi bi-check-circle-fill text-success" style="font-size: 3.5rem;"></i>
+                                            </div>
+                                            <h5 class="fw-bold mb-1">Import Completed Successfully!</h5>
+                                            <p class="text-body-secondary small mb-3" id="importCompleteSummary">Your anime list has been updated.</p>
+                                            <div class="d-flex justify-content-center gap-2">
+                                                <button type="button" class="btn btn-sm btn-primary px-4" id="importDoneBtn">
+                                                    <i class="bi bi-arrow-repeat me-1"></i> Refresh Anime List
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <!-- Loading State inside Modal -->
+                                        <div id="importModalLoading" class="text-center py-5 d-none">
+                                            <div class="spinner-border text-primary" role="status" style="width: 2.5rem; height: 2.5rem;">
+                                                <span class="visually-hidden">Loading...</span>
+                                            </div>
+                                            <div class="text-body-secondary mt-3 small fw-semibold" id="importModalLoadingText">Analyzing and reconciling import file...</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="modal-footer border-secondary border-opacity-25 py-2" id="importModalFooter">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal" id="importCancelBtn">Cancel</button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary d-none" id="importBackBtn">
+                                            <i class="bi bi-arrow-left me-1"></i> Back
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-primary d-none" id="importConfirmBtn">
+                                            <i class="bi bi-cloud-arrow-up me-1"></i> Confirm Import (<span id="confirmImportCount">0</span>)
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+
+                    <aside id="left-ad-sidebar" class="left-ad-sidebar-overlay rounded d-none">
+                        <div class="left-ad-sidebar-content">
+                            <button id="close-left-ad-sidebar" type="button" class="btn-close" aria-label="Close"></button>
+                            <LeftAdSidebar />
+                        </div>
+                    </aside>
+
+                    <footer id="footer" class="footer mt-auto py-3 bg-body-tertiary">
+                        <Footer />
+                    </footer>
+                </div>
+            </section>
+        </div>
+
+        <script is:inline>
+            // Client-side controller for User Anime List
+            (() => {
+                const getApiBase = () => {
+                    const probe = document.querySelector('[data-api-base]');
+                    const base = probe && probe.getAttribute('data-api-base');
+                    return (base || 'https://api.anime-dimension.com').replace(/\/$/, '');
+                };
+
+                const urlParams = new URLSearchParams(window.location.search);
+                let currentStatus = (urlParams.get('status') || 'watching').toLowerCase();
+                let currentSort = urlParams.get('sort') || 'user_updated';
+                let currentLetter = (urlParams.get('letter') || '').toLowerCase();
+                let currentSearch = '';
+                let currentView = 'table';
+                let currentUsername = urlParams.get('username') || urlParams.get('user') || urlParams.get('u') || '';
+                let isOwner = false;
+                let activeUser = null;
+                let listItems = [];
+
+                // DOM Elements
+                const listUsernameEl = document.getElementById('listUsername');
+                const listStatsSummaryEl = document.getElementById('listStatsSummary');
+                const userAvatarImg = document.getElementById('userAvatarImg');
+                const viewProfileBtn = document.getElementById('viewProfileBtn');
+                const statusTabsEl = document.getElementById('statusTabs');
+                const letterNavEl = document.getElementById('letterNav');
+                const sortSelect = document.getElementById('sortSelect');
+                const searchInput = document.getElementById('searchInput');
+                const viewTableBtn = document.getElementById('viewTableBtn');
+                const viewGridBtn = document.getElementById('viewGridBtn');
+                const loadingIndicator = document.getElementById('loadingIndicator');
+                const emptyMessage = document.getElementById('emptyMessage');
+                const tableViewWrapper = document.getElementById('tableViewWrapper');
+                const gridViewWrapper = document.getElementById('gridViewWrapper');
+                const animeTableBody = document.getElementById('animeTableBody');
+
+                // Build Alphabetical Navigation Links
+                const initAlphabetNav = () => {
+                    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+                    letters.forEach((char) => {
+                        const li = document.createElement('li');
+                        li.dataset.letter = char.toLowerCase();
+                        li.innerHTML = `<a href="#${char}">${char}</a>`;
+                        li.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            setLetterFilter(char.toLowerCase());
+                        });
+                        letterNavEl.appendChild(li);
+                    });
+
+                    // Add all handler
+                    const allLi = letterNavEl.querySelector('[data-letter=""]');
+                    if (allLi) {
+                        allLi.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            setLetterFilter('');
+                        });
+                    }
+                    const numLi = letterNavEl.querySelector('[data-letter="#"]');
+                    if (numLi) {
+                        numLi.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            setLetterFilter('#');
+                        });
+                    }
+                };
+
+                const setLetterFilter = (letter) => {
+                    currentLetter = letter;
+                    letterNavEl.querySelectorAll('li').forEach(li => {
+                        li.classList.toggle('selected', (li.dataset.letter || '') === currentLetter);
+                    });
+                    renderFilteredData();
+                };
+
+                // Check Active Session & Identity
+                const initIdentity = async () => {
+                    const apiBase = getApiBase();
+                    try {
+                        const res = await fetch(`${apiBase}/api/login/validateState?caller=user_anime_list`, {
+                            method: 'PUT',
+                            credentials: 'include'
+                        });
+                        const data = await res.json().catch(() => ({}));
+                        if (data && data.status === 'ok' && data.data) {
+                            activeUser = data.data;
+                        }
+                    } catch { /* guest */ }
+
+                    if (!currentUsername) {
+                        if (activeUser?.user_name) {
+                            currentUsername = activeUser.user_name;
+                        } else {
+                            window.location.replace('/auth/index.html');
+                            return;
+                        }
+                    }
+
+                    isOwner = !!(activeUser?.user_name && activeUser.user_name.toLowerCase() === currentUsername.toLowerCase());
+
+                    if (isOwner) {
+                        openImportModalBtn?.classList.remove('d-none');
+                        emptyImportBtn?.classList.remove('d-none');
+                    }
+
+                    listUsernameEl.textContent = `${currentUsername}'s Anime List`;
+                    viewProfileBtn.href = `/users/user.html?username=${encodeURIComponent(currentUsername)}`;
+                    document.title = `${currentUsername}'s Anime List - Anime Dimension`;
+
+                    // Fetch user avatar with loop-safe fallback
+                    userAvatarImg.onerror = () => {
+                        userAvatarImg.onerror = null;
+                        userAvatarImg.src = '/data/images/prod/assets/inc/img/logos/dimension-kun.svg';
+                        userAvatarImg.addEventListener('error', () => {
+                            userAvatarImg.style.display = 'none';
+                        }, { once: true });
+                    };
+                    if (activeUser?.avatar_url) {
+                        userAvatarImg.src = activeUser.avatar_url;
+                    } else if (activeUser?.user_id || currentUsername) {
+                        userAvatarImg.src = `/images/users/avatars/${encodeURIComponent(activeUser?.user_id || currentUsername)}.webp`;
+                    } else {
+                        userAvatarImg.onerror = null;
+                        userAvatarImg.src = '/data/images/prod/assets/inc/img/logos/dimension-kun.svg';
+                    }
+
+                    // Highlight initial status tab
+                    updateStatusTabsUI();
+                    loadData();
+                };
+
+                const updateStatusTabsUI = () => {
+                    statusTabsEl.querySelectorAll('li').forEach((li) => {
+                        const s = li.dataset.status;
+                        const isSel = s === currentStatus || (s === 'want' && currentStatus === 'wanttowatch');
+                        li.classList.toggle('selected', isSel);
+                    });
+                };
+
+                // Load List Data from Backend API
+                const loadData = async () => {
+                    loadingIndicator.classList.remove('d-none');
+                    emptyMessage.classList.add('d-none');
+                    tableViewWrapper.classList.add('d-none');
+                    gridViewWrapper.classList.add('d-none');
+
+                    const apiBase = getApiBase();
+                    try {
+                        const queryUrl = `${apiBase}/api/users/${encodeURIComponent(currentUsername)}/animelist?status=${encodeURIComponent(currentStatus)}&sort=${encodeURIComponent(currentSort)}`;
+                        const res = await fetch(queryUrl, { credentials: 'include' });
+                        const json = await res.json().catch(() => ({}));
+
+                        if (json && json.status === 'ok' && json.data) {
+                            listItems = json.data.items || [];
+                            listStatsSummaryEl.textContent = `${json.data.total_count} animated works in ${currentStatus === 'all' ? 'collection' : currentStatus}`;
+                        } else {
+                            listItems = [];
+                            listStatsSummaryEl.textContent = '0 animated works';
+                        }
+                    } catch (err) {
+                        console.error('Failed to load anime list', err);
+                        listItems = [];
+                        listStatsSummaryEl.textContent = 'Error loading list';
+                    } finally {
+                        loadingIndicator.classList.add('d-none');
+                        renderFilteredData();
+                    }
+                };
+
+                // Filter & Render in Active View Mode
+                const renderFilteredData = () => {
+                    let filtered = [...listItems];
+
+                    // Letter filter
+                    if (currentLetter) {
+                        filtered = filtered.filter(item => {
+                            const first = (item.title || item.slug).charAt(0);
+                            if (currentLetter === '#') return !/[a-zA-Z]/.test(first);
+                            return first.toLowerCase() === currentLetter;
+                        });
+                    }
+
+                    // Search filter
+                    if (currentSearch) {
+                        const q = currentSearch.toLowerCase();
+                        filtered = filtered.filter(item =>
+                            (item.title && item.title.toLowerCase().includes(q)) ||
+                            (item.alt_title && item.alt_title.toLowerCase().includes(q))
+                        );
+                    }
+
+                    if (filtered.length === 0) {
+                        emptyMessage.classList.remove('d-none');
+                        tableViewWrapper.classList.add('d-none');
+                        gridViewWrapper.classList.add('d-none');
+                        return;
+                    }
+
+                    emptyMessage.classList.add('d-none');
+
+                    if (currentView === 'table') {
+                        renderTableView(filtered);
+                        tableViewWrapper.classList.remove('d-none');
+                        gridViewWrapper.classList.add('d-none');
+                    } else {
+                        renderGridView(filtered);
+                        gridViewWrapper.classList.remove('d-none');
+                        tableViewWrapper.classList.add('d-none');
+                    }
+                };
+
+                // Render Table
+                const renderTableView = (items) => {
+                    animeTableBody.innerHTML = '';
+                    items.forEach((item) => {
+                        const tr = document.createElement('tr');
+                        tr.dataset.slug = item.slug;
+
+                        const thumb = item.thumbnail_url || '/data/images/prod/assets/inc/img/logos/dimension-kun.svg';
+                        const totalEps = item.total_episodes || 0;
+                        const watched = item.episodes_watched || 0;
+                        const rating = item.user_rating || 0;
+
+                        tr.innerHTML = `
+                            <td>
+                                <img src="${thumb}" alt="${item.title}" style="width: 32px; height: 44px; object-fit: cover; border-radius: 4px;" loading="lazy" onerror="this.onerror=null;this.src='/data/images/prod/assets/inc/img/logos/dimension-kun.svg'" />
+                            </td>
+                            <td class="tableTitle">
+                                <a href="/anime/${encodeURIComponent(item.slug)}.html" class="fw-semibold">${escapeHtml(item.title)}</a>
+                                ${item.alt_title ? `<div class="text-body-secondary small text-truncate" style="max-width: 300px;">${escapeHtml(item.alt_title)}</div>` : ''}
+                            </td>
+                            <td class="text-body-secondary">${escapeHtml(item.type || 'TV')}</td>
+                            <td class="text-body-secondary">${escapeHtml(item.year || '—')}</td>
+                            <td class="epsRating">
+                                <div class="myListBar" data-slug="${escapeHtml(item.slug)}" data-id="${item.anime_id || 0}">
+                                    <span class="status-dot status${item.status}"></span>
+                                    ${isOwner ? `
+                                        <select class="statusSelect">
+                                            <option value="0">Remove</option>
+                                            <option value="1" ${item.status === 1 ? 'selected' : ''}>Watched</option>
+                                            <option value="2" ${item.status === 2 ? 'selected' : ''}>Watching</option>
+                                            <option value="4" ${item.status === 4 ? 'selected' : ''}>Want to Watch</option>
+                                            <option value="5" ${item.status === 5 ? 'selected' : ''}>Stalled</option>
+                                            <option value="3" ${item.status === 3 ? 'selected' : ''}>Dropped</option>
+                                            <option value="6" ${item.status === 6 ? 'selected' : ''}>Won't Watch</option>
+                                        </select>
+                                        <select class="epSelect">
+                                            ${renderEpOptions(watched, totalEps)}
+                                        </select>
+                                        <span class="text-body-secondary small">/ ${totalEps > 0 ? totalEps : '?'}</span>
+                                        <div class="star-rating-box ms-2" title="Rating: ${rating > 0 ? rating + ' / 5' : 'Unrated'}">
+                                            ${renderStars(rating)}
+                                        </div>
+                                    ` : `
+                                        <span class="badge text-bg-secondary">${item.status_name}</span>
+                                        <span class="text-body-secondary small ms-2">${watched} / ${totalEps > 0 ? totalEps : '?'} eps</span>
+                                        <div class="star-rating-box ms-2">
+                                            ${renderStars(rating)}
+                                        </div>
+                                    `}
+                                </div>
+                            </td>
+                            <td>
+                                ${isOwner && item.status === 2 && (totalEps === 0 || watched < totalEps) ? `
+                                    <button class="incEpsBtn" title="Increment watched episode">+1</button>
+                                ` : ''}
+                            </td>
+                        `;
+
+                        // Bind interactive events for owner
+                        if (isOwner) {
+                            const statusSel = tr.querySelector('.statusSelect');
+                            const epSel = tr.querySelector('.epSelect');
+                            const incBtn = tr.querySelector('.incEpsBtn');
+                            const starsBox = tr.querySelector('.star-rating-box');
+
+                            statusSel?.addEventListener('change', async () => {
+                                const newStatus = parseInt(statusSel.value, 10);
+                                if (newStatus === 0) {
+                                    tr.remove();
+                                    await updateTracking(item.slug, 0);
+                                } else {
+                                    const dot = tr.querySelector('.status-dot');
+                                    if (dot) dot.className = `status-dot status${newStatus}`;
+                                    await updateTracking(item.slug, newStatus);
+                                }
+                            });
+
+                            epSel?.addEventListener('change', async () => {
+                                const eps = parseInt(epSel.value, 10);
+                                await updateTracking(item.slug, item.status, eps);
+                            });
+
+                            incBtn?.addEventListener('click', async () => {
+                                const currentEps = parseInt(epSel.value, 10) || 0;
+                                const nextEps = currentEps + 1;
+                                epSel.value = String(nextEps);
+                                if (totalEps > 0 && nextEps >= totalEps) {
+                                    incBtn.remove();
+                                }
+                                await updateTracking(item.slug, item.status, nextEps);
+                            });
+
+                            starsBox?.addEventListener('click', async (e) => {
+                                const starEl = e.target.closest('[data-rating-val]');
+                                if (!starEl) return;
+                                const newRating = parseFloat(starEl.dataset.ratingVal);
+                                starsBox.innerHTML = renderStars(newRating);
+                                await updateTracking(item.slug, item.status, undefined, newRating);
+                            });
+                        }
+
+                        animeTableBody.appendChild(tr);
+                    });
+                };
+
+                // Render Grid
+                const renderGridView = (items) => {
+                    gridViewWrapper.innerHTML = '';
+                    items.forEach((item) => {
+                        const card = document.createElement('div');
+                        card.className = 'anime-card';
+                        const thumb = item.thumbnail_url || '/data/images/prod/assets/inc/img/logos/dimension-kun.svg';
+                        const rating = item.user_rating || 0;
+
+                        card.innerHTML = `
+                            <div class="anime-card-poster">
+                                <img src="${thumb}" alt="${item.title}" loading="lazy" onerror="this.onerror=null;this.src='/data/images/prod/assets/inc/img/logos/dimension-kun.svg'" />
+                                <span class="anime-card-badge status${item.status}">${item.status_name}</span>
+                            </div>
+                            <div class="anime-card-body">
+                                <a href="/anime/${encodeURIComponent(item.slug)}.html" class="anime-card-title text-decoration-none text-body">${escapeHtml(item.title)}</a>
+                                <div class="anime-card-meta d-flex justify-content-between align-items-center mt-2">
+                                    <span>${item.episodes_watched || 0} / ${item.total_episodes || '?'} ep</span>
+                                    <span class="text-warning"><i class="bi bi-star-fill me-1"></i>${rating > 0 ? rating : '—'}</span>
+                                </div>
+                            </div>
+                        `;
+                        gridViewWrapper.appendChild(card);
+                    });
+                };
+
+                // Helper: Update tracking in backend API
+                const updateTracking = async (slug, status, eps, rating) => {
+                    const apiBase = getApiBase();
+                    try {
+                        const payload = { slug, status };
+                        if (typeof eps === 'number') payload.episodes_watched = eps;
+                        if (typeof rating === 'number') payload.rating = rating;
+
+                        await fetch(`${apiBase}/api/users/me/animelist`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            credentials: 'include',
+                            body: JSON.stringify(payload)
+                        });
+                    } catch (err) {
+                        console.error('Failed to sync anime status', err);
+                    }
+                };
+
+                const renderEpOptions = (current, total) => {
+                    const count = Math.max(current, total || 0, 12);
+                    let opts = `<option value="0" ${current === 0 ? 'selected' : ''}>0</option>`;
+                    for (let i = 1; i <= count; i++) {
+                        opts += `<option value="${i}" ${current === i ? 'selected' : ''}>${i}</option>`;
+                    }
+                    return opts;
+                };
+
+                const renderStars = (rating) => {
+                    let html = '';
+                    for (let i = 1; i <= 5; i++) {
+                        const filled = rating >= i;
+                        const half = !filled && rating >= (i - 0.5);
+                        const iconClass = filled ? 'bi-star-fill' : (half ? 'bi-star-half' : 'bi-star');
+                        html += `<i class="bi ${iconClass} star" data-rating-val="${i}"></i>`;
+                    }
+                    return html;
+                };
+
+                const escapeHtml = (str) => {
+                    return String(str || '')
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/"/g, '&quot;');
+                };
+
+                // Status Tab Click Handlers
+                statusTabsEl.querySelectorAll('li').forEach(li => {
+                    li.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const s = li.dataset.status;
+                        currentStatus = s;
+                        const u = new URL(window.location);
+                        u.searchParams.set('status', s);
+                        window.history.pushState({}, '', u);
+                        updateStatusTabsUI();
+                        loadData();
+                    });
+                });
+
+                // Sort Dropdown
+                sortSelect.value = currentSort;
+                sortSelect.addEventListener('change', () => {
+                    currentSort = sortSelect.value;
+                    const u = new URL(window.location);
+                    u.searchParams.set('sort', currentSort);
+                    window.history.pushState({}, '', u);
+                    loadData();
+                });
+
+                // Search Input
+                searchInput.addEventListener('input', () => {
+                    currentSearch = searchInput.value.trim();
+                    renderFilteredData();
+                });
+
+                // View Switch
+                viewTableBtn.addEventListener('click', () => {
+                    currentView = 'table';
+                    viewTableBtn.classList.add('active');
+                    viewGridBtn.classList.remove('active');
+                    renderFilteredData();
+                });
+
+                viewGridBtn.addEventListener('click', () => {
+                    currentView = 'grid';
+                    viewGridBtn.classList.add('active');
+                    viewTableBtn.classList.remove('active');
+                    renderFilteredData();
+                });
+
+                // --- Import Modal Controller ---
+                const openImportModalBtn = document.getElementById('openImportModalBtn');
+                const emptyImportBtn = document.getElementById('emptyImportBtn');
+                const importModalEl = document.getElementById('importModal');
+                const modalCloseXBtn = document.getElementById('modalCloseXBtn');
+                const importCancelBtn = document.getElementById('importCancelBtn');
+                const importBackBtn = document.getElementById('importBackBtn');
+                const importConfirmBtn = document.getElementById('importConfirmBtn');
+                const confirmImportCount = document.getElementById('confirmImportCount');
+                const importDoneBtn = document.getElementById('importDoneBtn');
+
+                const importStepUpload = document.getElementById('importStepUpload');
+                const importStepPreview = document.getElementById('importStepPreview');
+                const importStepComplete = document.getElementById('importStepComplete');
+                const importModalLoading = document.getElementById('importModalLoading');
+                const importModalLoadingText = document.getElementById('importModalLoadingText');
+
+                const importDropZone = document.getElementById('importDropZone');
+                const importFileInput = document.getElementById('importFileInput');
+                const importUploadError = document.getElementById('importUploadError');
+                const importConfirmError = document.getElementById('importConfirmError');
+
+                const previewMatchedBadge = document.getElementById('previewMatchedBadge');
+                const previewUnmatchedBadge = document.getElementById('previewUnmatchedBadge');
+                const previewExistingBadge = document.getElementById('previewExistingBadge');
+                const previewTotalCount = document.getElementById('previewTotalCount');
+                const tabCountMatched = document.getElementById('tabCountMatched');
+                const tabCountUnmatched = document.getElementById('tabCountUnmatched');
+
+                const previewMatchedPane = document.getElementById('previewMatchedPane');
+                const previewUnmatchedPane = document.getElementById('previewUnmatchedPane');
+                const previewMatchedTab = document.getElementById('previewMatchedTab');
+                const previewUnmatchedTab = document.getElementById('previewUnmatchedTab');
+                const previewMatchedTableBody = document.getElementById('previewMatchedTableBody');
+                const previewUnmatchedTableBody = document.getElementById('previewUnmatchedTableBody');
+                const overwriteExistingCheck = document.getElementById('overwriteExistingCheck');
+                const importCompleteSummary = document.getElementById('importCompleteSummary');
+
+                let previewData = null;
+                let modalBackdropEl = null;
+
+                const openImportModal = () => {
+                    resetImportModal();
+                    importModalEl.classList.add('show');
+                    importModalEl.style.display = 'block';
+                    document.body.classList.add('modal-open');
+                    modalBackdropEl = document.createElement('div');
+                    modalBackdropEl.className = 'modal-backdrop fade show';
+                    document.body.appendChild(modalBackdropEl);
+                };
+
+                const closeImportModal = () => {
+                    importModalEl.classList.remove('show');
+                    importModalEl.style.display = 'none';
+                    document.body.classList.remove('modal-open');
+                    if (modalBackdropEl) {
+                        modalBackdropEl.remove();
+                        modalBackdropEl = null;
+                    }
+                };
+
+                const resetImportModal = () => {
+                    previewData = null;
+                    importFileInput.value = '';
+                    importUploadError.classList.add('d-none');
+                    importUploadError.textContent = '';
+                    importConfirmError.classList.add('d-none');
+                    importConfirmError.textContent = '';
+                    importStepUpload.classList.remove('d-none');
+                    importStepPreview.classList.add('d-none');
+                    importStepComplete.classList.add('d-none');
+                    importModalLoading.classList.add('d-none');
+                    importCancelBtn.classList.remove('d-none');
+                    importBackBtn.classList.add('d-none');
+                    importConfirmBtn.classList.add('d-none');
+                    showPreviewTab('matched');
+                };
+
+                const showPreviewTab = (tab) => {
+                    if (tab === 'matched') {
+                        previewMatchedTab?.classList.add('active');
+                        previewUnmatchedTab?.classList.remove('active');
+                        previewMatchedPane?.classList.remove('d-none');
+                        previewUnmatchedPane?.classList.add('d-none');
+                    } else {
+                        previewUnmatchedTab?.classList.add('active');
+                        previewMatchedTab?.classList.remove('active');
+                        previewUnmatchedPane?.classList.remove('d-none');
+                        previewMatchedPane?.classList.add('d-none');
+                    }
+                };
+
+                const initImportModal = () => {
+                    previewMatchedTab?.addEventListener('click', () => showPreviewTab('matched'));
+                    previewUnmatchedTab?.addEventListener('click', () => showPreviewTab('unmatched'));
+
+                    openImportModalBtn?.addEventListener('click', openImportModal);
+                    emptyImportBtn?.addEventListener('click', openImportModal);
+                    modalCloseXBtn?.addEventListener('click', closeImportModal);
+                    importCancelBtn?.addEventListener('click', closeImportModal);
+                    importBackBtn?.addEventListener('click', () => {
+                        importStepUpload.classList.remove('d-none');
+                        importStepPreview.classList.add('d-none');
+                        importBackBtn.classList.add('d-none');
+                        importConfirmBtn.classList.add('d-none');
+                        importCancelBtn.classList.remove('d-none');
+                    });
+
+                    importDoneBtn?.addEventListener('click', () => {
+                        closeImportModal();
+                        loadData();
+                    });
+
+                    // Dropzone Click & Drag/Drop
+                    importDropZone?.addEventListener('click', () => importFileInput.click());
+                    ['dragenter', 'dragover'].forEach(evt => {
+                        importDropZone?.addEventListener(evt, (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            importDropZone.style.borderColor = 'var(--bs-primary)';
+                            importDropZone.style.background = 'rgba(13, 110, 253, 0.08)';
+                        });
+                    });
+                    ['dragleave', 'drop'].forEach(evt => {
+                        importDropZone?.addEventListener(evt, (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            importDropZone.style.borderColor = 'rgba(255,255,255,0.2)';
+                            importDropZone.style.background = 'rgba(255,255,255,0.03)';
+                        });
+                    });
+                    importDropZone?.addEventListener('drop', (e) => {
+                        const files = e.dataTransfer?.files;
+                        if (files && files.length > 0) {
+                            handleSelectedFile(files[0]);
+                        }
+                    });
+                    importFileInput?.addEventListener('change', () => {
+                        if (importFileInput.files && importFileInput.files.length > 0) {
+                            handleSelectedFile(importFileInput.files[0]);
+                        }
+                    });
+
+                    importConfirmBtn?.addEventListener('click', onConfirmImport);
+                };
+
+                const handleSelectedFile = (file) => {
+                    if (!file.name.toLowerCase().endsWith('.json') && file.type !== 'application/json') {
+                        importUploadError.textContent = 'Please select a valid .json export file from Anime-Planet.';
+                        importUploadError.classList.remove('d-none');
+                        return;
+                    }
+
+                    importUploadError.classList.add('d-none');
+                    const reader = new FileReader();
+                    reader.onload = async (e) => {
+                        try {
+                            const raw = JSON.parse(e.target.result);
+                            let entries = [];
+                            if (Array.isArray(raw)) {
+                                entries = raw;
+                            } else if (raw && Array.isArray(raw.entries)) {
+                                entries = raw.entries;
+                            } else {
+                                throw new Error('File does not contain a list of anime entries. Expected { entries: [...] }');
+                            }
+
+                            if (entries.length === 0) {
+                                throw new Error('The selected export file contains 0 entries.');
+                            }
+
+                            await sendPreviewRequest(entries);
+                        } catch (err) {
+                            importUploadError.textContent = err.message || 'Failed to parse JSON file.';
+                            importUploadError.classList.remove('d-none');
+                        }
+                    };
+                    reader.onerror = () => {
+                        importUploadError.textContent = 'Failed to read file.';
+                        importUploadError.classList.remove('d-none');
+                    };
+                    reader.readAsText(file);
+                };
+
+                const sendPreviewRequest = async (entries) => {
+                    importStepUpload.classList.add('d-none');
+                    importModalLoading.classList.remove('d-none');
+                    importModalLoadingText.textContent = `Analyzing and reconciling ${entries.length} titles...`;
+
+                    const apiBase = getApiBase();
+                    try {
+                        const res = await fetch(`${apiBase}/api/users/me/import/preview`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            credentials: 'include',
+                            body: JSON.stringify({
+                                source: 'anime-planet',
+                                entries: entries
+                            })
+                        });
+
+                        const json = await res.json().catch(() => ({}));
+                        if (!res.ok || json.status !== 'ok') {
+                            throw new Error(json.msg || `Server returned error (${res.status})`);
+                        }
+
+                        previewData = json;
+                        renderPreviewUI(json);
+                    } catch (err) {
+                        importModalLoading.classList.add('d-none');
+                        importStepUpload.classList.remove('d-none');
+                        importUploadError.textContent = err.message || 'Error reconciling import titles.';
+                        importUploadError.classList.remove('d-none');
+                    }
+                };
+
+                const renderPreviewUI = (data) => {
+                    importModalLoading.classList.add('d-none');
+                    importStepPreview.classList.remove('d-none');
+                    importBackBtn.classList.remove('d-none');
+                    importCancelBtn.classList.add('d-none');
+
+                    const summary = data.summary || {};
+                    const matched = data.matched_entries || [];
+                    const unmatched = data.unmatched_entries || [];
+
+                    previewTotalCount.textContent = `${summary.total_entries || 0} entries from Anime-Planet export`;
+                    previewMatchedBadge.textContent = `${summary.matched_count || matched.length} Matched`;
+                    previewUnmatchedBadge.textContent = `${summary.unmatched_count || unmatched.length} Newer / Unindexed`;
+                    previewExistingBadge.textContent = `${summary.already_tracked_count || 0} Already Tracked`;
+
+                    tabCountMatched.textContent = matched.length;
+                    tabCountUnmatched.textContent = unmatched.length;
+
+                    confirmImportCount.textContent = matched.length;
+                    if (matched.length > 0) {
+                        importConfirmBtn.classList.remove('d-none');
+                    } else {
+                        importConfirmBtn.classList.add('d-none');
+                    }
+
+                    // Render Matched Table
+                    previewMatchedTableBody.innerHTML = '';
+                    matched.forEach(item => {
+                        const tr = document.createElement('tr');
+                        const thumb = item.thumbnail_url || '/data/images/prod/assets/inc/img/logos/dimension-kun.svg';
+                        const existingBadge = item.already_in_list ? `<span class="badge text-bg-secondary ms-1">Existing</span>` : '';
+                        tr.innerHTML = `
+                            <td class="text-truncate" style="max-width: 170px;" title="${escapeHtml(item.external_name)}">
+                                ${escapeHtml(item.external_name)}
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <img src="${thumb}" alt="" style="width: 20px; height: 28px; object-fit: cover; border-radius: 2px;" onerror="this.onerror=null;this.src='/data/images/prod/assets/inc/img/logos/dimension-kun.svg'" />
+                                    <span class="text-truncate" style="max-width: 170px;" title="${escapeHtml(item.matched_title)}">${escapeHtml(item.matched_title)}</span>
+                                    ${existingBadge}
+                                </div>
+                            </td>
+                            <td>
+                                <span class="status-dot status${item.status}"></span>
+                                <span>${escapeHtml(item.status_name)}</span>
+                            </td>
+                            <td>${item.episodes_watched || 0} / ${item.total_episodes > 0 ? item.total_episodes : '?'}</td>
+                            <td>${item.rating ? item.rating + ' ★' : '—'}</td>
+                        `;
+                        previewMatchedTableBody.appendChild(tr);
+                    });
+
+                    // Render Unmatched Table
+                    previewUnmatchedTableBody.innerHTML = '';
+                    unmatched.forEach(item => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td class="text-truncate fw-semibold" style="max-width: 220px;" title="${escapeHtml(item.external_name)}">
+                                ${escapeHtml(item.external_name)}
+                            </td>
+                            <td>
+                                <span class="status-dot status${item.status}"></span>
+                                <span>${escapeHtml(item.status_name)}</span>
+                            </td>
+                            <td>${item.episodes_watched || 0}</td>
+                            <td class="text-body-secondary small">${escapeHtml(item.message || 'Not yet indexed in catalog')}</td>
+                        `;
+                        previewUnmatchedTableBody.appendChild(tr);
+                    });
+
+                    showPreviewTab(matched.length > 0 ? 'matched' : 'unmatched');
+                };
+
+                const onConfirmImport = async () => {
+                    if (!previewData || !previewData.matched_entries || previewData.matched_entries.length === 0) return;
+
+                    importConfirmError.classList.add('d-none');
+                    importStepPreview.classList.add('d-none');
+                    importBackBtn.classList.add('d-none');
+                    importConfirmBtn.classList.add('d-none');
+                    importModalLoading.classList.remove('d-none');
+                    importModalLoadingText.textContent = `Importing ${previewData.matched_entries.length} titles into your collection...`;
+
+                    const apiBase = getApiBase();
+                    try {
+                        const payload = {
+                            overwrite_existing: overwriteExistingCheck.checked,
+                            entries: previewData.matched_entries.map(e => ({
+                                anime_id: e.matched_id,
+                                anime_slug: e.matched_slug,
+                                status: e.status,
+                                episodes_watched: e.episodes_watched || 0,
+                                rating: e.rating,
+                                times_watched: e.times_watched || 1
+                            }))
+                        };
+
+                        const res = await fetch(`${apiBase}/api/users/me/import/confirm`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            credentials: 'include',
+                            body: JSON.stringify(payload)
+                        });
+
+                        const json = await res.json().catch(() => ({}));
+                        if (!res.ok || json.status !== 'ok') {
+                            throw new Error(json.msg || `Server error during import (${res.status})`);
+                        }
+
+                        const d = json.data || {};
+                        importModalLoading.classList.add('d-none');
+                        importStepComplete.classList.remove('d-none');
+                        const ins = d.inserted_count ?? d.inserted ?? 0;
+                        const upd = d.updated_count ?? d.updated ?? 0;
+                        const skp = d.skipped_count ?? d.skipped ?? 0;
+                        importCompleteSummary.textContent = `Successfully added ${ins} new anime, updated ${upd} existing titles (${skp} skipped).`;
+                    } catch (err) {
+                        importModalLoading.classList.add('d-none');
+                        importStepPreview.classList.remove('d-none');
+                        importBackBtn.classList.remove('d-none');
+                        importConfirmBtn.classList.remove('d-none');
+                        importConfirmError.textContent = err.message || 'Failed to complete import.';
+                        importConfirmError.classList.remove('d-none');
+                    }
+                };
+
+                // Boot
+                initAlphabetNav();
+                initImportModal();
+                initIdentity();
+            })();
+        </script>
+    </body>
+</html>
+

@@ -319,7 +319,11 @@ const ThisJS = "../js/main.min.js"
 
                         const res = await fetch(`${apiBase}/api/auth/signup`, {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Platform': 'web',
+                            },
+                            credentials: 'include',
                             body: JSON.stringify({
                                 apf: apfToken,
                                 username,
@@ -337,31 +341,10 @@ const ThisJS = "../js/main.min.js"
                             show(errEl, msg);
                             return;
                         }
-                        show(okEl, 'Account created! Logging in...');
-
-                        try {
-                            const loginRes = await fetch(`${apiBase}/api/login`, {
-                                method: 'PUT',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'X-Platform': 'web',
-                                },
-                                body: JSON.stringify({ _username: username, _password: password, _remember_me: true }),
-                                credentials: 'include',
-                            });
-                            const loginData = await loginRes.json().catch(() => ({}));
-                            const loginStatus = (loginData && loginData.status) || (loginRes.ok ? 'ok' : 'err');
-
-                            if (loginStatus === 'ok') {
-                                show(okEl, 'Account created! Logged in! Redirecting...');
-                                setTimeout(() => { window.location.href = '/'; }, 600);
-                            } else {
-                                throw new Error('Auto-login failed');
-                            }
-                        } catch (e) {
-                            show(okEl, 'Account created! Redirecting to login...');
-                            setTimeout(() => { window.location.href = '/auth'; }, 800);
-                        }
+                        show(okEl, 'Account created! You are logged in. Redirecting...');
+                        setTimeout(() => {
+                            window.location.href = `/users/user.html?username=${encodeURIComponent(username)}`;
+                        }, 700);
                     } catch (error) {
                         show(errEl, error instanceof Error ? error.message : 'Network error.');
                     } finally {

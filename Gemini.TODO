@@ -1,0 +1,97 @@
+# Gemini.TODO - Anime-Dimension Production Readiness & Anime-Planet Parity
+
+Goal: Make Anime-Dimension production ready and usable, mimicking Anime-Planet's UX for discovering and tracking animations.
+Rules:
+- Database submodule is AS-IS (no modifications to database submodule; update frontend and backend API as needed).
+- Always use Deno for executing commands via `deno task yaml-run <script>`. Never run npm/npx directly.
+- Ignore manga; focus strictly on anime/animations.
+
+Review URL: http://127.0.0.1:8088/index.html
+
+---
+
+## Task Progress
+
+### 1. Research & Analysis
+- [x] Launch browser subagent to analyze Anime-Planet UX (profile, tracking widgets, list pages, auth flows)
+- [x] Incorporate browser subagent findings into component and API specifications
+- [x] Audit existing Anime-Dimension auth (`auth/index.astro`, `auth/register.astro`, `api/auth.cs`, `api/login.cs`)
+- [x] Audit existing user profile & stats (`users/user.astro`, `source/ts/users.ts`, `source/ts/user_logic/*`, `api/users.cs`)
+- [x] Audit existing list prototype (`users/list/_user_anime.astro.test`)
+
+### 2. User Authentication & Registration (Auto-Login)
+- [x] Ensure account registration (`/auth/register`) creates the user in the API and immediately creates an authenticated session (auto-login)
+- [x] Verify validation rules (username 3-20 alphanumeric, email format, password complexity) match between frontend and backend
+- [x] Ensure login page (`/auth/index`) smoothly logs in, persists session cookie, and redirects to target or home
+- [x] Ensure logout properly clears cookies/tokens and updates navigation state across pages
+- [x] Update `_2-Nav.astro` and `_1-UpperHeader.astro` with real-time auth state (avatar, username, profile link, "My Anime" link, logout)
+
+### 3. User Anime List Backend & API
+- [x] Add `UserAnimeList` table / schema in `UsersDbContext` in `Anime-Dimension-api`
+  - Fields: `UserId`, `AnimeSlug` / `AnimeId`, `Title`, `Type`, `Year`, `TotalEpisodes`, `EpisodesWatched`, `Status` (1=Watched, 2=Watching, 3=Dropped, 4=WantToWatch, 5=Stalled, 6=WontWatch), `Rating` (0.5 - 5.0), `TimesWatched`, `UpdatedAt`
+- [x] Implement API endpoints:
+  - `GET /api/users/{username}/animelist`: fetch user's anime list with optional filters (`status`, `sort`, `letter`, `search`)
+  - `GET /api/users/me/animelist/{slug}`: get user's tracking state for a specific anime
+  - `POST /api/users/me/animelist`: add or update an anime in user's list (status, eps watched, rating, rewatch)
+  - `DELETE /api/users/me/animelist/{slug}`: remove anime from user's list
+- [x] Automatically synchronize watch stats (`MinutesWatched`, `Watched`, `Watching`, `Want`, `Stalled`, `Dropped`, `Wont`) and ratings histogram when list entries change
+
+### 4. User Profile Page Parity
+- [x] Polish `/users/user.astro` to dynamically display the active user's stats and avatar
+- [x] Support guest viewing of public profiles (`?username=...`), while auto-defaulting to logged-in user when query param is omitted
+- [x] Wire up "Watch status" buttons directly to user's filtered anime list (`/users/list/user_anime.html?username=...&status=...`)
+- [x] Display life on anime watch hours and ratings histogram from user's live list data
+- [x] Enable avatar and banner upload actions only when viewing own profile
+
+### 5. User Anime List Frontend (`/users/list/user_anime.astro`)
+- [x] Convert `_user_anime.astro.test` into production page route `users/list/user_anime.astro`
+- [x] Implement dynamic data loading for user anime list from `/api/users/{username}/animelist`:
+  - Quick status filter tabs (All, Watched, Watching, Want to Watch, Stalled, Dropped, Won't Watch)
+  - Sub-filters & sorting (Title, Rating, Recently Updated, Year)
+  - Quick inline update controls (change status dropdown, episode selector, +1 ep quick button, half-star rating)
+  - Table view and Grid card view toggle
+  - Alphabetical letter filtering (`#`, `A-Z`, `all`)
+  - Real-time optimistic updates synced to `/api/users/me/animelist`
+  - Empty state with browse CTA
+- [x] Clean up obsolete `_user_anime.astro.test`
+
+### 6. Anime Detail Page Tracking Widget
+- [x] Add interactive tracking widget on anime pages (`anime/[slug].astro`) matching Anime-Planet style:
+  - Add to list status dropdown (Watching, Want to Watch, Watched, Stalled, Dropped, Won't Watch)
+  - Interactive star rating (0.5 to 5.0 half-star resolution)
+  - Episode progress counter with `+1` quick increment
+  - Real-time API synchronization with immediate UI feedback
+  - Prompt unauthenticated visitors to log in
+
+### 7. Verification & Next Steps
+- [x] Verify API compilation (`dotnet build --no-restore` succeeded with 0 errors)
+- [x] Browser-driven testing via Chrome DevTools subagent:
+  - [x] Homepage & Navigation Header verification (popular/seasonal carousels, dynamic auth state)
+  - [x] Registration & immediate auto-login verification (tested with user `hero9422`)
+  - [x] Profile page loading, watch statistics, and ratings histogram
+  - [x] Fixed: Username regex in `_api.ts` expanded to `/^[a-zA-Z0-9_-]{3,30}$/`
+  - [x] Fixed: Database schema alignment for `UserAnimeLists` (plural view + INSTEAD OF triggers mapped to `UserAnimeList`)
+  - [x] Fixed: Fallback avatar & thumbnail asset 404 paths in `user_anime.astro` and `user_anime.html`
+  - [x] Fixed: Eliminated infinite `onerror` retry loop on avatar and thumbnails by setting `onerror = null` and adding circuit breaker
+  - [x] Fixed: Mirrored static `assets` folder into `www/website/assets` so legacy `/assets/inc/...` routes return 200 OK
+  - [x] Fixed: Username regex in C# backend (`users.cs`, `validation.cs`) aligned with frontend to allow underscores
+  - [x] End-to-end re-verification of anime tracking sync, user anime list page, and profile stats reflection (100% verified via Chrome DevTools subagent)
+
+### 8. User Data Import (Anime-Planet Migration Parity)
+- [x] Investigate Anime-Planet user export schema (`export_list.php` JSON format with `entries` array: `name`, `status`, `eps`, `rating`, `times`, `started`, `completed`)
+- [x] Cross-reference scraped Anime-Planet database (`subModules/Database-Orchestrator/1db/1anime-planet.db`) against Anime-Dimension AniList entries
+- [x] Populate `ApAnMap` in `anime-dimension.sqlite3` with 27,608 title variants covering 11,251 Anime-Planet entries (95% match rate)
+- [x] Add Backend Import endpoints in `subModules/Anime-Dimension-api/source/api/import.cs`:
+  - `POST /api/users/me/import/preview`: Multi-pass title reconciliation pipeline (`ApAnMap` -> exact title -> slug -> alt_title), categorizes matched vs newer/unindexed, checks already tracked state
+  - `POST /api/users/me/import/confirm`: Batch upsert with `overwrite_existing` toggle and automatic `RecalculateUserStatsAsync`
+- [x] Build Backend API and verify with 0 errors / 0 warnings
+- [x] Design & Implement Frontend Drag & Drop Import UI in `user_anime.astro`:
+  - Quick action "Import List" button for collection owners
+  - Drag-and-drop dropzone supporting `.json` export files
+  - Prominent catalog notice for newer seasonal releases not yet indexed in offline DB
+  - Multi-tab Preview Modal:
+    - "Ready to Import" tab: matched titles, thumbnails, mapped statuses, episode counts, ratings, and existing tracking badges
+    - "Newer / Unindexed" tab: lists unindexed titles with explanation
+  - "Overwrite existing entries" toggle
+  - Batch confirmation and instant list reload
+- [x] Verification: Test end-to-end import flow using sample Anime-Planet JSON export (verified via browser testing agent: file parsing, preview tabs, reconciliation against offline DB catalog, graceful unindexed notice, batch upsert persistence, and profile statistics update)

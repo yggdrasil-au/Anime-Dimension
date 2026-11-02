@@ -28,8 +28,12 @@ const description = "Anime Dimension is a multi platform anime discovery and tra
     </head>
     <body class="sidebar-collapsed">
         <script is:inline>
-            // Redirect to login if user is not authenticated
+            // Allow public viewing if username query parameter exists; otherwise require login
             (() => {
+                const params = new URLSearchParams(window.location.search);
+                const hasUser = params.get('u') || params.get('user') || params.get('username');
+                if (hasUser) return;
+
                 const getApiBase = () => {
                     const probe = document.querySelector('[data-api-base]');
                     const base = probe && probe.getAttribute('data-api-base');
@@ -43,13 +47,9 @@ const description = "Anime Dimension is a multi platform anime discovery and tra
                         });
                         const data = await res.json().catch(() => ({}));
                         if (!data || data.status !== 'ok' || !data.data) {
-                            console.debug('User not authenticated, redirecting to login.');
                             window.location.replace('/auth/index.html');
-                        } else {
-                            console.debug('User authenticated.');
                         }
                     } catch {
-                        // On error, assume not logged in
                         window.location.replace('/auth/index.html');
                     }
                 })();
@@ -223,7 +223,7 @@ const description = "Anime Dimension is a multi platform anime discovery and tra
                                                                     <span class="me-2 rounded-circle flex-shrink-0" style="width: .625rem; height: .625rem; background-color: var(--bs-primary);"></span>
                                                                     <span>Watched</span>
                                                                 </span>
-                                                                <span class="stat-num" data-k="watched">363</span>
+                                                                <span class="stat-num" data-k="watched">0</span>
                                                             </a>
                                                         </li>
                                                         <li>
@@ -232,7 +232,7 @@ const description = "Anime Dimension is a multi platform anime discovery and tra
                                                                     <span class="me-2 rounded-circle flex-shrink-0" style="width: .625rem; height: .625rem; background-color: var(--bs-success);"></span>
                                                                     <span>Watching</span>
                                                                 </span>
-                                                                <span class="stat-num" data-k="watching">14</span>
+                                                                <span class="stat-num" data-k="watching">0</span>
                                                             </a>
                                                         </li>
                                                         <li>
@@ -241,7 +241,7 @@ const description = "Anime Dimension is a multi platform anime discovery and tra
                                                                     <span class="me-2 rounded-circle flex-shrink-0" style="width: .625rem; height: .625rem; background-color: var(--bs-warning);"></span>
                                                                     <span>Want to watch</span>
                                                                 </span>
-                                                                <span class="stat-num" data-k="want">81</span>
+                                                                <span class="stat-num" data-k="want">0</span>
                                                             </a>
                                                         </li>
                                                         <li>
@@ -250,7 +250,7 @@ const description = "Anime Dimension is a multi platform anime discovery and tra
                                                                     <span class="me-2 rounded-circle flex-shrink-0" style="width: .625rem; height: .625rem; background-color: var(--bs-orange, #fd7e14);"></span>
                                                                     <span>Stalled</span>
                                                                 </span>
-                                                                <span class="stat-num" data-k="stalled">2</span>
+                                                                <span class="stat-num" data-k="stalled">0</span>
                                                             </a>
                                                         </li>
                                                         <li>
@@ -259,7 +259,7 @@ const description = "Anime Dimension is a multi platform anime discovery and tra
                                                                     <span class="me-2 rounded-circle flex-shrink-0" style="width: .625rem; height: .625rem; background-color: var(--bs-danger);"></span>
                                                                     <span>Dropped</span>
                                                                 </span>
-                                                                <span class="stat-num" data-k="dropped">119</span>
+                                                                <span class="stat-num" data-k="dropped">0</span>
                                                             </a>
                                                         </li>
                                                         <li>
@@ -268,7 +268,7 @@ const description = "Anime Dimension is a multi platform anime discovery and tra
                                                                     <span class="me-2 rounded-circle flex-shrink-0" style="width: .625rem; height: .625rem; background-color: var(--bs-purple, #6f42c1);"></span>
                                                                     <span>Won’t watch</span>
                                                                 </span>
-                                                                <span class="stat-num" data-k="wont">4,068</span>
+                                                                <span class="stat-num" data-k="wont">0</span>
                                                             </a>
                                                         </li>
                                                     </ul>
@@ -302,7 +302,7 @@ const description = "Anime Dimension is a multi platform anime discovery and tra
                                                             <span>2.5</span>
                                                         </li>
                                                         <li title="29" class="least" style="height: 18%">
-                                                            <span>2</span>
+                                                            <span>0</span>
                                                         </li>
                                                         <li title="8" class="least" style="height: 5%">
                                                             <span>1.5</span>
@@ -403,3 +403,4 @@ const description = "Anime Dimension is a multi platform anime discovery and tra
         <script is:inline src={ThisUsersJS}></script>
     </body>
 </html>
+

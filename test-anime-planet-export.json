@@ -1,0 +1,41 @@
+{
+  "entries": [
+    {
+      "name": "Welcome to Irabu's Office",
+      "status": "watched",
+      "eps": 11,
+      "rating": 4.5,
+      "times": 1,
+      "started": "2020-01-01",
+      "completed": "2020-01-05"
+    },
+    {
+      "name": "Vandread",
+      "status": "watching",
+      "eps": 8,
+      "rating": 4.0,
+      "times": 1,
+      "started": "2021-03-10",
+      "completed": null
+    },
+    {
+      "name": "'Tis Time for \"Torture,\" Princess",
+      "status": "want to watch",
+      "eps": 0,
+      "rating": 0,
+      "times": 0,
+      "started": null,
+      "completed": null
+    },
+    {
+      "name": "Super Brand New Anime 2026 Seasonal",
+      "status": "watching",
+      "eps": 3,
+      "rating": 4.0,
+      "times": 1,
+      "started": "2026-10-01",
+      "completed": null
+    }
+  ]
+}
+

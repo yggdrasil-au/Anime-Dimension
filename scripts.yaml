@@ -271,6 +271,8 @@ scripts:
         interactive: true
     dev-caddy-server: "workspace: caddy start --output --ConfigFile ./{{configs.caddy}} --DocumentRoot ./{{paths.web_root}}"
     dev-caddy-server-dist: "workspace: caddy start --output --ConfigFile ./{{configs.caddy}} --DocumentRoot ./{{paths.wdist}}"
+    # this script is for local testing from the Build dir in the Parent dir
+    dev-caddy-server-Build: "workspace: caddy start --output --ConfigFile ../Build/Caddyfile --DocumentRoot ../Build/dist"
 
 
     dev-apache-watch:

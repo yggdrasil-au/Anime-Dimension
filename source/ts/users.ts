@@ -10,13 +10,18 @@ import { renderRatingsGraph } from './user_logic/_ratings.ts';
 import { initUserRelated, initUserSuggestions } from './user_logic/_suggestions.ts';
 
 const initUserPage = async (): Promise<void> => {
-    // Resolve username from URL; redirect if missing
+    // Resolve username from URL or active login session
     const rawUsername = getParam(['u', 'user', 'username'], '').trim();
-    if (!rawUsername) {
-        globalThis.window.location.replace('/');
-        return;
+    const login = await fetchLoginState();
+    let username = rawUsername;
+    if (!username) {
+        if (login?.user_name) {
+            username = login.user_name;
+        } else {
+            globalThis.window.location.replace('/auth/index.html');
+            return;
+        }
     }
-    const username = rawUsername;
 
     // Fetch profile
     const profile = await fetchUserProfile(username);
@@ -41,7 +46,6 @@ const initUserPage = async (): Promise<void> => {
     if (initialsEl) initialsEl.textContent = initialsFrom(profile.user_name || username);
 
     // Login state and ownership
-    const login = await fetchLoginState();
     const isSelf = !!login?.user_id && (login.user_id === profile.user_id);
 
     // Toggle edit controls based on ownership
@@ -65,21 +69,19 @@ const initUserPage = async (): Promise<void> => {
     renderWatchTime(Math.max(0, Number(profile.watch_minutes || 0)));
     renderWatchStats(profile.stats);
 
-    // Build external links for watch status buttons
+    // Build internal links for watch status buttons
     const linkMap: Record<string, string> = {
-        watched: `https://anime-dimension.com/users/list/user_anime?status=watched&username=${encodeURIComponent(username)}`,
-        watching: `https://anime-dimension.com/users/list/user_anime?status=watching&username=${encodeURIComponent(username)}`,
-        want: `https://anime-dimension.com/users/list/user_anime?status=want&username=${encodeURIComponent(username)}`,
-        stalled: `https://anime-dimension.com/users/list/user_anime?status=stalled&username=${encodeURIComponent(username)}`,
-        dropped: `https://anime-dimension.com/users/list/user_anime?status=dropped&username=${encodeURIComponent(username)}`,
-        wont: `https://anime-dimension.com/users/list/user_anime?status=wont&username=${encodeURIComponent(username)}`,
+        watched: `/users/list/user_anime.html?username=${encodeURIComponent(username)}&status=watched`,
+        watching: `/users/list/user_anime.html?username=${encodeURIComponent(username)}&status=watching`,
+        want: `/users/list/user_anime.html?username=${encodeURIComponent(username)}&status=want`,
+        stalled: `/users/list/user_anime.html?username=${encodeURIComponent(username)}&status=stalled`,
+        dropped: `/users/list/user_anime.html?username=${encodeURIComponent(username)}&status=dropped`,
+        wont: `/users/list/user_anime.html?username=${encodeURIComponent(username)}&status=wont`,
     };
     document.querySelectorAll<HTMLAnchorElement>('#watchStats a[data-k]').forEach((a) => {
         const k = a.getAttribute('data-k') || '';
         const href = linkMap[k];
         if (href) a.href = href;
-        a.target = '_blank';
-        a.rel = 'noopener noreferrer';
     });
 
     // Ratings

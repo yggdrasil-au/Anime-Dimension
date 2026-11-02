@@ -507,6 +507,21 @@ const Public = (
                                                                 <div id="animeMeta" class="text-body-secondary small mb-2">{metaText}</div>
                                                             )}
                                                             {description && <p id="animeSummary" class="mb-3">{description}</p>}
+                                                                                                                        <!-- Live Interactive User Tracking Widget -->
+                                                            <div class="card p-3 my-3 bg-body-tertiary border-0 rounded-3 shadow-sm" id="animeDetailTracker" data-slug={anime.slug} data-id={anime.id ?? 0} data-total-eps={anime.episodes ?? 0}>
+                                                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                                                    <div class="d-flex align-items-center gap-2 flex-wrap" id="trackerControls">
+                                                                        <span class="fw-semibold small text-body-secondary"><i class="bi bi-bookmark-heart me-1"></i>My Anime List:</span>
+                                                                        <div id="trackerStatusSlot">
+                                                                            <span class="spinner-border spinner-border-sm text-secondary" role="status"></span>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div id="trackerFeedback" class="small text-success d-none">
+                                                                        <i class="bi bi-check-circle-fill me-1"></i>Saved
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
                                                             {tags.length > 0 && (
                                                                 <div id="animeTags" class="d-flex flex-wrap gap-1 mb-3">
                                                                     {tags.map((t) => (
@@ -978,5 +993,159 @@ const Public = (
         {/* keep main js include as is */}
         <script is:inline src={MainJS}></script>
         {/* Bootstrap JS should already be part of main bundle; if not, ensure it's included globally */}
+        <script is:inline>
+            // Live Anime Detail Tracking Controller
+            (() => {
+                const trackerBox = document.getElementById('animeDetailTracker');
+                if (!trackerBox) return;
+
+                const slug = trackerBox.dataset.slug;
+                const animeId = parseInt(trackerBox.dataset.id || '0', 10);
+                const totalEps = parseInt(trackerBox.dataset.totalEps || '0', 10);
+                const controlsSlot = document.getElementById('trackerStatusSlot');
+                const feedbackEl = document.getElementById('trackerFeedback');
+
+                const getApiBase = () => {
+                    const probe = document.querySelector('[data-api-base]');
+                    const base = probe && probe.getAttribute('data-api-base');
+                    return (base || 'https://api.anime-dimension.com').replace(/\/$/, '');
+                };
+
+                const showSaved = () => {
+                    if (!feedbackEl) return;
+                    feedbackEl.classList.remove('d-none');
+                    setTimeout(() => feedbackEl.classList.add('d-none'), 2000);
+                };
+
+                const renderStars = (rating) => {
+                    let html = '';
+                    for (let i = 1; i <= 5; i++) {
+                        const filled = rating >= i;
+                        const half = !filled && rating >= (i - 0.5);
+                        const iconClass = filled ? 'bi-star-fill' : (half ? 'bi-star-half' : 'bi-star');
+                        html += `<i class="bi ${iconClass} star text-warning me-1" style="cursor:pointer;" data-rating-val="${i}"></i>`;
+                    }
+                    return html;
+                };
+
+                (async () => {
+                    const apiBase = getApiBase();
+                    try {
+                        const res = await fetch(`${apiBase}/api/users/me/animelist/${encodeURIComponent(slug)}`, {
+                            credentials: 'include'
+                        });
+                        const json = await res.json().catch(() => ({}));
+
+                        if (!json || json.authenticated === false) {
+                            controlsSlot.innerHTML = `
+                                <a href="/auth/index.html" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-box-arrow-in-right me-1"></i>Log in to add to your list
+                                </a>`;
+                            return;
+                        }
+
+                        let currentData = json.data || { status: 0, episodes_watched: 0, user_rating: null };
+
+                        const renderControls = () => {
+                            const st = currentData.status || 0;
+                            const eps = currentData.episodes_watched || 0;
+                            const rat = currentData.user_rating || 0;
+
+                            let html = `
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <select id="detailStatusSelect" class="form-select form-select-sm" style="width: auto;">
+                                        <option value="0" ${st === 0 ? 'selected' : ''}>${st === 0 ? '+ Add to list' : 'Remove from list'}</option>
+                                        <option value="2" ${st === 2 ? 'selected' : ''}>Watching</option>
+                                        <option value="4" ${st === 4 ? 'selected' : ''}>Want to Watch</option>
+                                        <option value="1" ${st === 1 ? 'selected' : ''}>Watched</option>
+                                        <option value="5" ${st === 5 ? 'selected' : ''}>Stalled</option>
+                                        <option value="3" ${st === 3 ? 'selected' : ''}>Dropped</option>
+                                        <option value="6" ${st === 6 ? 'selected' : ''}>Won't Watch</option>
+                                    </select>
+                            `;
+
+                            if (st > 0) {
+                                html += `
+                                    <div class="d-flex align-items-center gap-1">
+                                        <span class="small text-body-secondary">Ep:</span>
+                                        <input type="number" id="detailEpInput" class="form-control form-control-sm text-center" style="width: 60px;" min="0" max="${totalEps > 0 ? totalEps : 9999}" value="${eps}" />
+                                        <span class="small text-body-secondary">/ ${totalEps > 0 ? totalEps : '?'}</span>
+                                        ${st === 2 && (totalEps === 0 || eps < totalEps) ? `
+                                            <button type="button" class="btn btn-sm btn-outline-secondary" id="detailIncBtn" title="Increment 1 episode">+1</button>
+                                        ` : ''}
+                                    </div>
+                                    <div class="d-flex align-items-center ms-2" id="detailStarsBox" title="Rate: ${rat > 0 ? rat + '/5' : 'Unrated'}">
+                                        ${renderStars(rat)}
+                                    </div>
+                                `;
+                            }
+
+                            html += `</div>`;
+                            controlsSlot.innerHTML = html;
+
+                            const statusSel = document.getElementById('detailStatusSelect');
+                            const epInp = document.getElementById('detailEpInput');
+                            const incBtn = document.getElementById('detailIncBtn');
+                            const starsBox = document.getElementById('detailStarsBox');
+
+                            statusSel?.addEventListener('change', async () => {
+                                const newSt = parseInt(statusSel.value, 10);
+                                currentData.status = newSt;
+                                if (newSt === 1 && totalEps > 0) {
+                                    currentData.episodes_watched = totalEps;
+                                }
+                                renderControls();
+                                await syncUpdate();
+                            });
+
+                            epInp?.addEventListener('change', async () => {
+                                currentData.episodes_watched = parseInt(epInp.value, 10) || 0;
+                                renderControls();
+                                await syncUpdate();
+                            });
+
+                            incBtn?.addEventListener('click', async () => {
+                                currentData.episodes_watched = (currentData.episodes_watched || 0) + 1;
+                                renderControls();
+                                await syncUpdate();
+                            });
+
+                            starsBox?.addEventListener('click', async (e) => {
+                                const star = e.target.closest('[data-rating-val]');
+                                if (!star) return;
+                                const r = parseFloat(star.dataset.ratingVal);
+                                currentData.user_rating = (currentData.user_rating === r) ? null : r;
+                                renderControls();
+                                await syncUpdate();
+                            });
+                        };
+
+                        const syncUpdate = async () => {
+                            try {
+                                await fetch(`${apiBase}/api/users/me/animelist`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    credentials: 'include',
+                                    body: JSON.stringify({
+                                        slug,
+                                        anime_id: animeId,
+                                        status: currentData.status || 0,
+                                        episodes_watched: currentData.episodes_watched || 0,
+                                        rating: currentData.user_rating
+                                    })
+                                });
+                                showSaved();
+                            } catch (err) {
+                                console.error('Tracking update failed', err);
+                            }
+                        };
+
+                        renderControls();
+                    } catch (err) {
+                        controlsSlot.innerHTML = `<span class="small text-danger">Tracking unavailable</span>`;
+                    }
+                })();
+            })();
+        </script>
     </body>
 </html>

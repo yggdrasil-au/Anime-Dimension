@@ -2,7 +2,7 @@ import { LoginState, UserProfile } from './_types.ts';
 import { getApiBase } from './_utils.ts';
 
 export const fetchUserProfile = async (uname: string): Promise<UserProfile | null> => {
-    if (!uname || !/^[a-zA-Z0-9]+$/.test(uname)) return null;
+    if (!uname || !/^[a-zA-Z0-9_-]{3,30}$/.test(uname)) return null;
     try {
         const res = await fetch(`${getApiBase()}/api/users/profile?username=${encodeURIComponent(uname)}`, { credentials: 'include' });
         const data = await res.json().catch(() => ({} as any));

@@ -31,7 +31,7 @@ const data = {
 
 }
 
-export const isSite = "AD"; // site identifier, used in shared files to determine which site is being built, and to allow for shared code between multiple sites
+export const IsSite = "AD"; // site identifier, used in shared files to determine which site is being built, and to allow for shared code between multiple sites
 
 export const favicon = "/data/images/prod/assets/favicon--x48.webp"; // path to favicon, used in _0-Head astro component, shared across all pages
 
@@ -66,6 +66,10 @@ export const packageVersion = package_json.version || "[JS-ERROR]";
 export const packageName = package_json.name || "[JS-ERROR]";
 export const packageDescription = package_json.description || "[JS-ERROR]";
 export const packageAuthorName = package_json.author.name || "[JS-ERROR]";
+
+// get build ID from scripts/build.js, which is generated at build time
+import * as build from "@PackageRoot/scripts/build.js";
+export const buildId = build.buildId;
 
 
 ////
