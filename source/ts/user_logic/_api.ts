@@ -15,7 +15,12 @@ export const fetchUserProfile = async (uname: string): Promise<UserProfile | nul
 
 export const fetchLoginState = async (): Promise<LoginState | null> => {
     try {
-        const res = await fetch(`${getApiBase()}/api/login/validateState?caller=TS_user_logic_api`, { method: 'PUT', credentials: 'include' });
+        let token: string | null = null;
+        try { token = typeof localStorage !== 'undefined' ? localStorage.getItem('ad_session_token') : null; } catch {}
+        let url = `${getApiBase()}/api/login/validateState?caller=TS_user_logic_api`;
+        if (token) url += `&session_token=${encodeURIComponent(token)}`;
+        const headers: Record<string, string> = token ? { 'Authorization': `Bearer ${token}` } : {};
+        const res = await fetch(url, { method: 'PUT', headers, credentials: 'include' });
         const data = await res.json().catch(() => ({} as any));
         if (data && data.status === 'ok' && data.data) {
             return {

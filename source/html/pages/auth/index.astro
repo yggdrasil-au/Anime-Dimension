@@ -227,7 +227,12 @@ const ThisJS = "../js/main.min.js"
                 // Check login state immediately
                 (async () => {
                     try {
-                        const res = await fetch(`${getApiBase()}/api/login/validateState?caller=auth_index`, { method: 'PUT', credentials: 'include' });
+                        let token = null;
+                        try { token = localStorage.getItem('ad_session_token'); } catch {}
+                        let url = `${getApiBase()}/api/login/validateState?caller=auth_index`;
+                        if (token) url += `&session_token=${encodeURIComponent(token)}`;
+                        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+                        const res = await fetch(url, { method: 'PUT', headers, credentials: 'include' });
                         const data = await res.json().catch(() => ({}));
                         if (data && data.status === 'ok') {
                             window.location.replace('/');
@@ -280,6 +285,9 @@ const ThisJS = "../js/main.min.js"
                         const status = (data && data.status) || 'err';
 
                         if (status === 'ok') {
+                            if (data && data.data && data.data.session_token) {
+                                try { localStorage.setItem('ad_session_token', data.data.session_token); } catch {}
+                            }
                             show(okEl, 'Logged in! Redirecting…');
                             setTimeout(() => { window.location.href = '/'; }, 600);
                         } else {

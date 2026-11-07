@@ -204,19 +204,19 @@ const MainJS = "/js/main.min.js";
 
 const buildTooltipHtml = (it) => {
                     if (!it) return '';
-                    const titleVal = it.t || it.title;
-                    const typeVal = it.ty;
-                    const yearVal = it.y;
-                    const summaryVal = it.d;
-                    const tagsVal = it.g;
-                    const altTitle = it.at;
-                    const studio = it.st;
-                    const rating = it.r;
-                    const notes = it.n;
-                    const aid = it.aid;
-                    const crid = it.crid;
-                    const hdid = it.hdid;
-                    const streams = it.str;
+                    const titleVal = it.t || it.title || it.name || '';
+                    const typeVal = it.ty || it.type || it.format;
+                    const yearVal = it.y || it.year || it.startYear;
+                    const summaryVal = it.d || it.synopsis || it.summary || it.description;
+                    const tagsVal = it.g || it.tags || it.genres;
+                    const altTitle = it.at || it.altTitle || it.alt_title || it.alt;
+                    const studio = it.st || it.studio;
+                    const rating = it.r || it.rating || it.score;
+                    const notes = it.n || it.notes;
+                    const aid = it.aid || it.anilistId || it.anilist_id || it.dataId || it.data_id;
+                    const crid = it.crid || it.crunchyrollId || it.crId || it.cr_id;
+                    const hdid = it.hdid || it.hidiveId || it.hdId || it.hd_id;
+                    const streams = it.str || it.streams || it.streamingSources || it.streaming_sources;
 
                     const root = document.createElement('div');
 
@@ -288,15 +288,37 @@ const buildTooltipHtml = (it) => {
                         strDiv.append(h4);
                         
                         const ulStr = document.createElement('ul');
-                        ulStr.setAttribute('style', 'list-style: none; padding: 0; display: flex; gap: 0.5rem; margin-bottom: 0;');
+                        ulStr.setAttribute('style', 'list-style: none; padding: 0; display: flex; gap: 0.5rem; margin-bottom: 0; flex-wrap: wrap;');
                         for (const s of streams) {
                             const liStr = document.createElement('li');
                             const aStr = document.createElement('a');
-                            aStr.className = 'badge text-bg-warning text-dark text-decoration-none';
+                            const platform = s.p || s.platform || 'Unknown';
+                            const platformLower = String(platform).toLowerCase();
+
+                            let badgeClass = 'badge text-decoration-none';
+                            let customStyle = '';
+                            if (platformLower.includes('hidive')) {
+                                badgeClass += ' text-bg-primary text-white';
+                                customStyle = 'background-color: #00aeef !important; color: #ffffff !important;';
+                            } else if (platformLower.includes('crunchyroll')) {
+                                badgeClass += ' text-bg-warning text-white';
+                                customStyle = 'background-color: #f47521 !important; color: #ffffff !important;';
+                            } else if (platformLower.includes('netflix')) {
+                                badgeClass += ' text-bg-danger text-white';
+                                customStyle = 'background-color: #e50914 !important; color: #ffffff !important;';
+                            } else if (platformLower.includes('hulu')) {
+                                badgeClass += ' text-bg-success text-dark';
+                                customStyle = 'background-color: #1ce783 !important; color: #000000 !important;';
+                            } else {
+                                badgeClass += ' text-bg-secondary text-white';
+                            }
+
+                            aStr.className = badgeClass;
+                            if (customStyle) aStr.setAttribute('style', customStyle);
                             aStr.href = s.u || s.url || '#';
                             aStr.target = '_blank';
                             aStr.rel = 'noopener noreferrer';
-                            aStr.textContent = s.p || s.platform || 'Unknown';
+                            aStr.textContent = platform;
                             liStr.append(aStr);
                             ulStr.append(liStr);
                         }

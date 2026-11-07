@@ -65,20 +65,20 @@ export interface TooltipDataLike {
 }
 
 const parseStreams = (o: Dict): { platform: string, url: string }[] | undefined => {
-    const s = o.streams || o.str;
+    const s = o.streams || o.str || o.streamingSources || o.streaming_sources;
     if (Array.isArray(s) && s.length > 0) {
         return s.map(x => ({
-            platform: String(x.platform || x.p || 'Unknown'),
-            url: String(x.url || x.u || '#')
+            platform: String(x.platform || x.p || x.service_code || x.service || 'Unknown'),
+            url: String(x.url || x.u || x.service_url || '#')
         }));
     }
     return undefined;
 };
 
 const normalize = (it: Dict): TooltipDataLike => {
-    const anilistId = str(it, 'aid', 'anilistId') || num(it, 'aid', 'anilistId');
-    const crunchyrollId = str(it, 'crid', 'crunchyrollId');
-    const hidiveId = str(it, 'hdid', 'hidiveId') || num(it, 'hdid', 'hidiveId');
+    const anilistId = str(it, 'aid', 'anilistId', 'anilist_id', 'dataId', 'data_id') || num(it, 'aid', 'anilistId', 'anilist_id', 'dataId', 'data_id');
+    const crunchyrollId = str(it, 'crid', 'crunchyrollId', 'crId', 'cr_id');
+    const hidiveId = str(it, 'hdid', 'hidiveId', 'hdId', 'hd_id') || num(it, 'hdid', 'hidiveId', 'hdId', 'hd_id');
     const title = getTitle(it);
     const altTitleRaw = str(it, 'altTitle', 'alt_title', 'alt', 'subtitle', 'titleAlt', 'japanese', 'native', 'romaji', 'english');
     const altTitle = altTitleRaw && altTitleRaw !== title ? altTitleRaw : undefined;
@@ -164,11 +164,33 @@ export const buildTooltipHtml = (raw: Dict): string => {
         strDiv.className = 'streams mb-2';
         appendTextEl(strDiv, 'h4', 'Available On');
         const ul = document.createElement('ul');
-        // Inline styles or utility classes depending on your CSS framework
-        ul.setAttribute('style', 'list-style: none; padding: 0; display: flex; gap: 0.5rem; margin-bottom: 0;');
+        ul.setAttribute('style', 'list-style: none; padding: 0; display: flex; gap: 0.5rem; margin-bottom: 0; flex-wrap: wrap;');
         for (const s of data.streams) {
             const li = document.createElement('li');
-            const a = appendTextEl(li, 'a', s.platform, 'badge text-bg-warning text-dark text-decoration-none');
+            const platformLower = s.platform.toLowerCase();
+            let badgeClass = 'badge text-decoration-none';
+            let customStyle = '';
+
+            if (platformLower.includes('hidive')) {
+                badgeClass += ' text-bg-primary text-white';
+                customStyle = 'background-color: #00aeef !important; color: #ffffff !important;';
+            } else if (platformLower.includes('crunchyroll')) {
+                badgeClass += ' text-bg-warning text-white';
+                customStyle = 'background-color: #f47521 !important; color: #ffffff !important;';
+            } else if (platformLower.includes('netflix')) {
+                badgeClass += ' text-bg-danger text-white';
+                customStyle = 'background-color: #e50914 !important; color: #ffffff !important;';
+            } else if (platformLower.includes('hulu')) {
+                badgeClass += ' text-bg-success text-dark';
+                customStyle = 'background-color: #1ce783 !important; color: #000000 !important;';
+            } else {
+                badgeClass += ' text-bg-secondary text-white';
+            }
+
+            const a = appendTextEl(li, 'a', s.platform, badgeClass);
+            if (customStyle) {
+                a.setAttribute('style', customStyle);
+            }
             (a as HTMLAnchorElement).href = s.url;
             (a as HTMLAnchorElement).target = '_blank';
             (a as HTMLAnchorElement).rel = 'noopener noreferrer';

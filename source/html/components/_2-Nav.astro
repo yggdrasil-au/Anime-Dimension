@@ -103,13 +103,18 @@
                         // Logout Logic
                         const doLogout = async () => {
                             try {
+                                let storedToken = null;
+                                try { storedToken = localStorage.getItem('ad_session_token'); } catch {}
+                                const headers = storedToken ? { 'Authorization': `Bearer ${storedToken}` } : {};
                                 await fetch(`${getApiBase()}/api/logout`, {
                                     method: 'POST',
+                                    headers: headers,
                                     credentials: 'include',
                                 });
                             } catch (error) {
                                 console.warn('Logout request failed', error);
                             }
+                            try { localStorage.removeItem('ad_session_token'); } catch {}
                             // Hard reload is safer to clear cached user states in Capacitor
                             window.location.href = '/index.html';
                         };
@@ -130,8 +135,16 @@
                         (async () => {
                             let isLoggedIn = false;
                             try {
-                                const res = await fetch(`${getApiBase()}/api/login/validateState?caller=nav`, {
+                                let storedToken = null;
+                                try { storedToken = localStorage.getItem('ad_session_token'); } catch {}
+                                let url = `${getApiBase()}/api/login/validateState?caller=nav`;
+                                if (storedToken) {
+                                    url += `&session_token=${encodeURIComponent(storedToken)}`;
+                                }
+                                const headers = storedToken ? { 'Authorization': `Bearer ${storedToken}` } : {};
+                                const res = await fetch(url, {
                                     method: 'PUT',
+                                    headers: headers,
                                     credentials: 'include',
                                 });
 
@@ -194,6 +207,7 @@
                                 if (authLoading) authLoading.classList.add('d-none');
 
                                 if (!isLoggedIn) {
+                                    try { localStorage.removeItem('ad_session_token'); } catch {}
                                     if (authBtns) authBtns.classList.remove('d-none');
                                     if (siteUser) siteUser.classList.add('d-none'); // Ensure hidden
                                 } else {

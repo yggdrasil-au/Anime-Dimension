@@ -41,8 +41,14 @@ const description = "Anime Dimension is a multi platform anime discovery and tra
                 };
                 (async () => {
                     try {
-                        const res = await fetch(`${getApiBase()}/api/login/validateState?caller=users_user`, {
+                        let token = null;
+                        try { token = localStorage.getItem('ad_session_token'); } catch {}
+                        let url = `${getApiBase()}/api/login/validateState?caller=users_user`;
+                        if (token) url += `&session_token=${encodeURIComponent(token)}`;
+                        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+                        const res = await fetch(url, {
                             method: 'PUT',
+                            headers: headers,
                             credentials: 'include',
                         });
                         const data = await res.json().catch(() => ({}));

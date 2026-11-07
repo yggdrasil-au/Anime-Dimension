@@ -705,8 +705,14 @@ const description = "Track your animated works, ratings, reviews, and progress o
                 const initIdentity = async () => {
                     const apiBase = getApiBase();
                     try {
-                        const res = await fetch(`${apiBase}/api/login/validateState?caller=user_anime_list`, {
+                        let token = null;
+                        try { token = localStorage.getItem('ad_session_token'); } catch {}
+                        let url = `${apiBase}/api/login/validateState?caller=user_anime_list`;
+                        if (token) url += `&session_token=${encodeURIComponent(token)}`;
+                        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+                        const res = await fetch(url, {
                             method: 'PUT',
+                            headers: headers,
                             credentials: 'include'
                         });
                         const data = await res.json().catch(() => ({}));

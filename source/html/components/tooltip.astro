@@ -45,14 +45,41 @@ const streams = STREAMS ?? [];
     { streams && streams.length > 0 && (
         <div class="streams mb-2">
             <h4>Available On</h4>
-            <ul style="list-style: none; padding: 0; display: flex; gap: 0.5rem; margin-bottom: 0;">
-                {streams.map((s: any) => (
-                    <li>
-                        <a href={s.url || s.u} target="_blank" rel="noopener noreferrer" class="badge text-bg-warning text-dark text-decoration-none">
-                            {s.platform || s.p}
-                        </a>
-                    </li>
-                ))}
+            <ul style="list-style: none; padding: 0; display: flex; gap: 0.5rem; margin-bottom: 0; flex-wrap: wrap;">
+                {streams.map((s: any) => {
+                    const platform = s.platform || s.p || 'Unknown';
+                    const platformLower = String(platform).toLowerCase();
+                    const isHidive = platformLower.includes('hidive');
+                    const isCr = platformLower.includes('crunchyroll');
+                    const isNetflix = platformLower.includes('netflix');
+                    const isHulu = platformLower.includes('hulu');
+
+                    let badgeClass = 'badge text-decoration-none';
+                    let customStyle = '';
+                    if (isHidive) {
+                        badgeClass += ' text-bg-primary text-white';
+                        customStyle = 'background-color: #00aeef !important; color: #ffffff !important;';
+                    } else if (isCr) {
+                        badgeClass += ' text-bg-warning text-white';
+                        customStyle = 'background-color: #f47521 !important; color: #ffffff !important;';
+                    } else if (isNetflix) {
+                        badgeClass += ' text-bg-danger text-white';
+                        customStyle = 'background-color: #e50914 !important; color: #ffffff !important;';
+                    } else if (isHulu) {
+                        badgeClass += ' text-bg-success text-dark';
+                        customStyle = 'background-color: #1ce783 !important; color: #000000 !important;';
+                    } else {
+                        badgeClass += ' text-bg-secondary text-white';
+                    }
+
+                    return (
+                        <li>
+                            <a href={s.url || s.u} target="_blank" rel="noopener noreferrer" class={badgeClass} style={customStyle}>
+                                {platform}
+                            </a>
+                        </li>
+                    );
+                })}
             </ul>
         </div>
     )}

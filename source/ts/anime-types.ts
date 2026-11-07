@@ -77,6 +77,16 @@ export interface AnimeItemRaw extends Dict {
     tags?: unknown;
     genres?: unknown;
     notes?: unknown;
+    streams?: unknown;
+    streamingSources?: unknown;
+    crId?: string | number;
+    crid?: string | number;
+    hdId?: string | number;
+    hdid?: string | number;
+    dataId?: string | number;
+    data_id?: string | number;
+    aid?: string | number;
+    anilistId?: string | number;
 }
 
 /**

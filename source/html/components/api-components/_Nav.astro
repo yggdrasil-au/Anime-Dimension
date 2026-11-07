@@ -115,8 +115,14 @@ import * as buildconf from "@BuildConfigs/main.js";
                         (async () => {
                             let isLoggedIn = false;
                             try {
-                                const res = await fetch(`${window.getApiBase()}/api/login/validateState?caller=api_nav`, {
+                                let storedToken = null;
+                                try { storedToken = localStorage.getItem('ad_session_token'); } catch {}
+                                let url = `${window.getApiBase()}/api/login/validateState?caller=api_nav`;
+                                if (storedToken) url += `&session_token=${encodeURIComponent(storedToken)}`;
+                                const headers = storedToken ? { 'Authorization': `Bearer ${storedToken}` } : {};
+                                const res = await fetch(url, {
                                     method: 'PUT',
+                                    headers: headers,
                                     credentials: 'include',
                                 });
                                 const data = await res.json().catch(() => ({}));
